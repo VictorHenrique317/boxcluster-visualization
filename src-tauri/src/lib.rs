@@ -1,0 +1,62 @@
+// https://www.sheshbabu.com/posts/rust-module-system/
+#![allow(non_snake_case)]
+pub mod dag;
+pub mod subtensor;
+pub mod io;
+pub mod services;
+pub mod states;
+pub mod view;
+pub mod tensor;
+pub mod common;
+pub mod metrics;
+pub mod post_analysis;
+pub mod application_manager;
+
+use std::{fs::File, collections::HashMap};
+
+use application_manager::ApplicationManager;
+
+pub fn main() {
+    testDag();
+}
+
+fn testDag(){
+    // let path = "../tests/test_data/real1.txt".to_owned(); 
+    // let path = "../tests/test_data/4k-big-patterns.txt".to_owned(); 
+    // let path = "../tests/test_data/9k-small-patterns.txt".to_owned();
+    // let path = "../tests/test_data/simple-msuper.txt".to_owned();
+    // let path = "../tests/test_data/simple-msub-2.txt".to_owned();
+    // // let path = "../tests/test_data/synth-2.txt".to_owned();
+    // let path = "../tests/test_data/paf-1.txt".to_owned();
+    // let path = "../tests/test_data/paf-1.processed".to_owned();
+    // let path = "../tests/test_data/real-1.txt".to_owned();
+    // let path = "../tests/test_data/dataset-co16.fuzzy_tensor".to_owned();
+    
+    // let tensor_path = "../tests/test_data/tensors/4k-big-patterns-fuzzytensor.txt".to_owned();
+    // let patterns_path = "../tests/test_data/4k-big-patterns.txt".to_owned();
+    
+    // let tensor_path = "../tests/test_data/tensors/primary-school.txt".to_owned();
+    // let patterns_path = "../tests/test_data/paf-1.txt".to_owned();
+
+    // let tensor_path = "../tests/test_data/distance_test/a.txt".to_owned();
+    // let patterns_path = "../tests/test_data/distance_test/a_patterns.txt".to_owned();
+    
+    // let tensor_path = "../tests/test_data/distance_test/b.txt".to_owned();
+    // let patterns_path = "../tests/test_data/distance_test/b_patterns.txt".to_owned();
+
+    // let tensor_path = "../tests/test_data/distance_test/c.txt".to_owned();
+    // let patterns_path = "../tests/test_data/distance_test/c_patterns.txt".to_owned();
+
+    // let tensor_path = "../tests/test_data/tensors/dataset-co16.txt".to_owned();
+    // let patterns_path = "../tests/test_data/synth-50-3d-co16.txt".to_owned();
+
+    let tensor_path = "../tests/test_data/tensors/retweets-sparser.txt".to_owned();
+    let patterns_path = "../tests/test_data/158-retweets-sparser.txt".to_owned();
+
+    // let tensor_path = "retweets-sparser.txt".to_owned();
+    // let patterns_path = "158-retweets-sparser.txt".to_owned();
+
+    let mut application_manager = ApplicationManager::new(&tensor_path, &patterns_path);
+    application_manager.initialize();
+}
+

@@ -1,0 +1,116 @@
+@use '@angular/material' as mat;
+// @import '../style.scss';
+@import '../theme.scss';
+
+// $primary-palette: map-get($map: , $key: )
+
+body{
+    // $background: map-get($theme, background);
+    background-color: $background-color;
+    position: absolute;
+    top: 0px;
+    right: 0;
+    left: 0;
+    bottom: 0px;
+    display: flex;
+    flex-direction: row;
+
+    aside{
+        background-color: mat.get-color-from-palette($primary-palette, 900);
+        color: mat.get-color-from-palette($primary-palette, '900-contrast');
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        max-width: 20vw; 
+        min-width: 20vw;
+        max-height: 100vh;
+        header{
+            min-height: 10vh;
+            max-height: 10vh;
+
+            user-select: none;
+            padding-top: 1em;
+            padding-left: 1em;
+            padding-bottom: 1em;
+
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+
+            mat-icon{
+                font-size: 2.5em;
+                width: 1em;
+                height: 1em;
+            }
+
+            h1{
+                padding-top: 0.5em;
+                padding-left: 0.5em;
+                padding-right: 0.5em;
+                max-width: 70%;
+                word-wrap: break-word;
+                font-size: 1.5em;
+            }
+        }
+
+        header:hover{
+            background-color: mat.get-color-from-palette($primary-palette, 800);
+            cursor: pointer;
+        }
+
+        h2{
+            padding-left: 1em;
+            padding-top: 1em;
+        }
+
+        app-dynamic-paginator{
+            flex: 4;
+        }
+    }
+
+    #main-app{
+        // background-color: green;
+        flex: 4;
+        display: flex;
+        flex-direction: column;
+
+        nav{
+            padding-top: 1em;
+            // background-color: red;
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+            padding-left: 1em;
+            // background-color: mat.get-color-from-palette($primary-palette, 500);
+            background-color: mat.get-color-from-palette($primary-palette, 700);
+
+            button{
+                // border-color: mat.get-color-from-palette($primary-palette, 900);
+                // border-width: 0.12em;
+                margin-right: 0.25em;
+                background-color: mat.get-color-from-palette($primary-palette, 500);
+                color: mat.get-color-from-palette($primary-palette, '900-contrast');
+            }
+
+            #draw-buttons{
+                display: flex;
+                flex-direction: row;
+
+                button{
+                }
+            }
+        }
+
+        app-dag{
+            flex: 14;
+            // font-size: 5em;
+        }
+
+        footer{
+            flex: 1;
+            // background-color: brown;
+        }
+    }
+}

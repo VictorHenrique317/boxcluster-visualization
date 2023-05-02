@@ -1,0 +1,37 @@
+body{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    padding-top: 0em;
+    // background-color: yellow;
+    height: 100%;
+
+    aside{
+        height: 100%;
+
+        mat-card{
+            height: 100%;
+        }
+    }
+
+    #aside-right{
+        flex-grow: 1;
+    }
+
+    section{
+        display: flex;
+        flex-grow: 4;
+
+        justify-content: center;
+
+        canvas{
+            max-width: 80vw; // may change if flex-grow is changed
+            max-height: 100vh;
+
+            // background-color: red;
+            object-fit:contain;
+        }
+    }
+
+    
+}

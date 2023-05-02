@@ -1,0 +1,79 @@
+@use '@angular/material' as mat;
+@import '../../theme.scss';
+
+mat-list{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding-top: 0;
+    padding-bottom: 0;
+
+    mat-list-item{
+        user-select: none;
+        height: fit-content;
+        padding-top: 8px;
+        padding-bottom: 16px;
+    }
+
+    mat-list-item:hover{
+        cursor: pointer;
+        background-color: mat.get-color-from-palette($primary-palette, 800);
+    }
+
+    #navigation_options{
+        user-select: none;
+        display: flex;
+        flex-direction: column;
+
+        position: absolute;
+        bottom: 0;
+
+        width: 20vw;
+        padding-bottom: 16px;
+
+        mat-divider{
+            // background-color: mat.get-color-from-palette($primary-palette, '900-contrast');
+            background-color: mat.get-color-from-palette($primary-palette, 700);
+        }
+
+        #navigation_options_1{
+            p{  
+                margin-bottom: 0;
+                padding-left: 1em;
+                padding-right: 1em;
+                padding-bottom: 0.5em;
+                padding-top: 1em;
+
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+        
+        #navigation_options_2{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+    
+            mat-icon{
+                width: 2.5em;
+                display: flex;
+                justify-content: center;
+                margin-right: 0.25em;
+                margin-left: 0.25em;
+            }
+    
+            mat-icon:hover{
+                background-color: mat.get-color-from-palette($primary-palette, 800);
+                cursor: pointer;
+            }
+        }
+    } 
+
+    
+}
+
+.mat-list-item-content {
+    font-size: 10em;
+  }

@@ -1,0 +1,4 @@
+<div id="matListItemContainer" #matListItemContainer>
+    <span matListItemTitle class="pattern-id">Pattern ID: {{pattern_id}}</span>
+    <span matListItemLine class="pattern-dim-values" *ngFor="let dim_values of pattern.dims_values; let i = index"> DIM {{i + 1}}:{{dim_values}}</span>
+</div>

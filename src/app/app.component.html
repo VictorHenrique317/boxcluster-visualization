@@ -1,0 +1,49 @@
+<body>
+    <aside #aside>
+        <header #header matRipple [matRippleCentered]="true" (click)="openFileDialog()">
+            <mat-icon aria-hidden="false" aria-label="open_file" fontIcon="upload_file"></mat-icon>
+            <h1>{{file_name}}</h1>
+        </header>
+
+        <app-dynamic-paginator *ngIf="file_path" [matList_height]="matList_height"></app-dynamic-paginator>
+        
+    </aside>
+
+    <div id="main-app">
+        <nav>
+            <button mat-raised-button [matMenuTriggerFor]="scaleMenu">Scale</button>
+            <mat-menu #scaleMenu="matMenu">
+                <button mat-menu-item>Linear</button>
+                <button mat-menu-item>Logarithmic</button>
+            </mat-menu>
+
+            <button mat-raised-button [matMenuTriggerFor]="areaMenu">Area attribute</button>
+            <mat-menu #areaMenu="matMenu">
+                <button mat-menu-item>Pattern size</button>
+                <button mat-menu-item>Density</button>
+                <button mat-menu-item>G</button>
+            </mat-menu>
+
+            <button mat-raised-button [matMenuTriggerFor]="groupMenu">Grouping Type</button>
+            <mat-menu #groupMenu="matMenu">
+                <button mat-menu-item>Flat</button>
+                <button mat-menu-item>Group by fonts</button>
+            </mat-menu>
+
+            <button mat-raised-button>Show hierarchy</button>
+            <button mat-raised-button>Go back</button>
+            <button mat-raised-button>Pin/ unpin</button>
+            <div id="draw-buttons">
+                <button mat-raised-button>+</button>
+                <button mat-raised-button>-</button>
+            </div>
+        </nav>
+        
+        <app-dag></app-dag>
+<!--     
+        <footer>
+            <p>footer</p>
+        </footer> -->
+
+    </div>
+</body>

@@ -1,0 +1,15 @@
+@use '@angular/material' as mat;
+@import '../../theme.scss';
+
+span{
+    color: mat.get-color-from-palette($primary-palette, '900-contrast');
+    max-width: 15vw; // max 20vw
+}
+
+.pattern-id{
+    color: mat.get-color-from-palette($primary-palette, '900-contrast');
+}
+
+.pattern-dim-values{
+    color: mat.get-color-from-palette($primary-palette, '600-contrast');
+}
