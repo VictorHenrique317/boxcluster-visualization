@@ -44,6 +44,7 @@ impl MultiDimScaling{
             let kwargs = PyDict::new(py);
             kwargs.set_item("dissimilarity", "precomputed").unwrap();
             kwargs.set_item("normalized_stress", false).unwrap();
+            kwargs.set_item("random_state", 1).unwrap();
             kwargs.set_item("n_components", 2).unwrap();
             let mds = sklearn.getattr("MDS").unwrap()
                 .call((), Some(kwargs))

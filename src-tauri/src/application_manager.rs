@@ -7,7 +7,6 @@ use plotters::style::{WHITE, RED, IntoFont, ShapeStyle, Color};
 
 use crate::common::identifier_mapper::IdentifierMapper;
 use crate::metrics::datapoint::DataPoint;
-use crate::post_analysis::datapoints_creator::DataPointsCreator;
 use crate::post_analysis::multidim_scaling::MultiDimScaling;
 use crate::{io::{tensor_reader::TensorReader, translator::Translator, pattern_reader::PatternReader}, dag::{dag_creator::DagCreator}, metrics::{metrics::Metrics, metric::Metric}, tensor::tensor::Tensor};
 
@@ -32,6 +31,38 @@ impl ApplicationManager{
             identifier_mapper: Default::default(),
             metrics: Default::default(),
         };
+    }
+
+    fn acquireInformation(&mut self){
+        self.translator = Translator::new(&self.tensor_path);
+        let tensor_reader = TensorReader::new(
+            &self.tensor_path,
+            &self.translator);
+        self.tensor = tensor_reader.read();
+
+        let pattern_reader = PatternReader::new(
+            &self.patterns_path,
+            &self.translator);
+        let patterns = pattern_reader.read();
+
+        self.identifier_mapper = IdentifierMapper::new(patterns);
+    }
+
+    fn createModel(&mut self){
+        let dag_creator = DagCreator::new(&self.identifier_mapper);
+        let dag = dag_creator.create();
+        self.identifier_mapper.insertDagNodeRepresentations(
+            dag.extractNodes()
+        );
+    }
+
+    fn analyseModel(&mut self){
+        self.metrics = Metrics::new(&self.identifier_mapper, &self.tensor);
+        
+        let coords = MultiDimScaling::fitTransform(&self.metrics.distances, &self.identifier_mapper);
+
+        let data_point_representations = DataPoint::createDataPoints(&self.identifier_mapper, &coords);
+        self.identifier_mapper.insertDataPointRepresentations(data_point_representations);
     }
 
     fn testPlot(&self){
@@ -68,9 +99,13 @@ impl ApplicationManager{
 
         chart.configure_mesh().draw().unwrap();
 
-        for identifier_representation in self.identifier_mapper.getRepresentations(){
+        // Enforcing that overlapping points are drawn in the correct order
+        let mut representations = self.identifier_mapper.getRepresentations();
+        representations.sort_by(|a, b| 
+            b.asDataPoint().size.partial_cmp(&a.asDataPoint().size).unwrap()); 
+            
+        for identifier_representation in representations{
             let datapoint = identifier_representation.asDataPoint();
-            // dbg!(&datapoint.stroke_width);
             chart.draw_series(
                 std::iter::once(Circle::new((
                     datapoint.x, 
@@ -89,38 +124,6 @@ impl ApplicationManager{
         println!("PLOTTED TEST GRAPH");
     }
 
-    fn acquireInformation(&mut self){
-        self.translator = Translator::new(&self.tensor_path);
-        let tensor_reader = TensorReader::new(
-            &self.tensor_path,
-            &self.translator);
-        self.tensor = tensor_reader.read();
-
-        let pattern_reader = PatternReader::new(
-            &self.patterns_path,
-            &self.translator);
-        let patterns = pattern_reader.read();
-
-        self.identifier_mapper = IdentifierMapper::new(patterns);
-    }
-
-    fn createModel(&mut self){
-        let dag_creator = DagCreator::new(&self.identifier_mapper);
-        let dag = dag_creator.create();
-        self.identifier_mapper.insertDagNodeRepresentations(
-            dag.extractNodes()
-        );
-    }
-
-    fn analyseModel(&mut self){
-        self.metrics = Metrics::new(&self.identifier_mapper, &self.tensor);
-        
-        let coords = MultiDimScaling::fitTransform(&self.metrics.distances, &self.identifier_mapper);
-
-        let data_point_representations = DataPointsCreator::create(&self.identifier_mapper, &coords);
-        self.identifier_mapper.insertDataPointRepresentations(data_point_representations);
-    }
-
     pub fn initialize(&mut self){
         let start_time = Instant::now();
         
@@ -135,13 +138,15 @@ impl ApplicationManager{
         println!("Total time taken: {:?}", duration);
     }
 
-    // pub fn getFlattenedSupers(&self) -> HashMap<u32, Vec<u32>>{
-    //     return self.dag.getFlattenedSupers().clone();
-    // }
+    pub fn getFlattenedSupers(&self) -> HashMap<u32, Vec<u32>>{
+        // return self.dag.getFlattenedSupers().clone();
+        todo!()
+    }
 
-    // pub fn getFlattenedSubs(&self) -> HashMap<u32, Vec<u32>>{
-    //     return self.dag.getFlattenedSubs().clone();
-    // }
+    pub fn getFlattenedSubs(&self) -> HashMap<u32, Vec<u32>>{
+        // return self.dag.getFlattenedSubs().clone();
+        todo!()
+    }
 
     pub fn getDistances(&self) -> HashMap<u32, HashMap<u32, f64>>{
         return self.metrics.distances.get().clone();
