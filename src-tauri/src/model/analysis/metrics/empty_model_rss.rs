@@ -1,4 +1,5 @@
-use crate::tensor::tensor::Tensor;
+use crate::database::tensor::Tensor;
+
 use super::metric::Metric;
 
 #[derive(Default)]

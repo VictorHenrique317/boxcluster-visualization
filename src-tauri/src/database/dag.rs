@@ -1,9 +1,8 @@
 #![allow(non_snake_case)]
 use debug_print::debug_println;
 use std::collections::{HashMap, HashSet};
-use crate::subtensor::pattern::Pattern;
 
-use super::dag_node::DagNode;
+use super::{dag_node::DagNode, pattern::Pattern};
 
 #[derive(Default)]
 pub struct Dag {

@@ -2,7 +2,8 @@
 use debug_print::debug_println;
 use ndarray::{ArrayD, Array, Dim, IxDynImpl};
 
-use crate::tensor::tensor::Tensor;
+
+use crate::database::tensor::Tensor;
 
 use super::{translator::Translator, reader::Reader};
 

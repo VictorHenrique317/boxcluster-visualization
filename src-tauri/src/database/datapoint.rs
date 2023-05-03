@@ -2,7 +2,10 @@ use std::collections::HashMap;
 
 use plotters::style::RGBColor;
 
-use crate::{common::identifier_mapper::IdentifierMapper, subtensor::pattern::Pattern};
+use crate::model::common::identifier_mapper::IdentifierMapper;
+
+use super::pattern::Pattern;
+
 
 #[derive(Debug, Clone)]
 pub struct DataPoint {

@@ -1,4 +1,5 @@
-use crate::{subtensor::pattern::Pattern, dag::dag_node::DagNode, metrics::datapoint::DataPoint};
+use crate::database::{pattern::Pattern, dag_node::DagNode, datapoint::DataPoint};
+
 
 pub struct IdentifierRepresentation {
     pattern_representation: Option<Pattern>,

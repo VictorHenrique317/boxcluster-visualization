@@ -1,20 +1,10 @@
 // https://www.sheshbabu.com/posts/rust-module-system/
 #![allow(non_snake_case)]
-pub mod dag;
-pub mod subtensor;
-pub mod io;
-pub mod services;
-pub mod states;
-pub mod view;
-pub mod tensor;
-pub mod common;
-pub mod metrics;
-pub mod post_analysis;
-pub mod application_manager;
+pub mod controller;
+pub mod model;
+pub mod database;
 
 use std::{fs::File, collections::HashMap};
-
-use application_manager::ApplicationManager;
 
 pub fn main() {
     testDag();

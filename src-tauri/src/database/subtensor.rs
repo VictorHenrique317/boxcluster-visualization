@@ -3,7 +3,8 @@ use std::collections::HashSet;
 use debug_print::{debug_println, debug_print};
 use itertools::Itertools;
 use std::hash::{Hash, Hasher};
-use crate::tensor::tensor::Tensor;
+
+use super::tensor::Tensor;
 
 pub struct Subtensor{
     pub dims_values: Vec<Vec<usize>>,

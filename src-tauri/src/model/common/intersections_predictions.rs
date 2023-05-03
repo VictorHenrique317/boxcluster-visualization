@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 use std::{collections::{HashMap, HashSet}, sync::{Mutex, Arc}};
-use crate::{subtensor::{pattern::Pattern}, common::identifier_mapper::IdentifierMapper};
-use super::metric::Metric;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+use crate::{database::pattern::Pattern, model::analysis::metrics::metric::Metric};
+use super::identifier_mapper::IdentifierMapper;
 
 pub struct IntersectionsPredictions<'a>{
     value: HashMap<Vec<usize>, &'a Pattern>,

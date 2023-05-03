@@ -1,7 +1,8 @@
 #![allow(non_snake_case)]
 use std::collections::{HashMap, HashSet};
-use crate::{tensor::tensor::Tensor, metrics::{metric::Metric, distances::Distances, intersections_predictions::IntersectionsPredictions}, common::identifier_mapper::IdentifierMapper};
-use super::empty_model_rss::EmptyModelRss;
+use crate::{model::common::{identifier_mapper::IdentifierMapper, intersections_predictions::IntersectionsPredictions}, database::tensor::Tensor};
+
+use super::{empty_model_rss::EmptyModelRss, distances::Distances};
 
 #[derive(Default)]
 pub struct Metrics{

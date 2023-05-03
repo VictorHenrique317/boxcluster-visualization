@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
-use crate::subtensor::pattern::Pattern;
+use crate::database::pattern::Pattern;
+
 use super::{translator::Translator, reader::Reader};
 
 pub struct PatternReader<'a> {

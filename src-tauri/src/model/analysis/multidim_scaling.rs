@@ -7,8 +7,11 @@ use pyo3::{Python};
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use std::{sync::{Arc, Mutex}, collections::HashMap};
 use ndarray::{Array, Dim, ArrayD, IxDynImpl};
-use crate::{common::identifier_mapper::IdentifierMapper, metrics::{distances::Distances, metric::Metric}};
 use numpy::IntoPyArray;
+
+use crate::model::common::identifier_mapper::IdentifierMapper;
+
+use super::metrics::distances::Distances;
 
 #[derive(Default)]
 pub struct MultiDimScaling{
@@ -64,9 +67,8 @@ impl MultiDimScaling{
             let y = *xy_row.get(1).unwrap();
             xys.insert(identifier, (x as f64, y as f64));
         }
-
         return xys;
-    }    
+    }
 
     pub fn fitTransform(distances: &Distances, identifier_mapper: &IdentifierMapper) -> HashMap<u32, (f64, f64)>{
         println!("Applying Multi Dimensional Scaling...");

@@ -1,7 +1,8 @@
 #![allow(non_snake_case)]
 use std::collections::HashMap;
 
-use crate::{subtensor::pattern::Pattern, dag::dag_node::DagNode, metrics::datapoint::DataPoint};
+use crate::database::{pattern::Pattern, dag_node::DagNode, datapoint::DataPoint};
+
 use super::identifier_representation::IdentifierRepresentation;
 
 #[derive(Default)]

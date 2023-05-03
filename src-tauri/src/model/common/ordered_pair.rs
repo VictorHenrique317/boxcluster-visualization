@@ -1,6 +1,6 @@
 use std::{hash::Hash};
 
-use crate::subtensor::pattern::Pattern;
+use crate::database::pattern::Pattern;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct OrderedPair <'a>{
