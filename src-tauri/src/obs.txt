@@ -1,2 +1,0 @@
-FullModelRss::calculatePatternRss() initially takes about 25 seconds.
-- Program peak RAM usage was 159,472 MB
