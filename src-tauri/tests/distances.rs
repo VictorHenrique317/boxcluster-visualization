@@ -1,16 +1,15 @@
 #![allow(non_snake_case)]
 mod distances {
 
-    use boxcluster_visualization::application_manager::ApplicationManager;
-    use itertools::Itertools;
+    use boxcluster_visualization::services::application_service::ApplicationService;
     use std::{collections::HashMap, fs::File};
 
     #[test]
     fn retweets158(){
         let tensor_path = "tests/test_data/tensors/retweets-sparser.txt".to_owned();
-        let patterns_path = "tests/test_data/158-retweets-sparser.txt".to_owned();
+        let patterns_path = "tests/test_data/distance_test_patterns/158-retweets-sparser.txt".to_owned();
         
-        let mut model_manager = ApplicationManager::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::new(&tensor_path, &patterns_path);
         model_manager.initialize();
         let mut actual: HashMap<String, HashMap<String, String>> = HashMap::new();
         for (x, x_distances) in model_manager.getDistances(){
@@ -34,7 +33,7 @@ mod distances {
         let tensor_path = "tests/test_data/distance_test/a.txt".to_owned();
         let patterns_path = "tests/test_data/distance_test/a_patterns.txt".to_owned();
         
-        let mut model_manager = ApplicationManager::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::new(&tensor_path, &patterns_path);
         model_manager.initialize();
         let actual = model_manager.getDistances();
 
@@ -50,7 +49,7 @@ mod distances {
         let tensor_path = "tests/test_data/distance_test/b.txt".to_owned();
         let patterns_path = "tests/test_data/distance_test/b_patterns.txt".to_owned();
         
-        let mut model_manager = ApplicationManager::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::new(&tensor_path, &patterns_path);
         model_manager.initialize();
         let actual = model_manager.getDistances();
 
@@ -66,7 +65,7 @@ mod distances {
         let tensor_path = "tests/test_data/distance_test/c.txt".to_owned();
         let patterns_path = "tests/test_data/distance_test/c_patterns.txt".to_owned();
         
-        let mut model_manager = ApplicationManager::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::new(&tensor_path, &patterns_path);
         model_manager.initialize();
         let actual = model_manager.getDistances();
 

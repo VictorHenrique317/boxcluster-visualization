@@ -1,7 +1,8 @@
 #![allow(non_snake_case)]
 use std::{collections::{HashMap}, sync::{Arc, Mutex}};
 use rayon::prelude::{IntoParallelRefIterator, IndexedParallelIterator, ParallelIterator};
-use crate::{model::{common::{identifier_mapper::IdentifierMapper, ordered_pair::OrderedPair, progress_bar, intersections_predictions::IntersectionsPredictions}}, database::{tensor::Tensor, subtensor::Subtensor, pattern::Pattern}};
+use crate::{model::{identifier_mapper::IdentifierMapper, analysis::{intersections_predictions::IntersectionsPredictions, ordered_pair::OrderedPair}}, database::{tensor::Tensor, subtensor::Subtensor, pattern::Pattern}, common::progress_bar};
+
 use super::metric::Metric;
 
 #[derive(Default)]

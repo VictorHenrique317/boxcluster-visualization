@@ -1,2 +1,3 @@
 pub mod metrics;
-pub mod multidim_scaling;
+pub mod intersections_predictions;
+pub mod ordered_pair;

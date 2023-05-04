@@ -1,9 +1,7 @@
 use std::collections::HashMap;
 
 use plotters::style::RGBColor;
-
-use crate::model::common::identifier_mapper::IdentifierMapper;
-
+use crate::model::identifier_mapper::IdentifierMapper;
 use super::pattern::Pattern;
 
 

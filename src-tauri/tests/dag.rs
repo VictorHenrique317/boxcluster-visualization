@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 mod dag {
-    use boxcluster_visualization::application_manager::ApplicationManager;
+    use boxcluster_visualization::services::application_service::ApplicationService;
     use itertools::Itertools;
     use std::collections::HashMap;
 
@@ -29,10 +29,10 @@ mod dag {
 
     #[test]
     fn testSimpleOverlap() {
-        let patterns_path = "tests/test_data/simple-overlap.txt".to_owned();
-        let tensor_path = "tests/test_data/simple-overlap.txt".to_owned();
+        let patterns_path = "tests/test_data/dag_test_patterns/simple-overlap.txt".to_owned();
+        let tensor_path = "tests/test_data/dag_test_patterns/simple-overlap.txt".to_owned();
         
-        let mut model_manager = ApplicationManager::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::new(&tensor_path, &patterns_path);
         model_manager.initialize();
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
@@ -55,10 +55,10 @@ mod dag {
 
     #[test]
     fn testSimpleOverlap2() {
-        let patterns_path = "tests/test_data/simple-overlap-2.txt".to_owned();
-        let tensor_path = "tests/test_data/simple-overlap-2.txt".to_owned();
+        let patterns_path = "tests/test_data/dag_test_patterns/simple-overlap-2.txt".to_owned();
+        let tensor_path = "tests/test_data/dag_test_patterns/simple-overlap-2.txt".to_owned();
         
-        let mut model_manager = ApplicationManager::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::new(&tensor_path, &patterns_path);
         model_manager.initialize();
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
@@ -83,10 +83,10 @@ mod dag {
 
     #[test]
     fn testDoubleDiffOverlap() {
-        let patterns_path = "tests/test_data/double-diff-overlap.txt".to_owned();
-        let tensor_path = "tests/test_data/double-diff-overlap.txt".to_owned();
+        let patterns_path = "tests/test_data/dag_test_patterns/double-diff-overlap.txt".to_owned();
+        let tensor_path = "tests/test_data/dag_test_patterns/double-diff-overlap.txt".to_owned();
         
-        let mut model_manager = ApplicationManager::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::new(&tensor_path, &patterns_path);
         model_manager.initialize();
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
@@ -111,10 +111,10 @@ mod dag {
 
     #[test]
     fn testTripleDiffOverlap() {
-        let patterns_path = "tests/test_data/triple-diff-overlap.txt".to_owned();
-        let tensor_path = "tests/test_data/triple-diff-overlap.txt".to_owned();
+        let patterns_path = "tests/test_data/dag_test_patterns/triple-diff-overlap.txt".to_owned();
+        let tensor_path = "tests/test_data/dag_test_patterns/triple-diff-overlap.txt".to_owned();
         
-        let mut model_manager = ApplicationManager::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::new(&tensor_path, &patterns_path);
         model_manager.initialize();
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
@@ -141,10 +141,10 @@ mod dag {
 
     #[test]
     fn testQuadrupleDiffOverlap() {
-        let patterns_path = "tests/test_data/quadruple-diff-overlap.txt".to_owned();
-        let tensor_path = "tests/test_data/quadruple-diff-overlap.txt".to_owned();
+        let patterns_path = "tests/test_data/dag_test_patterns/quadruple-diff-overlap.txt".to_owned();
+        let tensor_path = "tests/test_data/dag_test_patterns/quadruple-diff-overlap.txt".to_owned();
         
-        let mut model_manager = ApplicationManager::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::new(&tensor_path, &patterns_path);
         model_manager.initialize();
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
@@ -173,10 +173,10 @@ mod dag {
 
     #[test]
     fn testSimpleMSub() {
-        let patterns_path = "tests/test_data/simple-msub.txt".to_owned();
-        let tensor_path = "tests/test_data/simple-msub.txt".to_owned();
+        let patterns_path = "tests/test_data/dag_test_patterns/simple-msub.txt".to_owned();
+        let tensor_path = "tests/test_data/dag_test_patterns/simple-msub.txt".to_owned();
         
-        let mut model_manager = ApplicationManager::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::new(&tensor_path, &patterns_path);
         model_manager.initialize();
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
@@ -201,10 +201,10 @@ mod dag {
 
     #[test]
     fn testSimpleMSub2() {
-        let patterns_path = "tests/test_data/simple-msub-2.txt".to_owned();
-        let tensor_path = "tests/test_data/simple-msub-2.txt".to_owned();
+        let patterns_path = "tests/test_data/dag_test_patterns/simple-msub-2.txt".to_owned();
+        let tensor_path = "tests/test_data/dag_test_patterns/simple-msub-2.txt".to_owned();
         
-        let mut model_manager = ApplicationManager::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::new(&tensor_path, &patterns_path);
         model_manager.initialize();
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
@@ -231,10 +231,10 @@ mod dag {
 
     #[test]
     fn testComplexMSub() {
-        let patterns_path = "tests/test_data/complex-msub.txt".to_owned();
-        let tensor_path = "tests/test_data/complex-msub.txt".to_owned();
+        let patterns_path = "tests/test_data/dag_test_patterns/complex-msub.txt".to_owned();
+        let tensor_path = "tests/test_data/dag_test_patterns/complex-msub.txt".to_owned();
         
-        let mut model_manager = ApplicationManager::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::new(&tensor_path, &patterns_path);
         model_manager.initialize();
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
@@ -267,10 +267,10 @@ mod dag {
 
     #[test]
     fn testSimpleMSuper() {
-        let patterns_path = "tests/test_data/simple-msuper.txt".to_owned();
-        let tensor_path = "tests/test_data/simple-msuper.txt".to_owned();
+        let patterns_path = "tests/test_data/dag_test_patterns/simple-msuper.txt".to_owned();
+        let tensor_path = "tests/test_data/dag_test_patterns/simple-msuper.txt".to_owned();
         
-        let mut model_manager = ApplicationManager::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::new(&tensor_path, &patterns_path);
         model_manager.initialize();
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
@@ -299,10 +299,10 @@ mod dag {
 
     #[test]
     fn testSimpleMRoot() {
-        let patterns_path = "tests/test_data/simple-mroot.txt".to_owned();
-        let tensor_path = "tests/test_data/simple-mroot.txt".to_owned();
+        let patterns_path = "tests/test_data/dag_test_patterns/simple-mroot.txt".to_owned();
+        let tensor_path = "tests/test_data/dag_test_patterns/simple-mroot.txt".to_owned();
         
-        let mut model_manager = ApplicationManager::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::new(&tensor_path, &patterns_path);
         model_manager.initialize();
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
@@ -333,10 +333,10 @@ mod dag {
 
     #[test]
     fn testSimpleLine() {
-        let patterns_path = "tests/test_data/simple-line.txt".to_owned();
-        let tensor_path = "tests/test_data/simple-line.txt".to_owned();
+        let patterns_path = "tests/test_data/dag_test_patterns/simple-line.txt".to_owned();
+        let tensor_path = "tests/test_data/dag_test_patterns/simple-line.txt".to_owned();
         
-        let mut model_manager = ApplicationManager::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::new(&tensor_path, &patterns_path);
         model_manager.initialize();
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();

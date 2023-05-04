@@ -5,7 +5,6 @@ use crate::database::{pattern::Pattern, dag_node::DagNode, datapoint::DataPoint}
 
 use super::identifier_representation::IdentifierRepresentation;
 
-#[derive(Default)]
 pub struct IdentifierMapper{
     mapping: HashMap<u32, IdentifierRepresentation>, // WARNING: ID's start at 1
 }

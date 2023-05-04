@@ -9,17 +9,17 @@ pub struct Tensor{
     pub density: f64,
 }
 
-impl Default for Tensor {
-    fn default() -> Self { 
-        return Tensor{
-            path: "".to_owned(),
-            density: 0.0,
-            dimension: 0,
-            size: vec![0],
-            dims_values: array![0.0].into_dyn(), 
-        };
-    }
-}
+// impl Default for Tensor {
+//     fn default() -> Self { 
+//         return Tensor{
+//             path: "".to_owned(),
+//             density: 0.0,
+//             dimension: 0,
+//             size: vec![0],
+//             dims_values: array![0.0].into_dyn(), 
+//         };
+//     }
+// }
 
 impl Tensor{
     pub fn new(path: &String, dims_values: ArrayD<f64>, size: &Vec<usize>, dimension: &u32, density: &f64) -> Self{
