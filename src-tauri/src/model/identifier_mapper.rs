@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use std::collections::HashMap;
 
-use crate::database::{pattern::Pattern, dag_node::DagNode, datapoint::DataPoint};
+use crate::database::{pattern::Pattern, dag_node::{DagNode, self}, datapoint::DataPoint};
 
 use super::identifier_representation::IdentifierRepresentation;
 
@@ -26,14 +26,22 @@ impl IdentifierMapper{
         return mapping;
     }
 
-    pub fn insertDagNodeRepresentations(&mut self, dag_nodes_representations: HashMap<u32, DagNode>) {
+    pub fn insertDagNodeRepresentations(&mut self, dag_nodes_representations: Vec<DagNode>) {
+        let dag_nodes_representations: HashMap<u32, DagNode> = dag_nodes_representations.into_iter()
+            .map(|dag_node| (dag_node.identifier, dag_node))
+            .collect();
+
         for (identifier, dag_nodes_representation) in dag_nodes_representations {
             let identifier_representation = self.mapping.get_mut(&identifier).unwrap();
             identifier_representation.insertDagNodeRepresentation(dag_nodes_representation);
         }
     }
 
-    pub fn insertDataPointRepresentations(&mut self, data_point_representations: HashMap<u32, DataPoint>) {
+    pub fn insertDataPointRepresentations(&mut self, data_point_representations: Vec<DataPoint>) {
+        let data_point_representations: HashMap<u32, DataPoint> = data_point_representations.into_iter()
+            .map(|data_point| (data_point.identifier, data_point))
+            .collect();
+        
         for (identifier, data_point_representation) in data_point_representations {
             let identifier_representation = self.mapping.get_mut(&identifier).unwrap();
             identifier_representation.insertDataPointRepresentation(data_point_representation);

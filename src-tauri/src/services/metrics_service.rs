@@ -6,8 +6,11 @@ use crate::{model::{analysis::{metrics::{empty_model_rss::EmptyModelRss, distanc
 
 #[derive(Default)]
 pub struct MetricsService{
+    mds_service: MDSService,
+
     pub empty_model_rss: EmptyModelRss,
     pub distances: Distances,
+    pub coords: Coordinate,
 }
 
 impl MetricsService{

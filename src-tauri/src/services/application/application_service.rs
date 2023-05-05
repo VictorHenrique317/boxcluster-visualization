@@ -20,27 +20,10 @@ impl ApplicationService<'_>{
         };
     }
 
-    fn acquireInformation(&mut self){
-        let patterns = self.io_service.readPatterns();
-        self.identifier_mapper = IdentifierMapper::new(patterns);
-        self.tensor = self.io_service.readTensor();
-    }
-
-    fn createModel(&mut self){
-        let dag_creator = DagCreator::new(&self.identifier_mapper);
-        let dag = dag_creator.create();
-        self.identifier_mapper.insertDagNodeRepresentations(
-            dag.extractNodes()
-        );
-    }
-
     fn analyseModel(&mut self){
         self.metrics_service = MetricsService::new(&self.identifier_mapper, &self.tensor);
         
-        let coords = MDSService::fitTransform(&self.metrics_service.distances, &self.identifier_mapper);
-
-        let data_point_representations = DataPoint::createDataPoints(&self.identifier_mapper, &coords);
-        self.identifier_mapper.insertDataPointRepresentations(data_point_representations);
+        
     }
 
     fn testPlot(&self){
@@ -102,11 +85,13 @@ impl ApplicationService<'_>{
         println!("PLOTTED TEST GRAPH");
     }
 
-    pub fn initialize(&mut self){
+    pub fn init(&mut self){
         let start_time = Instant::now();
         
-        self.acquireInformation();
-        self.createModel();
+        let patterns = self.io_service.readPatterns();
+        let tensor = self.io_service.readTensor();
+        self.application_state_service.changeTensor(tensor, patterns);
+
         self.analyseModel();
         self.testPlot();
         

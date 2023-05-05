@@ -16,7 +16,7 @@ impl DagService<'_> {
         }
     }
 
-    pub fn createFlatDagNodes(&self, identifier_mapper: &IdentifierMapper) -> Vec<DagNode> {
+    fn createFlatDagNodes(&self, identifier_mapper: &IdentifierMapper) -> Vec<DagNode> {
         let mut nodes: Vec<DagNode> = Vec::new();
         for id in identifier_mapper.getIdentifiers(){
             nodes.push(DagNode::new(&id));
@@ -24,7 +24,8 @@ impl DagService<'_> {
         return nodes;
     }
 
-    pub fn arrangeDagNodes(&self, flat_dag_nodes: Vec<DagNode>) -> Vec<DagNode> {
+    pub fn createAndArrange(&self) -> Vec<DagNode> {
+        let flat_dag_nodes = self.createFlatDagNodes(&self.identifier_mapper);
         return self.dag_creator_service.create(flat_dag_nodes);
     }
 }
