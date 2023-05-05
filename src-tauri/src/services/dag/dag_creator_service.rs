@@ -230,7 +230,7 @@ impl DagCreatorService<'_>{
         }
     }
 
-    pub fn create(self, flat_dag_nodes: Vec<DagNode>) -> Vec<DagNode>{
+    pub fn create(mut self, flat_dag_nodes: Vec<DagNode>) -> Vec<DagNode>{
         debug_println!("Nodes: {:?}", &flat_dag_nodes.iter().map(|node| node.identifier).collect::<Vec<u32>>());
         let bar = progress_bar::new(flat_dag_nodes.len() as u64,"Patterns inserted on DAG");
 

@@ -1,22 +1,34 @@
 #![allow(non_snake_case)]
-#[allow(non_camel_case_types)]
-use ndarray::{Array2};
-use pyo3::types::{PyDict};
-use numpy::{PyArray2};
-use pyo3::{Python};
+
+use std::{collections::HashMap, sync::{Mutex, Arc}};
+use ndarray::{IxDynImpl, Dim, ArrayD, Array, Array2};
+use numpy::{PyArray2, IntoPyArray};
+use pyo3::{Python, types::PyDict};
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
-use std::{sync::{Arc, Mutex}, collections::HashMap};
-use ndarray::{Array, Dim, ArrayD, IxDynImpl};
-use numpy::IntoPyArray;
-use crate::model::analysis::metrics::metric::Metric;
-use crate::model::{identifier_mapper::IdentifierMapper, analysis::metrics::distances::Distances};
 
+use crate::{model::identifier_mapper::IdentifierMapper};
 
-#[derive(Default)]
-pub struct MDSService{
+use super::{metric::Metric, distances::Distances};
+
+pub struct Coordinates {
+    value: HashMap<u32, (f32, f32)>,
 }
 
-impl MDSService{
+#[allow(non_camel_case_types)]
+impl Metric<HashMap<u32, (f32, f32)>> for Coordinates{
+    fn get(&self) -> &HashMap<u32, (f32, f32)> {
+        return &self.value;
+    }
+}
+
+impl Coordinates {
+    pub fn new(identifier_mapper: &IdentifierMapper, distances: &Distances) -> Coordinates{
+        println!("  Coordinates...");
+        return Coordinates { 
+            value: Coordinates::calculate(identifier_mapper, distances),
+        };
+    }
+
     fn buildDissimilarityMatrix(distances: &Distances, n: usize) -> Array2<f64> {
         let size: Vec<usize> = vec![n, n];
         let distance_matrix: Arc<Mutex<ArrayD<f64>>> = Arc::new(Mutex::new(Array::zeros(Dim(size.clone())).into_dyn()));
@@ -38,7 +50,7 @@ impl MDSService{
         return squared_proximity_matrix;
     }
 
-    fn SklearnMDS(dissimilarity_matrix: Array2<f64>) -> HashMap<u32, (f64, f64)>{
+    fn SklearnMDS(dissimilarity_matrix: Array2<f64>) -> HashMap<u32, (f32, f32)>{
         pyo3::prepare_freethreaded_python();
         let xy_matrix: Array2<f64> = Python::with_gil(|py| {
             let sklearn = py.import("sklearn.manifold").unwrap();
@@ -59,22 +71,27 @@ impl MDSService{
         });
 
         let n_rows = xy_matrix.shape()[0];
-        let mut xys: HashMap<u32, (f64, f64)> = HashMap::new();
+        let mut xys: HashMap<u32, (f32, f32)> = HashMap::new();
         for i in 0..n_rows {
             let xy_row = xy_matrix.row(i);
             let identifier = (i + 1) as u32;
             let x = *xy_row.get(0).unwrap() ;
             let y = *xy_row.get(1).unwrap();
-            xys.insert(identifier, (x as f64, y as f64));
+            xys.insert(identifier, (x as f32, y as f32));
         }
         return xys;
     }
 
-    pub fn fitTransform(distances: &Distances, identifier_mapper: &IdentifierMapper) -> HashMap<u32, (f64, f64)>{
+    pub fn fitTransformMDS(distances: &Distances, identifier_mapper: &IdentifierMapper) -> HashMap<u32, (f32, f32)>{
         println!("Applying Multi Dimensional Scaling...");
         let n: usize = identifier_mapper.length() as usize;
-        let dissimilarity_matrix = MDSService::buildDissimilarityMatrix(distances, n);
-        let xys = MDSService::SklearnMDS(dissimilarity_matrix);
+        let dissimilarity_matrix = Coordinates::buildDissimilarityMatrix(distances, n);
+        let xys = Coordinates::SklearnMDS(dissimilarity_matrix);
         return xys;
     }
+
+    fn calculate(identifier_mapper: &IdentifierMapper, distances: &Distances) -> HashMap<u32, (f32, f32)> {
+        return Coordinates::fitTransformMDS(&distances, &identifier_mapper);
+    }
 }
+

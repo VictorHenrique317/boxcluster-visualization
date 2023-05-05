@@ -8,7 +8,7 @@ pub mod database;
 
 use std::{fs::File, collections::HashMap};
 
-use services::application_service::ApplicationService;
+use services::application::application_service::ApplicationService;
 
 pub fn main() {
     testDag();
@@ -51,6 +51,6 @@ fn testDag(){
     // let patterns_path = "158-retweets-sparser.txt".to_owned();
 
     let mut application_manager = ApplicationService::new(&tensor_path, &patterns_path);
-    application_manager.initialize();
+    application_manager.init();
 }
 
