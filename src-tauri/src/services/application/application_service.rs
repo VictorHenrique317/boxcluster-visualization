@@ -31,18 +31,28 @@ impl ApplicationService{
     }
 
     pub fn changeTensor(&mut self, tensor_path: &String, patterns_path: &String){
+        println!("\nChanging tensor to: {}", tensor_path);
         self.io_service = IoService::new(tensor_path, patterns_path);
         let tensor = self.io_service.readTensor();
         let patterns = self.io_service.readPatterns();
 
         self.application_state_service.changeTensor(tensor, patterns);
+        PlotService::plot(self.application_state_service.identifierMapper());
     }
 
     pub fn changePatterns(&mut self, patterns_path: &String){
+        println!("\nChanging patterns to: {}", patterns_path);
         self.io_service.setPatternsPath(patterns_path);
         let patterns = self.io_service.readPatterns();
 
         self.application_state_service.changePatterns(patterns);
+        PlotService::plot(self.application_state_service.identifierMapper());
+    }
+
+    pub fn descendDag(&mut self, identifier: &u32){
+        println!("\nDescending dag to: {}", identifier);
+        self.application_state_service.descendDag(identifier);
+        PlotService::plot(self.application_state_service.identifierMapper());
     }
 
     pub fn getFlattenedSupers(&self) -> HashMap<u32, Vec<u32>>{

@@ -26,7 +26,7 @@ impl MetricsService{
             &distances,
         );
 
-        println!("\nAll metrics done!");
+        println!("All metrics done!");
         return MetricsService {
             empty_model_rss: empty_model_rss,
             distances: distances,

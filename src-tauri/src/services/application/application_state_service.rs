@@ -1,5 +1,4 @@
 #![allow(non_snake_case)]
-use crate::database::datapoint::DataPoint;
 use crate::database::pattern::Pattern;
 use crate::database::tensor::Tensor;
 use crate::model::identifier_mapper::IdentifierMapper;

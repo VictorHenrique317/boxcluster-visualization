@@ -246,7 +246,7 @@ impl DagCreatorService<'_>{
         debug_println!("Subs: {:?}", self.dag_arranger_service.getFlattenedSubs());
         debug_println!("Supers: {:?}", self.dag_arranger_service.getFlattenedSupers());
 
-        println!("\nNb of fonts found: {}", self.dag_arranger_service.getFontNodes().len());
+        println!("\n  Nb of fonts found: {}", self.dag_arranger_service.getFontNodes().len());
 
         return self.dag_arranger_service.finish();
     }

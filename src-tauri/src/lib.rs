@@ -42,7 +42,7 @@ fn testDag(){
     // let patterns_path = "../tests/test_data/distance_test/c_patterns.txt".to_owned();
 
     // let tensor_path = "../tests/test_data/tensors/dataset-co16.txt".to_owned();
-    // let patterns_path = "../tests/test_data/other_patterns/synth-50-3d-co16.txt".to_owned();
+    // let patterns_path = "../tests/test_data/other_patterns/synth-100-3d-co16.txt".to_owned();
 
     let tensor_path = "../tests/test_data/tensors/retweets-sparser.txt".to_owned();
     let patterns_path = "../tests/test_data/distance_test_patterns/158-retweets-sparser.txt".to_owned();

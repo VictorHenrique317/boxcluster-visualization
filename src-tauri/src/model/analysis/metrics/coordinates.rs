@@ -83,7 +83,7 @@ impl Coordinates {
     }
 
     pub fn fitTransformMDS(distances: &Distances, identifier_mapper: &IdentifierMapper) -> HashMap<u32, (f32, f32)>{
-        println!("Applying Multi Dimensional Scaling...");
+        println!("  Applying Multi Dimensional Scaling...");
         let n: usize = identifier_mapper.length() as usize;
         let dissimilarity_matrix = Coordinates::buildDissimilarityMatrix(distances, n);
         let xys = Coordinates::SklearnMDS(dissimilarity_matrix);
