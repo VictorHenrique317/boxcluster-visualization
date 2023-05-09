@@ -37,7 +37,7 @@ impl ApplicationService{
         let patterns = self.io_service.readPatterns();
 
         self.application_state_service.changeTensor(tensor, patterns);
-        PlotService::plot(self.application_state_service.identifierMapper());
+        PlotService::plot(self.application_state_service.identifierMapper(), self.application_state_service.visibleIdentifiers());
     }
 
     pub fn changePatterns(&mut self, patterns_path: &String){
@@ -49,9 +49,15 @@ impl ApplicationService{
         PlotService::plot(self.application_state_service.identifierMapper());
     }
 
-    pub fn descendDag(&mut self, identifier: &u32){
-        println!("\nDescending dag to: {}", identifier);
-        self.application_state_service.descendDag(identifier);
+    pub fn ascendDag(&mut self){
+        println!("\nAscending dag");
+        self.application_state_service.ascendDag();
+        PlotService::plot(self.application_state_service.identifierMapper());
+    }
+
+    pub fn descendDag(&mut self, nex_identifier: &u32){
+        println!("\nDescending dag to: {}", nex_identifier);
+        self.application_state_service.descendDag(nex_identifier);
         PlotService::plot(self.application_state_service.identifierMapper());
     }
 

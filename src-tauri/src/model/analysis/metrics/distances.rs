@@ -25,6 +25,12 @@ impl Distances{
         };
     }
 
+    fn newView(value_view: HashMap<u32, HashMap<u32, f64>>) -> Distances{
+        return Distances { 
+            value: value_view,
+        };
+    }
+
     fn calculatePairRss(tensor: &Tensor, intersections_predictions: &IntersectionsPredictions, pair: &OrderedPair) -> (HashMap<u32, f64>, f64) {
         let intersections_predictions = intersections_predictions.get();
         let mut untouched_rss_s: HashMap<u32, f64> = HashMap::new();
@@ -143,8 +149,6 @@ impl Distances{
         let total_distances = total_distances as u64;
         let bar = progress_bar::new(total_distances, "  Calculated distances");
 
-        // let distances_vec = Arc::new(Mutex::new(Vec::new())); // Create an Arc<Mutex<Vec<f64>>>
-
         patterns.par_iter().enumerate().for_each(|(row, x)|{
 
             if row != 0 {
@@ -161,8 +165,6 @@ impl Distances{
         
                         let raw_distance = covered_xuy_rss - untouched_rss_x - untouched_rss_y - x_y_intersection_rss;
                         let normalized_distance = Distances::normalize(x, y, &raw_distance);
-
-                        // distances_vec.clone().lock().unwrap().push(normalized_distance); // Clone the Arc<Mutex<Vec<f64>>> to move into closure
                         
                         let mut distances = distances.lock().unwrap();
                         Distances::insertIntoDistancesMatrix(&mut distances, &x, &y, &normalized_distance);
@@ -174,15 +176,32 @@ impl Distances{
         });
     
         bar.finish();
-        // let distances_vec = distances_vec.lock().unwrap();
-        // let distances_mean = mean(&distances_vec);
-        // let distances_median = median(&distances_vec);
-        // let distances_std_deviance = standard_deviation(&distances_vec, None);
-
-        // dbg!(distances_mean);
-        // dbg!(distances_median);
-        // dbg!(distances_std_deviance);
         let distances = distances.lock().unwrap().clone();
         return distances;
+    }
+
+    pub fn getView(&self, identifier_mapper: &IdentifierMapper, identifiers: &Vec<u32>) -> Distances{
+        let mut patterns: Vec<&Pattern> = Vec::new();
+
+        for identifier in identifiers {
+            let representation = identifier_mapper.getRepresentation(identifier);
+            let pattern = representation.asPattern();
+            patterns.push(pattern);
+        }
+
+        let mut distances_view: HashMap<u32, HashMap<u32, f64>> = HashMap::new();
+        for (row, x) in patterns.iter().enumerate(){
+            if row != 0 {
+                for (col, y) in patterns.iter().enumerate() { 
+                    if col < row { // Iterate triangularly
+                        let distance = self.value.get(&x.identifier).unwrap().get(&y.identifier).unwrap();
+                        Distances::insertIntoDistancesMatrix(&mut distances_view, &x, &y, distance);    
+                        Distances::insertIntoDistancesMatrix(&mut distances_view, &y, &x, distance);    
+                    }
+                }
+            }
+        }
+
+        return Distances::newView(distances_view);
     }
 }

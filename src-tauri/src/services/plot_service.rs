@@ -3,12 +3,17 @@ use plotters::{prelude::{BitMapBackend, IntoDrawingArea, ChartBuilder, Circle}, 
 
 use crate::model::identifier_mapper::IdentifierMapper;
 
+use super::application::application_state_service::ApplicationStateService;
+
 pub struct PlotService{}
 
 impl PlotService{
-    pub fn plot(identifier_mapper: &IdentifierMapper){
+    pub fn plot(application_state: &ApplicationStateService){
         let root = BitMapBackend::new("scatter.png", (1600, 900)).into_drawing_area();
         root.fill(&WHITE).unwrap();
+
+        let visible_patterns = application_state.visiblePatterns();
+        let identifier_mapper = application_state.identifierMapper();
     
         let mut x_range = 0.0;
         let mut y_range = 0.0;

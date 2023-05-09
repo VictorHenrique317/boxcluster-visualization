@@ -19,11 +19,4 @@ impl DagNode{
             subs: Vec::new(), 
             overlappings: HashSet::new() };
     }
-
-    // pub fn addOverlappingPattern(&mut self, overlapper_id: &u32){
-    //     if self.overlappings.contains(overlapper_id){ return; }
-    //     self.overlappings.push(*overlapper_id);
-    // }
-
-
 }

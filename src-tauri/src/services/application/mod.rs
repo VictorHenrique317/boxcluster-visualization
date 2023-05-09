@@ -1,2 +1,2 @@
 pub mod application_service;
-mod application_state_service;
+pub mod application_state_service;

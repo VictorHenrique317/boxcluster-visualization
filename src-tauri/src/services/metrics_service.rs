@@ -33,4 +33,13 @@ impl MetricsService{
             coordinates: coordinates,
          };
     }
+
+    pub fn update(&mut self, identifier_mapper: &IdentifierMapper, visible_identifiers: &Vec<u32>) {
+        let coordinates = Coordinates::new(
+            identifier_mapper,
+            &self.distances.getView(identifier_mapper, visible_identifiers),
+        );
+
+        self.coordinates = coordinates;
+    }
 }
