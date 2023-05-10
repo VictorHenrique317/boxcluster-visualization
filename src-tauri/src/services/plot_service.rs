@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use plotters::{prelude::{BitMapBackend, IntoDrawingArea, ChartBuilder, Circle}, style::{WHITE, Color, IntoFont}};
 
-use crate::model::identifier_mapper::IdentifierMapper;
+use crate::model::{identifier_mapper::IdentifierMapper, identifier_representation::IdentifierRepresentation};
 
 use super::application::application_state_service::ApplicationStateService;
 
@@ -12,12 +12,18 @@ impl PlotService{
         let root = BitMapBackend::new("scatter.png", (1600, 900)).into_drawing_area();
         root.fill(&WHITE).unwrap();
 
-        let visible_patterns = application_state.visiblePatterns();
         let identifier_mapper = application_state.identifierMapper();
+
+        let visible_identifiers = application_state.visibleIdentifiers();
+        let visible_representations: Vec<&IdentifierRepresentation> = identifier_mapper.getMapping()
+            .iter()
+            .filter(|(identifier, _)| visible_identifiers.contains(identifier))
+            .map(|(_, representation)| representation)
+            .collect();
     
         let mut x_range = 0.0;
         let mut y_range = 0.0;
-        for identifier_representation in identifier_mapper.getRepresentations(){
+        for identifier_representation in visible_representations.iter(){
             let datapoint = identifier_representation.asDataPoint();
             
             let positive_x_range = x_range.clone();
@@ -46,7 +52,7 @@ impl PlotService{
         chart.configure_mesh().draw().unwrap();
     
         // Enforcing that overlapping points are drawn in the correct order
-        let mut representations = identifier_mapper.getRepresentations();
+        let mut representations = visible_representations;
         representations.sort_by(|a, b| 
             b.asDataPoint().size.partial_cmp(&a.asDataPoint().size).unwrap()); 
             

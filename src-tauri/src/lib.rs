@@ -28,9 +28,6 @@ fn testDag(){
     
     // let tensor_path = "../tests/test_data/tensors/4k-big-patterns-fuzzytensor.txt".to_owned();
     // let patterns_path = "../tests/test_data/4k-big-patterns.txt".to_owned();
-    
-    // let tensor_path = "../tests/test_data/tensors/primary-school.txt".to_owned();
-    // let patterns_path = "../tests/test_data/paf-1.txt".to_owned();
 
     // let tensor_path = "../tests/test_data/distance_test/a.txt".to_owned();
     // let patterns_path = "../tests/test_data/distance_test/a_patterns.txt".to_owned();
@@ -44,13 +41,15 @@ fn testDag(){
     // let tensor_path = "../tests/test_data/tensors/dataset-co16.txt".to_owned();
     // let patterns_path = "../tests/test_data/other_patterns/synth-100-3d-co16.txt".to_owned();
 
-    let tensor_path = "../tests/test_data/tensors/retweets-sparser.txt".to_owned();
-    let patterns_path = "../tests/test_data/distance_test_patterns/158-retweets-sparser.txt".to_owned();
+    // let tensor_path = "../tests/test_data/tensors/retweets-sparser.txt".to_owned();
+    // let patterns_path = "../tests/test_data/distance_test_patterns/158-retweets-sparser.txt".to_owned();
 
-    // let tensor_path = "retweets-sparser.txt".to_owned();
-    // let patterns_path = "158-retweets-sparser.txt".to_owned();
+    let tensor_path = "../tests/test_data/tensors/primary-school.txt".to_owned();
+    let patterns_path = "../tests/test_data/other_patterns/paf-1.txt".to_owned();
 
     let mut application_manager = ApplicationService::new(&tensor_path, &patterns_path);
     application_manager.init();
+
+
 }
 

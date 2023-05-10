@@ -95,8 +95,13 @@ impl Translator {
 
     pub fn translateLineDims(&self, line_dims: &Vec<String>) -> Vec<Vec<usize>>{
         let mut translated_line: Vec<Vec<usize>> = Vec::new();
+        // dbg!(&line_dims);
     
         for (i, dim) in line_dims.iter().enumerate(){
+            // dbg!(&i);
+            
+            // dbg!(self.translator.len());
+            
             let dim_translator = self.translator.get(i).unwrap();
             let values: Vec<String> = dim.split(",").map(|i| i.to_owned()).collect();
             let mut translated_dim: Vec<usize> = Vec::new();

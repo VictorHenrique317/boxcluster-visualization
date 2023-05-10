@@ -19,15 +19,15 @@ impl ApplicationService{
     pub fn init(&mut self){
         let start_time = Instant::now();
 
-        let patterns = self.io_service.readPatterns();
         let tensor = self.io_service.readTensor();
+        let patterns = self.io_service.readPatterns();
         self.application_state_service.changeTensor(tensor, patterns);
 
         let end_time = Instant::now();
         let duration = end_time - start_time;
         println!("Total time taken: {:?}", duration);
 
-        PlotService::plot(self.application_state_service.identifierMapper());
+        PlotService::plot(&self.application_state_service);
     }
 
     pub fn changeTensor(&mut self, tensor_path: &String, patterns_path: &String){
@@ -37,7 +37,7 @@ impl ApplicationService{
         let patterns = self.io_service.readPatterns();
 
         self.application_state_service.changeTensor(tensor, patterns);
-        PlotService::plot(self.application_state_service.identifierMapper(), self.application_state_service.visibleIdentifiers());
+        PlotService::plot(&self.application_state_service);
     }
 
     pub fn changePatterns(&mut self, patterns_path: &String){
@@ -46,19 +46,19 @@ impl ApplicationService{
         let patterns = self.io_service.readPatterns();
 
         self.application_state_service.changePatterns(patterns);
-        PlotService::plot(self.application_state_service.identifierMapper());
+        PlotService::plot(&self.application_state_service);
     }
 
     pub fn ascendDag(&mut self){
         println!("\nAscending dag");
         self.application_state_service.ascendDag();
-        PlotService::plot(self.application_state_service.identifierMapper());
+        PlotService::plot(&self.application_state_service);
     }
 
     pub fn descendDag(&mut self, nex_identifier: &u32){
         println!("\nDescending dag to: {}", nex_identifier);
         self.application_state_service.descendDag(nex_identifier);
-        PlotService::plot(self.application_state_service.identifierMapper());
+        PlotService::plot(&self.application_state_service);
     }
 
     pub fn getFlattenedSupers(&self) -> HashMap<u32, Vec<u32>>{

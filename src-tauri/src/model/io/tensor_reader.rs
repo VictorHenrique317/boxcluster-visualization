@@ -49,6 +49,7 @@ impl TensorReader<'_>{
             let mut line_dims: Vec<String> = line.split(" ").map(|i| i.to_owned()).collect();
 
             if file_has_densities {
+                // If this not trigger it means that the tensor only has the lines that are 100% dense
                 density = line_dims.pop().unwrap().parse::<f64>().unwrap();
             }
             

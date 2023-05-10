@@ -62,6 +62,10 @@ impl IdentifierMapper{
         return keys;
     }
 
+    pub fn getMapping(&self) -> &HashMap<u32, IdentifierRepresentation>{
+        return &self.mapping;
+    }
+
     pub fn getOrderedRepresentations(&self) -> Vec<&IdentifierRepresentation>{
         let mut keys: Vec<u32> = self.getIdentifiers();
 

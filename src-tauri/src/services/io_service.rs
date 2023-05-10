@@ -22,6 +22,7 @@ impl IoService {
     }
 
     pub fn readTensor(&self) -> Tensor {
+        println!("Reading tensor ...");
         let tensor_reader = TensorReader::new(
             &self.tensor_path,
             &self.translator);
@@ -29,6 +30,7 @@ impl IoService {
     }
 
     pub fn readPatterns(&self) -> Vec<Pattern> {
+        println!("Reading patterns ...");
         let pattern_reader = PatternReader::new(
                 &self.patterns_path,
                 &self.translator);
