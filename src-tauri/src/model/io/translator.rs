@@ -9,13 +9,9 @@ pub struct Translator{
     reversed_translator: Vec<HashMap<u32, String>>,
 }
 
-// Translation source path HAS to be a tensor, 
-// in which each line is a ntuple with the last column beeing the density of the ntuple
+// Translation source path HAS to be a tensor
 
 impl Translator {    
-    // pub const fn default() -> Translator{
-    //     return Translator { translator: Vec::new(), reversed_translator: Vec::new() };
-    // }
 
     pub fn new(translation_source_path: &String) -> Translator{
         println!("Creating translator...");

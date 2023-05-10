@@ -8,7 +8,7 @@ use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::{model::identifier_mapper::IdentifierMapper};
 
-use super::{metric::Metric, distances::Distances};
+use super::{metric::Metric, distances::DistancesTrait};
 
 pub struct Coordinates {
     value: HashMap<u32, (f32, f32)>,
@@ -22,14 +22,14 @@ impl Metric<HashMap<u32, (f32, f32)>> for Coordinates{
 }
 
 impl Coordinates {
-    pub fn new(identifier_mapper: &IdentifierMapper, distances: &Distances) -> Coordinates{
+    pub fn new<T: DistancesTrait>(identifier_mapper: &IdentifierMapper, distances: &T) -> Coordinates{
         println!("  Coordinates...");
         return Coordinates { 
             value: Coordinates::calculate(identifier_mapper, distances),
         };
     }
 
-    fn buildDissimilarityMatrix(distances: &Distances, n: usize) -> Array2<f64> {
+    fn buildDissimilarityMatrix<T: DistancesTrait>(distances: &T, n: usize) -> Array2<f64> {
         let size: Vec<usize> = vec![n, n];
         let distance_matrix: Arc<Mutex<ArrayD<f64>>> = Arc::new(Mutex::new(Array::zeros(Dim(size.clone())).into_dyn()));
 
@@ -82,7 +82,7 @@ impl Coordinates {
         return xys;
     }
 
-    pub fn fitTransformMDS(distances: &Distances, identifier_mapper: &IdentifierMapper) -> HashMap<u32, (f32, f32)>{
+    pub fn fitTransformMDS<T: DistancesTrait>(distances: &T, identifier_mapper: &IdentifierMapper) -> HashMap<u32, (f32, f32)>{
         println!("  Applying Multi Dimensional Scaling...");
         let n: usize = identifier_mapper.length() as usize;
         let dissimilarity_matrix = Coordinates::buildDissimilarityMatrix(distances, n);
@@ -90,8 +90,8 @@ impl Coordinates {
         return xys;
     }
 
-    fn calculate(identifier_mapper: &IdentifierMapper, distances: &Distances) -> HashMap<u32, (f32, f32)> {
-        return Coordinates::fitTransformMDS(&distances, &identifier_mapper);
+    fn calculate<T: DistancesTrait>(identifier_mapper: &IdentifierMapper, distances: &T) -> HashMap<u32, (f32, f32)> {
+        return Coordinates::fitTransformMDS(distances, &identifier_mapper);
     }
 }
 
