@@ -6,7 +6,13 @@ pub struct DataPointService {}
 
 impl DataPointService {
     fn normalizeSize(size: &u32, min_size: &u32) -> f32 {
-        return 2.0 * (*size as f32 / *min_size as f32).ln();
+        let size_multiplier = 1.0;
+        let normalized_size = size_multiplier * (*size as f32 / *min_size as f32).ln();
+
+        if normalized_size == 0.0 {
+            return size_multiplier;
+        }
+        return normalized_size;
     }
 
     fn calculateStrokeWidth(normalized_max_size: &f32, normalized_size: &f32) -> u32 {
@@ -48,6 +54,7 @@ impl DataPointService {
         let mut datapoints: Vec<DataPoint> = Vec::new();
         for pattern in pattern_representations {
             let coord = coordinates.get(&pattern.identifier).unwrap();
+            
             let size = DataPointService::normalizeSize(&pattern.size, &min_size);
             let stroke_width = DataPointService::calculateStrokeWidth(&max_size, &size);
             

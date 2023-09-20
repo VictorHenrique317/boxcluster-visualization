@@ -4,7 +4,9 @@ use rayon::prelude::{IntoParallelRefIterator, IndexedParallelIterator, ParallelI
 use crate::{model::{identifier_mapper::IdentifierMapper, analysis::{intersections_predictions::IntersectionsPredictions, ordered_pair::OrderedPair}}, database::{tensor::Tensor, subtensor::Subtensor, pattern::Pattern}, common::progress_bar};
 use super::metric::Metric;
 
-pub trait DistancesTrait {}
+pub trait DistancesTrait {
+    fn get(&self) -> &HashMap<u32, HashMap<u32, f64>>;
+}
 
 pub struct DistancesView {
     view: HashMap<u32, HashMap<u32, f64>>,
@@ -12,8 +14,19 @@ pub struct DistancesView {
 
 }
 
-impl DistancesTrait for DistancesView {}
+impl Metric<HashMap<u32, HashMap<u32, f64>>> for DistancesView{
+    fn get(&self) -> &HashMap<u32, HashMap<u32, f64>> {
+        return &self.view;
+    }
+}
 
+impl DistancesTrait for DistancesView {
+    fn get(&self) -> &HashMap<u32, HashMap<u32, f64>> {
+        return &self.view;
+    }
+}
+
+#[allow(non_camel_case_types)]
 impl DistancesView {
     fn new(view: &HashMap<u32, HashMap<u32, f64>> , mapping: HashMap<u32, u32>) -> DistancesView{
         return DistancesView { 
@@ -23,12 +36,18 @@ impl DistancesView {
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #[derive(Default)]
 pub struct Distances{
     value: HashMap<u32, HashMap<u32, f64>>, 
 }
 
-impl DistancesTrait for Distances {}
+impl DistancesTrait for Distances {
+    fn get(&self) -> &HashMap<u32, HashMap<u32, f64>> {
+        return &self.value;
+    }
+}
 
 #[allow(non_camel_case_types)]
 impl Metric<HashMap<u32, HashMap<u32, f64>>> for Distances{
@@ -155,8 +174,8 @@ impl Distances{
     fn calculate(identifier_mapper: &IdentifierMapper, tensor:&Tensor, intersections_predictions: &IntersectionsPredictions) -> HashMap<u32, HashMap<u32, f64>>{
         // 58s, 30s, 46s, 39s, 37s, 19s, 16s, 5s, 3s
         let distances = Arc::new(Mutex::new(HashMap::new()));
-        let patterns: Vec<&Pattern> = identifier_mapper.getRepresentations().iter()
-            .map(|r| r.asPattern())
+        let patterns: Vec<Pattern> = identifier_mapper.getRepresentations().iter()
+            .map(|r| r.asPattern().clone())
             .collect();
 
         let total_distances = (identifier_mapper.length().pow(2) as u32 / 2) - identifier_mapper.length() as u32;
@@ -221,6 +240,6 @@ impl Distances{
             }
         }
 
-        return DistancesView::new(distances_view, mapping);
+        return DistancesView::new(&distances_view, mapping);
     }
 }

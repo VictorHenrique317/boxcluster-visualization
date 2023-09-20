@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use plotters::{prelude::{BitMapBackend, IntoDrawingArea, ChartBuilder, Circle}, style::{WHITE, Color, IntoFont}};
 
-use crate::model::{identifier_mapper::IdentifierMapper, identifier_representation::IdentifierRepresentation};
+use crate::{model::{identifier_mapper::IdentifierMapper, identifier_representation::IdentifierRepresentation}, database::pattern};
 
 use super::application::application_state_service::ApplicationStateService;
 
@@ -58,11 +58,16 @@ impl PlotService{
             
         for identifier_representation in representations{
             let datapoint = identifier_representation.asDataPoint();
+
+            // let pattern = identifier_representation.asPattern();
+            // dbg!(datapoint.color);
+            // dbg!(pattern.identifier);
+            
             chart.draw_series(
                 std::iter::once(Circle::new((
                     datapoint.x, 
                     datapoint.y), 
-                    datapoint.size as i32,
+                    8 * datapoint.size as i32,
                     datapoint.color.filled()
                     // ShapeStyle {
                     //     color: datapoint.color.to_rgba(),
