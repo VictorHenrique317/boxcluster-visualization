@@ -97,5 +97,13 @@ impl ApplicationStateService{
         return &self.visible_identifiers;
     }
 
+    pub fn getMetricsService(&self) -> &MetricsService{
+        return self.metrics_service.as_ref().unwrap();
+    }
+
+    pub fn getDagService(&self) -> &DagService{
+        return self.dag_service.as_ref().unwrap();
+    }
+
     
 }

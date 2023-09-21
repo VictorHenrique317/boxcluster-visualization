@@ -2,6 +2,7 @@
 use std::collections::HashSet;
 use debug_print::{debug_println, debug_print};
 use itertools::Itertools;
+use ndarray::{IxDynImpl, Dim};
 use std::hash::{Hash, Hasher};
 
 #[derive(PartialEq, Debug, Clone, Copy)]
@@ -18,6 +19,7 @@ pub struct Pattern {
     pub dims_values: Vec<Vec<usize>>,
     pub density: f64,
     pub size: u32,
+    pub indices_as_dims: Vec<Dim<IxDynImpl>>,
     pub indices: Vec<Vec<usize>>,
 }
 
@@ -42,23 +44,16 @@ impl Hash for Pattern {
 impl Pattern {
     pub fn new<'a>(identifier: u32, dims_values: Vec<Vec<usize>>, density: f64) -> Pattern {
         let size = Pattern::calculateSize(&dims_values);
+        let indices = Pattern::getIndices(&dims_values);
 
         return Pattern {
             identifier: identifier,
             dims_values: Pattern::sortDimsValues(&dims_values),
             density: density,
             size: size,
-            indices: Pattern::getIndices(&dims_values),
+            indices_as_dims: Pattern::getIndicesAsDims(&indices),
+            indices: indices
         };
-    }
-
-    fn sortDimsValues(dims_values: &Vec<Vec<usize>>) -> Vec<Vec<usize>>{
-        let mut dims_values: Vec<Vec<usize>> = dims_values.clone();
-
-        for dim_values in dims_values.iter_mut(){
-            dim_values.sort();
-        }
-        return dims_values;
     }
 
     fn calculateSize(dims_values: &Vec<Vec<usize>>) -> u32{
@@ -68,6 +63,32 @@ impl Pattern {
             size *= dims_value.len() as u32;
         }
         return size;
+    }
+
+    fn getIndices(dims_values: &Vec<Vec<usize>>) -> Vec<Vec<usize>>{
+        return dims_values.iter()
+            .cloned()
+            .multi_cartesian_product()
+            .collect();
+    }
+
+    fn getIndicesAsDims(indices: &Vec<Vec<usize>>) -> Vec<Dim<IxDynImpl>> {
+        let mut indices_as_dims: Vec<Dim<IxDynImpl>> = Vec::new();
+
+        for index in indices{
+            indices_as_dims.push(Dim(index.clone()));
+        }
+
+        return indices_as_dims;
+    }
+
+    fn sortDimsValues(dims_values: &Vec<Vec<usize>>) -> Vec<Vec<usize>>{
+        let mut dims_values: Vec<Vec<usize>> = dims_values.clone();
+
+        for dim_values in dims_values.iter_mut(){
+            dim_values.sort();
+        }
+        return dims_values;
     }
 
     fn intersectionPercentage(vector: &Vec<usize>, base: &Vec<usize>) -> f64 { // Only works for sorted vectors
@@ -175,13 +196,6 @@ impl Pattern {
         
     }
 
-    fn getIndices(dims_values: &Vec<Vec<usize>>) -> Vec<Vec<usize>>{
-        return dims_values.iter()
-            .cloned()
-            .multi_cartesian_product()
-            .collect();
-    }
-    
     pub fn intersection(&self, pattern: &Pattern) -> Vec<Vec<usize>> {
         let indices: HashSet<Vec<usize>> = self.indices.iter().cloned().collect();
         let intersections = indices

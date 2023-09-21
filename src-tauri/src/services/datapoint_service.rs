@@ -1,18 +1,20 @@
 use plotters::style::RGBColor;
 
-use crate::{model::{identifier_mapper::IdentifierMapper, analysis::metrics::{coordinates::Coordinates, metric::Metric}}, database::{datapoint::DataPoint, pattern::Pattern}};
+use crate::{model::{identifier_mapper::IdentifierMapper, analysis::metrics::{coordinates::Coordinates, metric::Metric}}, database::{datapoint::DataPoint, pattern::{Pattern, self}}};
 
 pub struct DataPointService {}
 
 impl DataPointService {
-    fn normalizeSize(size: &u32, min_size: &u32) -> f32 {
-        let size_multiplier = 1.0;
-        let normalized_size = size_multiplier * (*size as f32 / *min_size as f32).ln();
+    fn normalizeSize(size: &u32, dimension: &u32) -> f32 {
+        // let size_multiplier = 1.0;
+        // let normalized_size = size_multiplier * (*size as f32 / *min_size as f32).ln();
 
-        if normalized_size == 0.0 {
-            return size_multiplier;
-        }
-        return normalized_size;
+        // if normalized_size == 0.0 {
+        //     return size_multiplier;
+        // }
+        // return normalized_size;
+        return (*size as f32).powf(1.0 / *dimension as f32);
+        
     }
 
     fn calculateStrokeWidth(normalized_max_size: &f32, normalized_size: &f32) -> u32 {
@@ -43,20 +45,22 @@ impl DataPointService {
             .map(|r| r.asPattern())
             .collect();
 
-        let mut descending_sizes: Vec<&Pattern> = pattern_representations.iter().cloned().collect();
-        descending_sizes.sort_by_key(|p| p.identifier);
-        let min_size = descending_sizes.get(descending_sizes.len() - 1).unwrap().size;
+        // let mut descending_sizes: Vec<&Pattern> = pattern_representations.iter().cloned().collect();
+        // descending_sizes.sort_by_key(|p| p.identifier);
+        // let min_size = descending_sizes.get(descending_sizes.len() - 1).unwrap().size;
 
-        let max_size = descending_sizes.get(0).unwrap().size;
-        let max_size = DataPointService::normalizeSize(&max_size, &min_size);
+        // let max_size = descending_sizes.get(0).unwrap().size;
+        // let max_size = DataPointService::normalizeSize(&max_size, &min_size);
 
 
         let mut datapoints: Vec<DataPoint> = Vec::new();
+        let dimension = pattern_representations.get(0).unwrap().dims_values.len() as u32;
         for pattern in pattern_representations {
             let coord = coordinates.get(&pattern.identifier).unwrap();
             
-            let size = DataPointService::normalizeSize(&pattern.size, &min_size);
-            let stroke_width = DataPointService::calculateStrokeWidth(&max_size, &size);
+            let size = DataPointService::normalizeSize(&pattern.size, &dimension);
+            // let stroke_width = DataPointService::calculateStrokeWidth(&max_size, &size);
+            let stroke_width = 2;
             
             let datapoint = DataPoint::new(
                 &pattern.identifier,

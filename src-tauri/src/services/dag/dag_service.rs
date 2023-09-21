@@ -1,4 +1,6 @@
 #![allow(non_snake_case)]
+use std::collections::HashMap;
+
 use crate::database::dag_node::DagNode;
 use crate::model::identifier_mapper::IdentifierMapper;
 use super::dag_creator_service::{DagCreatorService, self};
@@ -59,5 +61,30 @@ impl DagService{
         return dag_node.subs.clone();
     }
 
+    pub fn getFlattenedSubs(&self, identifier_mapper: &IdentifierMapper) -> HashMap<u32, Vec<u32>>{
+        let dag_nodes: Vec<&DagNode> = identifier_mapper.getRepresentations().iter()
+            .map(|representation| representation.asDagNode())
+            .collect();
+
+        let mut flattened_subs: HashMap<u32, Vec<u32>> = HashMap::new();
+        for dag_node in dag_nodes{
+            flattened_subs.insert(dag_node.identifier, dag_node.subs.clone());
+        }
+
+        return flattened_subs;
+    }
+
+    pub fn getFlattenedSupers(&self, identifier_mapper: &IdentifierMapper) -> HashMap<u32, Vec<u32>>{
+        let dag_nodes: Vec<&DagNode> = identifier_mapper.getRepresentations().iter()
+            .map(|representation| representation.asDagNode())
+            .collect();
+
+        let mut flattened_supers: HashMap<u32, Vec<u32>> = HashMap::new();
+        for dag_node in dag_nodes{
+            flattened_supers.insert(dag_node.identifier, dag_node.supers.clone());
+        }
+
+        return flattened_supers;
+    }
     
 }

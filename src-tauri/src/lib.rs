@@ -54,7 +54,7 @@ fn testDag(){
     // let patterns_path = "tests/test_data/other_patterns/retweets2d_patterns.txt".to_owned();
 
     let tensor_path = "tests/test_data/tensors/synth_co1.txt".to_owned();
-    let patterns_path = "tests/test_data/other_patterns/synth_co1.txt".to_owned();
+    let patterns_path = "tests/test_data/other_patterns/synth_co1_truncated_100.txt".to_owned();
 
     let mut application_manager = ApplicationService::new(&tensor_path, &patterns_path);
     application_manager.init();

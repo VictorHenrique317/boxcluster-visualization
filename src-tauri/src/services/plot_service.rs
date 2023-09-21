@@ -67,7 +67,7 @@ impl PlotService{
                 std::iter::once(Circle::new((
                     datapoint.x, 
                     datapoint.y), 
-                    8 * datapoint.size as i32,
+                    2 * datapoint.size as i32,
                     datapoint.color.filled()
                     // ShapeStyle {
                     //     color: datapoint.color.to_rgba(),

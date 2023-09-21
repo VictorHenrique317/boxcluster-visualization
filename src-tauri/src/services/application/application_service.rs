@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use std::{collections::HashMap, time::Instant};
-use crate::services::{io_service::IoService, plot_service::PlotService};
+use crate::{services::{io_service::IoService, plot_service::PlotService}, model::analysis::metrics::metric::Metric};
 use super::application_state_service::ApplicationStateService;
 
 pub struct ApplicationService{
@@ -62,18 +62,21 @@ impl ApplicationService{
     }
 
     pub fn getFlattenedSupers(&self) -> HashMap<u32, Vec<u32>>{
-        // return self.dag.getFlattenedSupers().clone();
-        todo!()
+        let identifier_mapper = self.application_state_service.identifierMapper();
+        return self.application_state_service.getDagService().getFlattenedSupers(identifier_mapper);
     }
 
     pub fn getFlattenedSubs(&self) -> HashMap<u32, Vec<u32>>{
-        // return self.dag.getFlattenedSubs().clone();
-        todo!()
+        let identifier_mapper = self.application_state_service.identifierMapper();
+        return self.application_state_service.getDagService().getFlattenedSubs(identifier_mapper);
     }
 
-    // pub fn getDistances(&self) -> HashMap<u32, HashMap<u32, f64>>{
-    //     return self.metrics_service.distances.get().clone();
-    // }
+    pub fn getDistances(&self) -> &HashMap<u32, HashMap<u32, f64>>{
+        return self.application_state_service.getMetricsService().distances.get();
+    }
 
+    pub fn getRssEvolution(&self) -> &Vec<(u32, f64)>{
+        return self.application_state_service.getMetricsService().rss_evolution.get();
+    }
 
 }
