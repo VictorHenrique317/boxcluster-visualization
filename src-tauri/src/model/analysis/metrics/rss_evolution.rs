@@ -1,4 +1,5 @@
-use ndarray::{ArrayD, Dim, IxDynImpl};
+use ndarray::{ArrayD, Dim, IxDynImpl, Dimension};
+use rayon::prelude::{IntoParallelRefIterator, IndexedParallelIterator, ParallelIterator};
 
 use crate::common::progress_bar;
 use crate::database::pattern::Pattern;
@@ -7,6 +8,7 @@ use crate::{model::identifier_mapper::IdentifierMapper, database::tensor::Tensor
 use super::empty_model_rss::EmptyModelRss;
 use super::metric::Metric;
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 pub struct RssEvolution{
     value: Vec<(u32, f64)>, 
@@ -47,48 +49,49 @@ impl RssEvolution{
     
         for pattern in patterns {
 
-            // let current_prediction = &pattern.density;
-            // for index in pattern.indices_as_dims.iter() {
+            let current_prediction = &pattern.density;
+            for index in pattern.indices_as_dims.iter() {
 
-            //     let previous_prediction = prediction_matrix.get_mut(&index);
+                let previous_prediction = prediction_matrix.get_mut(&index);
                 
-            //     if previous_prediction.is_some(){
-            //         let previous_prediction = previous_prediction.unwrap();
+                if previous_prediction.is_some(){
+                    let previous_prediction = previous_prediction.unwrap();
 
-            //         if current_prediction > previous_prediction{ // Prediction is the maximum value
-            //             *previous_prediction = *current_prediction;
-            //         }
+                    if current_prediction > previous_prediction{ // Prediction is the maximum value
+                        *previous_prediction = *current_prediction;
+
+                    }
     
-            //     } else { // Prediction is not in the matrix
-            //         prediction_matrix.insert(index, *current_prediction);
-            //     }
-            // }
-            for index in pattern.indices.iter(){
-                let intersection_prediction = intersections_predictions.get(index);
-                let mut prediction = pattern.density;
-                
-                if intersection_prediction.is_some(){
-                    prediction = intersection_prediction.unwrap().density;
+                } else { // Prediction is not in the matrix
+                    prediction_matrix.insert(index, *current_prediction);
                 }
-
-                let index = Dim(index.clone());
-                
-                let prediction_rss = RssEvolution::calculateRssAtIndex(tensor_matrix, &index, &prediction);
-                let lambda0_rss = RssEvolution::calculateRssAtIndex(tensor_matrix, &index, &tensor.density);
-
-                total_rss -= lambda0_rss;
-                total_rss += prediction_rss;
             }
+            // for index in pattern.indices.iter(){
+            //     let intersection_prediction = intersections_predictions.get(index);
+            //     let mut prediction = pattern.density;
+
+            //     if intersection_prediction.is_some(){
+            //         prediction = intersection_prediction.unwrap().density;
+            //     }
+
+            //     // println!("{:?}: {:?}, ", &index, &prediction);
+
+            //     let index = Dim(index.clone());
+            //     prediction_matrix.insert(index, prediction);
+            // }
+
             
         }
 
-        // for (index, &prediction) in &prediction_matrix {
-        //     let prediction_rss = RssEvolution::calculateRssAtIndex(tensor_matrix, index, &prediction);
-        //     let lambda0_rss = RssEvolution::calculateRssAtIndex(tensor_matrix, index, &tensor.density);
+        for (index, &prediction) in &prediction_matrix {
+            // println!("{:?}: {:?}, ", &index.as_array_view().to_vec(), &prediction);
 
-        //     total_rss -= lambda0_rss;
-        //     total_rss += prediction_rss;
-        // }
+            let prediction_rss = RssEvolution::calculateRssAtIndex(tensor_matrix, index, &prediction);
+            let lambda0_rss = RssEvolution::calculateRssAtIndex(tensor_matrix, index, &tensor.density);
+
+            total_rss -= lambda0_rss;
+            total_rss += prediction_rss;
+        }
 
         return total_rss;
     }
@@ -101,7 +104,7 @@ impl RssEvolution{
 
     fn calculate(identifier_mapper: &IdentifierMapper, tensor:&Tensor, empty_model_rss: &EmptyModelRss, 
         intersections_predictions: &IntersectionsPredictions) -> Vec<(u32, f64)>{
-        // 22s, 15s
+        // 22s, 15s, 3s
     
         let mut patterns: Vec<&Pattern> = identifier_mapper.getRepresentations().iter()
                 .map(|r| r.asPattern())
@@ -117,23 +120,31 @@ impl RssEvolution{
         
         let bar = progress_bar::new(pattern_nb as u64, "  Orderered patterns");
         while sorted_patterns.len() < pattern_nb { // Sorts all patterns in the patterns vector
-            let mut minimum_temp_model_rss = f64::MAX;
-            let mut minimum_temp_model_pattern: Option<&Pattern> = None;
-            let mut minimum_temp_model_pattern_index: usize = usize::MAX;
+            let minimum_temp_model_rss = Arc::new(Mutex::new(f64::MAX));
+            let minimum_temp_model_pattern: Arc<Mutex<Option<&Pattern>>> = Arc::new(Mutex::new(None));
+            let minimum_temp_model_pattern_index: Arc<Mutex<usize>> = Arc::new(Mutex::new(usize::MAX));
 
-            for (index, pattern) in patterns.iter().enumerate() {
+            patterns.par_iter().enumerate().for_each(|(index, pattern)|{
                 let mut temp_patterns: Vec<&Pattern> = sorted_patterns.clone();
                 temp_patterns.push(pattern);
 
                 let temp_model_rss = RssEvolution::calculateModelRss(tensor, empty_model_rss, &temp_patterns, intersections_predictions);
                 // let temp_model_rss = RssEvolution::calculateModelRss(&tensor.density, &minimum_rss_value, &pattern);
 
-                if temp_model_rss <= minimum_temp_model_rss {
-                    minimum_temp_model_rss = temp_model_rss;
-                    minimum_temp_model_pattern = Some(pattern);
-                    minimum_temp_model_pattern_index = index;
+                let mut minimum_temp_model_rss = minimum_temp_model_rss.lock().unwrap();
+                if temp_model_rss <= *minimum_temp_model_rss {
+                    let mut minimum_temp_model_pattern = minimum_temp_model_pattern.lock().unwrap();
+                    let mut minimum_temp_model_pattern_index = minimum_temp_model_pattern_index.lock().unwrap();
+                    
+                    *minimum_temp_model_rss = temp_model_rss;
+                    *minimum_temp_model_pattern = Some(pattern);
+                    *minimum_temp_model_pattern_index = index;
                 }
-            }
+            });
+
+            let minimum_temp_model_rss = *minimum_temp_model_rss.lock().unwrap();
+            let minimum_temp_model_pattern = minimum_temp_model_pattern.lock().unwrap();
+            let minimum_temp_model_pattern_index = *minimum_temp_model_pattern_index.lock().unwrap();
 
             if minimum_temp_model_rss <= minimum_rss_value { // Its worth to add a pattern
                 minimum_rss_value = minimum_temp_model_rss;
@@ -159,3 +170,23 @@ impl RssEvolution{
     }
 
 }
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55563.46775797215
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55548.724098351566
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55534.15132468542
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55519.63568524107
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55505.50823457207
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55492.355429111805
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55479.48738446582
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55466.79016959554
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55454.64362154556
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55442.557853373495
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55431.07190785551
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55421.0835804755
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55411.099244773846
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55401.1960104198
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55391.29305496085
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55381.64723069241
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55372.00527927974
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55362.658900330054
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55353.33608175768
+// [src/model/analysis/metrics/rss_evolution.rs:139] minimum_temp_model_rss = 55344.05621114673

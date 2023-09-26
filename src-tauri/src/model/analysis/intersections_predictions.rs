@@ -41,15 +41,16 @@ impl IntersectionsPredictions<'_>{
                 for intersection_index in intersection_indices {
                     let mut intersections_predictions_lock = intersections_predictions.lock().unwrap();
 
-                    let possible_previous_prediction = intersections_predictions_lock.get(&intersection_index); // EXPENSIVE
+                    let possible_previous_prediction = intersections_predictions_lock.get_mut(&intersection_index); // EXPENSIVE
                     if possible_previous_prediction.is_some(){ // Multiple overlapping in one index
-                        let previous_prediction = possible_previous_prediction.unwrap().density;
+                        let previous_prediction = possible_previous_prediction.unwrap();
 
-                        if overlapper.density < previous_prediction{ // Do not switch to current overlapper
-                            continue;
+                        if overlapper.density > previous_prediction.density{ // Switch to current overlapper
+                            *previous_prediction = overlapper;
                         }
-                    }
 
+                        continue;
+                    }
                     intersections_predictions_lock.insert(intersection_index.clone(), overlapper);
                 }
             }
