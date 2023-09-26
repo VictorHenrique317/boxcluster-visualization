@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 use crate::database::pattern::Pattern;
 use crate::database::tensor::Tensor;
+use crate::model::analysis::metrics::metric::Metric;
 use crate::model::identifier_mapper::IdentifierMapper;
 use crate::services::dag::dag_service::{DagService};
 use crate::services::datapoint_service::DataPointService;
@@ -89,6 +90,16 @@ impl ApplicationStateService{
         self.update(next_identifiers);
     }
 
+    pub fn truncate(&mut self, new_size: usize){
+        let mut new_visible_identifiers: Vec<u32> = self.getMetricsService().rss_evolution.get().clone().iter()
+            .map(|(identifier, _)| *identifier)
+            .collect();
+
+        new_visible_identifiers.truncate(new_size+1);
+
+        self.update(new_visible_identifiers);
+    }
+
     pub fn identifierMapper(&self) -> &IdentifierMapper{
         return self.identifier_mapper.as_ref().unwrap();
     }
@@ -104,6 +115,4 @@ impl ApplicationStateService{
     pub fn getDagService(&self) -> &DagService{
         return self.dag_service.as_ref().unwrap();
     }
-
-    
 }

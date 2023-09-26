@@ -13,15 +13,18 @@ pub struct MetricsService{
 impl MetricsService{
     pub fn new(identifier_mapper: &IdentifierMapper, tensor: &Tensor) -> MetricsService{
         println!("Calculating metrics...");
+
+        let intersections_predictions = IntersectionsPredictions::new(identifier_mapper);
+        
         let empty_model_rss = EmptyModelRss::new(tensor);
 
         let rss_evolution = RssEvolution::new(
             identifier_mapper,
             tensor,
             &empty_model_rss,
+            &intersections_predictions,
         );
 
-        let intersections_predictions = IntersectionsPredictions::new(identifier_mapper);
         let distances = Distances::new(
             identifier_mapper,
             tensor,
