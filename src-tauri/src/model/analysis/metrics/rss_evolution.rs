@@ -138,50 +138,39 @@ impl RssEvolution{
         
         let mut total_rss = *empty_model_rss.get();
         let tensor_matrix: &ArrayD<f64> = &tensor.dims_values;
-        let mut indices_matrix: HashMap<Dim<IxDynImpl>, f64> = HashMap::new();
 
         let patterns_identifiers: Vec<u32> = patterns.iter()
             .map(|p| p.identifier)
             .collect();
+        let mut accounted_indices: HashSet<&Dim<IxDynImpl>> = HashSet::new();
 
         for pattern in patterns {
-
-            let current_prediction = &pattern.density;
             for index in pattern.indices_as_dims.iter() {
+                let predictions = prediction_matrix.get(&index).unwrap();
 
-                let previous_predictions = prediction_matrix.get(&index);
-                
-                if previous_predictions.is_some(){
-                    let predictions = previous_predictions.unwrap();
-
-                    if predictions.len() == 1 { // There is only one prediction, no intersection
-                        let prediction = predictions.first().unwrap().1;
-                        total_rss = RssEvolution::updateRssAtIndex(total_rss, tensor_matrix, &tensor.density, index, &prediction);
-                        continue;
-                    }
-
-                    // There are more than one prediction, retain the ones that are in this submodel
-                    // and keep the maximum value
-                    let mut max_prediction = f64::MIN;
-                    for (identifier, prediction) in predictions {
-                        if patterns_identifiers.contains(identifier) && prediction > &mut max_prediction {
-                            max_prediction = *prediction;
-                        }
-                    }
-                    indices_matrix.insert(index.clone(), max_prediction);
-
-                } else { // Prediction is not in the matrix
-                    indices_matrix.insert(index.clone(), *current_prediction);
+                if predictions.len() == 1 { // There is only one prediction, no intersection
+                    let prediction = predictions.first().unwrap().1;
+                    total_rss = RssEvolution::updateRssAtIndex(total_rss, tensor_matrix, &tensor.density, index, &prediction);
+                    continue;
                 }
+
+                // There are more than one prediction, retain the ones that are in this submodel
+                // and keep the maximum value
+
+                if accounted_indices.contains(index) { continue; } // This index has already been accounted for
+                accounted_indices.insert(index);
+
+                let mut max_prediction = f64::MIN;
+                for (identifier, prediction) in predictions {
+                    if patterns_identifiers.contains(identifier) && prediction > &mut max_prediction {
+                        max_prediction = *prediction;
+                    }
+                }
+                total_rss = RssEvolution::updateRssAtIndex(total_rss, tensor_matrix, &tensor.density, index, &max_prediction);
+
             }
         }
-
-        for (index, &prediction) in &indices_matrix {
-            // println!("{:?}: {:?}, ", &index.as_array_view().to_vec(), &prediction);
-
-            total_rss = RssEvolution::updateRssAtIndex(total_rss, tensor_matrix, &tensor.density, index, &prediction);
-        }
-
+        
         return total_rss;
     }
 
