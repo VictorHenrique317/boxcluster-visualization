@@ -123,7 +123,7 @@ impl RssEvolution{
             let minimum_temp_model_rss = Arc::new(Mutex::new(f64::MAX));
             let minimum_temp_model_pattern: Arc<Mutex<Option<&Pattern>>> = Arc::new(Mutex::new(None));
             let minimum_temp_model_pattern_index: Arc<Mutex<usize>> = Arc::new(Mutex::new(usize::MAX));
-
+            
             patterns.par_iter().enumerate().for_each(|(index, pattern)|{
                 let mut temp_patterns: Vec<&Pattern> = sorted_patterns.clone();
                 temp_patterns.push(pattern);
