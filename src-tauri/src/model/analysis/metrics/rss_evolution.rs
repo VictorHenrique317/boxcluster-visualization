@@ -82,52 +82,104 @@ impl RssEvolution{
         return filtered_prediction_matrix;
     }
 
+    // fn calculateModelRss(tensor: &Tensor, empty_model_rss: &EmptyModelRss, patterns: &Vec<&Pattern>,
+    //     prediction_matrix: &HashMap<Dim<IxDynImpl>, Vec<(u32, f64)>>) -> f64{
+        
+    //     let patterns_identifiers: Vec<u32> = patterns.iter()
+    //         .map(|p| p.identifier)
+    //         .collect();
+    //     let tensor_matrix: &ArrayD<f64> = &tensor.dims_values;
+    //     let mut total_rss = *empty_model_rss.get();
+    //     let mut accounted_indices: HashSet<&Dim<IxDynImpl>> = HashSet::new();
+    
+    //     for pattern in patterns {
+    //         for index in pattern.indices_as_dims.iter() {
+
+    //             let predictions = prediction_matrix.get(&index).unwrap();
+
+    //             if predictions.len() == 1 { // There is only one prediction, no intersection
+    //                 let prediction = predictions.first().unwrap().1;
+    //                 // total_rss = RssEvolution::updateRssAtIndex(total_rss, tensor_matrix, &tensor.density, index, &prediction);
+    //                 let prediction_rss = RssEvolution::calculateRssAtIndex(tensor_matrix, index, &prediction);
+    //                 let lambda0_rss = RssEvolution::calculateRssAtIndex(tensor_matrix, index, &tensor.density);
+
+    //                 total_rss -= lambda0_rss;
+    //                 total_rss += prediction_rss;
+
+    //                 continue;
+    //             }
+
+    //             if accounted_indices.contains(index) { continue; } // This index has already been accounted
+    //             accounted_indices.insert(index);
+
+    //             // There are more than one prediction, retain the ones that are in this submodel
+    //             // and keep the maximum value
+    //             let mut max_prediction = f64::MIN;
+    //             for (identifier, prediction) in predictions {
+    //                 if patterns_identifiers.contains(identifier) && prediction > &max_prediction {
+    //                     max_prediction = *prediction;
+    //                 }
+    //             }
+
+    //             // total_rss = RssEvolution::updateRssAtIndex(total_rss, tensor_matrix, &tensor.density, index, &max_prediction);
+    //             let prediction_rss = RssEvolution::calculateRssAtIndex(tensor_matrix, index, &max_prediction);
+    //             let lambda0_rss = RssEvolution::calculateRssAtIndex(tensor_matrix, index, &tensor.density);
+
+    //             total_rss -= lambda0_rss;
+    //             total_rss += prediction_rss;
+    //         }
+    //     }
+
+    //     return total_rss;
+    // }
+
     fn calculateModelRss(tensor: &Tensor, empty_model_rss: &EmptyModelRss, patterns: &Vec<&Pattern>,
         prediction_matrix: &HashMap<Dim<IxDynImpl>, Vec<(u32, f64)>>) -> f64{
         
+        let mut total_rss = *empty_model_rss.get();
+        let tensor_matrix: &ArrayD<f64> = &tensor.dims_values;
+        let mut indices_matrix: HashMap<Dim<IxDynImpl>, f64> = HashMap::new();
+
         let patterns_identifiers: Vec<u32> = patterns.iter()
             .map(|p| p.identifier)
             .collect();
-        let tensor_matrix: &ArrayD<f64> = &tensor.dims_values;
-        let mut total_rss = *empty_model_rss.get();
-        let mut accounted_indices: HashSet<&Dim<IxDynImpl>> = HashSet::new();
-    
+
         for pattern in patterns {
+
+            let current_prediction = &pattern.density;
             for index in pattern.indices_as_dims.iter() {
 
-                let predictions = prediction_matrix.get(&index).unwrap();
+                let previous_predictions = prediction_matrix.get(&index);
+                
+                if previous_predictions.is_some(){
+                    let predictions = previous_predictions.unwrap();
 
-                if predictions.len() == 1 { // There is only one prediction, no intersection
-                    let prediction = predictions.first().unwrap().1;
-                    total_rss = RssEvolution::updateRssAtIndex(total_rss, tensor_matrix, &tensor.density, index, &prediction);
-                    // let prediction_rss = RssEvolution::calculateRssAtIndex(tensor_matrix, index, &prediction);
-                    // let lambda0_rss = RssEvolution::calculateRssAtIndex(tensor_matrix, index, &tensor.density);
-
-                    // total_rss -= lambda0_rss;
-                    // total_rss += prediction_rss;
-
-                    continue;
-                }
-
-                if accounted_indices.contains(index) { continue; } // This index has already been accounted
-                accounted_indices.insert(index);
-
-                // There are more than one prediction, retain the ones that are in this submodel
-                // and keep the maximum value
-                let mut max_prediction = f64::MIN;
-                for (identifier, prediction) in predictions {
-                    if patterns_identifiers.contains(identifier) && prediction > &max_prediction {
-                        max_prediction = *prediction;
+                    if predictions.len() == 1 { // There is only one prediction, no intersection
+                        let prediction = predictions.first().unwrap().1;
+                        total_rss = RssEvolution::updateRssAtIndex(total_rss, tensor_matrix, &tensor.density, index, &prediction);
+                        continue;
                     }
+
+                    // There are more than one prediction, retain the ones that are in this submodel
+                    // and keep the maximum value
+                    let mut max_prediction = f64::MIN;
+                    for (identifier, prediction) in predictions {
+                        if patterns_identifiers.contains(identifier) && prediction > &mut max_prediction {
+                            max_prediction = *prediction;
+                        }
+                    }
+                    indices_matrix.insert(index.clone(), max_prediction);
+
+                } else { // Prediction is not in the matrix
+                    indices_matrix.insert(index.clone(), *current_prediction);
                 }
-
-                total_rss = RssEvolution::updateRssAtIndex(total_rss, tensor_matrix, &tensor.density, index, &max_prediction);
-                // let prediction_rss = RssEvolution::calculateRssAtIndex(tensor_matrix, index, &max_prediction);
-                // let lambda0_rss = RssEvolution::calculateRssAtIndex(tensor_matrix, index, &tensor.density);
-
-                // total_rss -= lambda0_rss;
-                // total_rss += prediction_rss;
             }
+        }
+
+        for (index, &prediction) in &indices_matrix {
+            // println!("{:?}: {:?}, ", &index.as_array_view().to_vec(), &prediction);
+
+            total_rss = RssEvolution::updateRssAtIndex(total_rss, tensor_matrix, &tensor.density, index, &prediction);
         }
 
         return total_rss;
@@ -161,8 +213,8 @@ impl RssEvolution{
                 temp_patterns.push(pattern);
                 // sorted_patterns.push(&pattern);
 
-                let temp_model_rss = RssEvolution::calculateModelRss(tensor, empty_model_rss, &sorted_patterns, &prediction_matrix);
-                // let temp_model_rss = RssEvolution::calculateModelRss(&tensor.density, &minimum_rss_value, &pattern);
+                // let temp_model_rss = RssEvolution::calculateModelRss(tensor, empty_model_rss, &sorted_patterns, &prediction_matrix);
+                let temp_model_rss = RssEvolution::calculateModelRss(tensor, empty_model_rss, &temp_patterns, &prediction_matrix);
 
                 let mut minimum_temp_model_rss = minimum_temp_model_rss.lock().unwrap();
                 if temp_model_rss <= *minimum_temp_model_rss {
