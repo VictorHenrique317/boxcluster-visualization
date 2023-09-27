@@ -157,9 +157,9 @@ impl RssEvolution{
             let minimum_temp_model_pattern_index: Arc<Mutex<usize>> = Arc::new(Mutex::new(usize::MAX));
             
             patterns.par_iter().enumerate().for_each(|(index, pattern)|{
-                // let mut temp_patterns: Vec<&Pattern> = sorted_patterns.clone();
-                // temp_patterns.push(pattern);
-                sorted_patterns.push(&pattern);
+                let mut temp_patterns: Vec<&Pattern> = sorted_patterns.clone();
+                temp_patterns.push(pattern);
+                // sorted_patterns.push(&pattern);
 
                 let temp_model_rss = RssEvolution::calculateModelRss(tensor, empty_model_rss, &sorted_patterns, &prediction_matrix);
                 // let temp_model_rss = RssEvolution::calculateModelRss(&tensor.density, &minimum_rss_value, &pattern);
@@ -174,7 +174,7 @@ impl RssEvolution{
                     *minimum_temp_model_pattern_index = index;
                 }
 
-                sorted_patterns.pop();
+                // sorted_patterns.pop();
             });
 
             let minimum_temp_model_rss = *minimum_temp_model_rss.lock().unwrap();
