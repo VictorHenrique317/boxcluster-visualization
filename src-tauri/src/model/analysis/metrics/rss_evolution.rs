@@ -157,7 +157,7 @@ impl RssEvolution{
         tensor_matrix: &ArrayD<f64>,
         lambda_0: &f64,
         patterns_identifiers: &Vec<u32>,
-        touched_delta_rss_s: &HashMap<u32, HashMap<u32, f64>>) -> HashSet<Dim<IxDynImpl>>{
+        touched_delta_rss_s: &HashMap<u32, HashMap<u32, f64>>) -> HashSet<Dim<IxDynImpl>> {
 
         for index in pattern.indices_as_dims.iter() {
             let predictions = prediction_matrix.get(&index);
