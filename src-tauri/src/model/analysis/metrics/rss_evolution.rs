@@ -107,7 +107,6 @@ impl RssEvolution{
         patterns_identifiers: &Vec<u32>) -> HashSet<Dim<IxDynImpl>>{
         
         for index in pattern.indices_as_dims.iter() {
-
             let predictions = prediction_matrix.get(&index);
             if predictions.is_none() { continue; } // This index is covered by one pattern
             let predictions = predictions.unwrap();
@@ -144,6 +143,8 @@ impl RssEvolution{
 
         let mut accounted_indices: HashSet<Dim<IxDynImpl>> = HashSet::new();
 
+        // println!("{:?}", previous_patterns.len());
+
         for pattern in previous_patterns {
             accounted_indices = RssEvolution::calculateRssAtIntersections(&mut total_rss, pattern, prediction_matrix, accounted_indices, 
                 tensor_matrix, &tensor.density, &patterns_identifiers);
@@ -152,10 +153,14 @@ impl RssEvolution{
         accounted_indices = RssEvolution::calculateRssAtIntersections(&mut total_rss, new_pattern, prediction_matrix, accounted_indices, 
             tensor_matrix, &tensor.density, &patterns_identifiers);
 
+        // println!("Ended");
+
         for pattern in patterns_identifiers {
             let untouched_rss = untouched_delta_rss_s.get(&pattern).unwrap();
             total_rss += untouched_rss;
         }
+
+        
         
         return total_rss;
     }
@@ -184,17 +189,32 @@ impl RssEvolution{
         let mut sorted_patterns: Vec<&Pattern> = Vec::new();
         let mut rss_evolution: Vec<f64> = vec![minimum_rss_value];
         
-        let bar = progress_bar::new(pattern_nb as u64, "  Orderered patterns");
+        // let bar = progress_bar::new(pattern_nb as u64, "  Orderered patterns");
         while sorted_patterns.len() < pattern_nb { // Sorts all patterns in the patterns vector
             // println!("      Sorting one...");
             let minimum_temp_model_rss = Arc::new(Mutex::new(f64::MAX));
             let minimum_temp_model_pattern: Arc<Mutex<Option<&Pattern>>> = Arc::new(Mutex::new(None));
             let minimum_temp_model_pattern_index: Arc<Mutex<usize>> = Arc::new(Mutex::new(usize::MAX));
             
-            patterns.par_iter().enumerate().for_each(|(index, pattern)|{
-                let mut temp_patterns: Vec<&Pattern> = sorted_patterns.clone();
-                // temp_patterns.push(pattern);
-                let temp_model_rss = RssEvolution::calculateModelRss(tensor, empty_model_rss, &temp_patterns, pattern, &prediction_matrix, &untouched_delta_rss_s);
+            // patterns.par_iter().enumerate().for_each(|(index, pattern)|{
+
+            //     let temp_model_rss = RssEvolution::calculateModelRss(tensor, empty_model_rss, &sorted_patterns, 
+            //         pattern, &prediction_matrix, &untouched_delta_rss_s);
+
+            //     let mut minimum_temp_model_rss = minimum_temp_model_rss.lock().unwrap();
+            //     if temp_model_rss <= *minimum_temp_model_rss {
+            //         let mut minimum_temp_model_pattern = minimum_temp_model_pattern.lock().unwrap();
+            //         let mut minimum_temp_model_pattern_index = minimum_temp_model_pattern_index.lock().unwrap();
+                    
+            //         *minimum_temp_model_rss = temp_model_rss;
+            //         *minimum_temp_model_pattern = Some(pattern);
+            //         *minimum_temp_model_pattern_index = index;
+            //     }
+            // });
+
+            for (index, pattern) in patterns.iter().enumerate(){
+                let temp_model_rss = RssEvolution::calculateModelRss(tensor, empty_model_rss, &sorted_patterns, 
+                    pattern, &prediction_matrix, &untouched_delta_rss_s);
 
                 let mut minimum_temp_model_rss = minimum_temp_model_rss.lock().unwrap();
                 if temp_model_rss <= *minimum_temp_model_rss {
@@ -205,7 +225,7 @@ impl RssEvolution{
                     *minimum_temp_model_pattern = Some(pattern);
                     *minimum_temp_model_pattern_index = index;
                 }
-            });
+            }
 
             let minimum_temp_model_rss = *minimum_temp_model_rss.lock().unwrap();
             let minimum_temp_model_pattern = minimum_temp_model_pattern.lock().unwrap();
@@ -220,10 +240,10 @@ impl RssEvolution{
 
             }else{ break; }// No pattern decreases the rss
 
-            bar.inc(1);
+            // bar.inc(1);
         }
 
-        bar.finish();
+        // bar.finish();
 
         let mut patterns_with_rss: Vec<(u32, f64)> = vec![(0, *empty_model_rss.get())];
         for (i, pattern) in sorted_patterns.iter().enumerate() {
