@@ -159,9 +159,6 @@ impl RssEvolution{
         patterns_identifiers: &Vec<u32>,
         touched_delta_rss_s: &HashMap<u32, HashMap<u32, f64>>) -> HashSet<Dim<IxDynImpl>>{
 
-        
-
-        
         for index in pattern.indices_as_dims.iter() {
             let predictions = prediction_matrix.get(&index);
             if predictions.is_none() { continue; } // This index is covered by one pattern
@@ -205,7 +202,9 @@ impl RssEvolution{
             let untouched_rss = untouched_delta_rss_s.get(&pattern.identifier);
             if untouched_rss.is_some() {
                 let untouched_rss = untouched_rss.unwrap();
-                if pattern.size == untouched_rss.0 { continue; } // All indices of this pattern are touched
+                if pattern.size == untouched_rss.0 {  // All indices of this pattern are touched
+                    continue;
+                }
             }
 
             // let patterns_rss_s = touched_delta_rss_s.get(&pattern.identifier);
