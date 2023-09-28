@@ -159,7 +159,8 @@ impl RssEvolution{
         patterns_identifiers: &Vec<u32>,
         touched_delta_rss_s: &HashMap<u32, HashMap<u32, f64>>) -> HashSet<Dim<IxDynImpl>>{
 
-            
+        
+
         
         for index in pattern.indices_as_dims.iter() {
             let predictions = prediction_matrix.get(&index);
@@ -206,6 +207,16 @@ impl RssEvolution{
                 let untouched_rss = untouched_rss.unwrap();
                 if pattern.size == untouched_rss.0 { continue; } // All indices of this pattern are touched
             }
+
+            // let patterns_rss_s = touched_delta_rss_s.get(&pattern.identifier);
+
+            // for (pattern, delta_rss) in patterns_rss_s.unwrap() {
+            //     let mut maximum_de
+            //     if patterns_identifiers.contains(pattern) { // This pattern is in the submodel
+                    
+            //     } 
+            // }
+            
 
             accounted_indices = RssEvolution::calculateRssAtIntersections(&mut total_rss, pattern, prediction_matrix, accounted_indices, 
                 tensor_matrix, &tensor.density, &patterns_identifiers, &touched_delta_rss_s);
