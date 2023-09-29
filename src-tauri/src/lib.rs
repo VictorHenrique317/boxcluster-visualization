@@ -6,8 +6,9 @@ pub mod services;
 pub mod model;
 pub mod database;
 
-use std::{fs::File, collections::HashMap};
+use std::{fs::File, collections::{HashMap, HashSet}, time::Instant};
 
+use ndarray::{Dim, IxDynImpl};
 use services::application::application_service::ApplicationService;
 
 pub fn main() {
@@ -65,7 +66,7 @@ fn testDag(){
 
     // dbg!(application_manager.getRssEvolution().iter().map(|(identifier, _)| identifier.clone()).collect::<Vec<u32>>());
 
-    // application_manager.changePatterns(&"tests/test_data/other_patterns/synth_co1_truncated_100.txt".to_owned());
+    // let mut test: HashSet<Dim<IxDynImpl>> = HashSet::new(); // 2.264
 }
 
 // == RIGHT
