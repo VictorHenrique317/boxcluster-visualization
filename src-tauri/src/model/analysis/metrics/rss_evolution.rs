@@ -7,6 +7,7 @@ use crate::model::analysis::intersections_predictions::IntersectionsPredictions;
 use crate::{model::identifier_mapper::IdentifierMapper, database::tensor::Tensor};
 use super::empty_model_rss::EmptyModelRss;
 use super::metric::Metric;
+use std::borrow::BorrowMut;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 
@@ -54,6 +55,7 @@ impl RssEvolution{
 
         for pattern in patterns {
             let mut pattern_intersections: HashMap<u32, Vec<Dim<IxDynImpl>>> = HashMap::new();
+
             let mut all_intersection_indices: HashSet<Dim<IxDynImpl>> = HashSet::new();
 
             for other_pattern in patterns {
@@ -83,10 +85,13 @@ impl RssEvolution{
             }
         }
 
+        // dbg!(&untouched_pattern_indices);
+        // dbg!(&intersections);
+
         return (untouched_pattern_indices, intersections);
     }
 
-    fn analysePatternsRelations(patterns: &Vec<&Pattern>, tensor: &Tensor) 
+    fn analysePatternsRelations(patterns: &Vec<&Pattern>, tensor: &Tensor, identifier_mapper: &IdentifierMapper) 
         -> (HashMap<u32, (u32, f64)>, HashMap<u32, HashMap<u32, Vec<Dim<IxDynImpl>>>>) {
         
         let (untouched_pattern_indices, 
@@ -94,14 +99,17 @@ impl RssEvolution{
 
         let mut untouched_delta_rss_s: HashMap<u32, (u32, f64)> = HashMap::new();
         for (identifier, untouched_indices) in untouched_pattern_indices {
-            let mut untouched_delta_rss = 0.0;
-            let mut untouched_size = 0;
+            let pattern_density = identifier_mapper.getRepresentation(&identifier)
+                    .asPattern().density;
+
+            // let mut untouched_delta_rss = 0.0;
+            // let mut untouched_size = 0;
 
             for index in untouched_indices {
                 let actual_value = tensor.dims_values.get(&index).unwrap();
-                let prediction = tensor.density;
+                
 
-                let prediction_rss = RssEvolution::calculateRss(actual_value, &prediction);
+                let prediction_rss = RssEvolution::calculateRss(actual_value, &pattern_density);
                 let lambda_0_rss = RssEvolution::calculateRss(actual_value, &tensor.density);
                 let delta_rss = prediction_rss - lambda_0_rss;
 
@@ -109,7 +117,7 @@ impl RssEvolution{
 
                 match untouched_rss{
                     None => {
-                        untouched_delta_rss_s.insert(identifier, (0, delta_rss));
+                        untouched_delta_rss_s.insert(identifier, (1, delta_rss));
                     }
 
                     Some(size_rss) => {
@@ -121,8 +129,11 @@ impl RssEvolution{
                 }
             }
 
-            untouched_delta_rss_s.insert(identifier, (untouched_size, untouched_delta_rss));
+            // untouched_delta_rss_s.insert(identifier, (untouched_size, untouched_delta_rss));
         }
+
+        dbg!(&untouched_delta_rss_s);
+        dbg!(&intersections);
 
         return (untouched_delta_rss_s, intersections);
     }
@@ -262,26 +273,50 @@ impl RssEvolution{
     //     return total_rss;
     // }
 
+    fn updatePredictionMatrix(prediction_matrix: &mut HashMap<Dim<IxDynImpl>, f64>, 
+            intersections: &HashMap<u32, HashMap<u32, Vec<Dim<IxDynImpl>>>>, selected_pattern: &Pattern){
+        
+        let all_intersections_indices = intersections.get(&selected_pattern.identifier);
+
+        if all_intersections_indices.is_none() { return; } // No intersection
+        let all_intersections_indices = all_intersections_indices.unwrap();  
+            
+        for (pattern, intersection_indices) in all_intersections_indices {
+            for intersection_index in intersection_indices {
+                let previous_prediction = prediction_matrix.get_mut(intersection_index).unwrap();
+
+                let max_prediction = f64::max(selected_pattern.density, *previous_prediction);
+
+                if max_prediction > *previous_prediction { // Then change to the new prediction
+                    *previous_prediction = max_prediction;
+                }
+            }
+        }
+    }
+
     fn calculateCandidateModelRss(current_model_rss: &f64, candidate_pattern: &Pattern,
             tensor: &Tensor,
             identifier_mapper: &IdentifierMapper,
             untouched_delta_rss_s: &HashMap<u32, (u32, f64)>,
-            prediction_matrix: &mut HashMap<Dim<IxDynImpl>, f64>,
+            prediction_matrix: &HashMap<Dim<IxDynImpl>, f64>,
             intersections: &HashMap<u32, HashMap<u32, Vec<Dim<IxDynImpl>>>>) -> f64{
 
-        
+        let mut candidate_model_rss = *current_model_rss + untouched_delta_rss_s.get(&candidate_pattern.identifier).unwrap().1;
+            
         let candidate_intersections = intersections.get(&candidate_pattern.identifier);
-
-        if candidate_intersections.is_none(){ // No intersection, just add the untouched rss
-            let candidate_model_rss = *current_model_rss + untouched_delta_rss_s.get(&candidate_pattern.identifier).unwrap().1;
-            return candidate_model_rss;
-        }
+        if candidate_intersections.is_none(){ return candidate_model_rss; } // No intersection 
+        
+        dbg!(&current_model_rss);
+        dbg!(&candidate_model_rss);
+        dbg!(&candidate_pattern.identifier);
+        // dbg!(&candidate_intersections);
+        
 
         // Here we can also have indices with no intersection
         let candidate_intersections = candidate_intersections.unwrap();
         let candidate_prediction = candidate_pattern.density;
-        let mut all_intersection_indices = HashSet::new();
-        let mut candidate_model_rss = *current_model_rss;
+        // let mut all_intersection_indices = HashSet::new();
+        // let mut candidate_model_rss = *current_model_rss;
 
         for (intersector, intersection_indices) in candidate_intersections {
             // First deal with intersection indices
@@ -289,41 +324,57 @@ impl RssEvolution{
                 .getRepresentation(intersector)
                 .asPattern().density;
 
-            let max_prediction = f64::max(intersector_prediction, candidate_prediction);
-
             for intersection_index in intersection_indices {
-                all_intersection_indices.insert(intersection_index);
-                
-                let previous_prediction = prediction_matrix.get_mut(intersection_index).unwrap();
+                // all_intersection_indices.insert(intersection_index);
 
-                if max_prediction > *previous_prediction { // Then change to the new prediction
-                    let previous_prediction_copy = previous_prediction.clone();
-                    *previous_prediction = max_prediction;
+                let previous_prediction = prediction_matrix.get(intersection_index).unwrap();
+                let previous_prediction_copy = previous_prediction.clone();
 
-                    candidate_model_rss = RssEvolution::updateRssAtIndex(&tensor.dims_values,
-                        &candidate_model_rss, 
-                        intersection_index, 
-                        &previous_prediction_copy, 
-                        &max_prediction);
-                }
+                let mut max_prediction = f64::max(intersector_prediction, candidate_prediction);
+                max_prediction = f64::max(max_prediction, *previous_prediction);
+
+                dbg!(*previous_prediction);
+                dbg!(&intersector_prediction);
+                dbg!(&candidate_prediction);
+                dbg!(max_prediction);
+
+
+                // if max_prediction > *previous_prediction { // Then change to the new prediction
+                //     *previous_prediction = max_prediction;
+                // }
+
+                dbg!(&candidate_model_rss);
+
+                candidate_model_rss = RssEvolution::updateRssAtIndex(&tensor.dims_values,
+                    &candidate_model_rss, 
+                    intersection_index, 
+                    &previous_prediction_copy, 
+                    &max_prediction);
+
+                dbg!(&candidate_model_rss);
             }
+
+
+
         }
 
-        // For last deal with the untouched indices
-        let untouched_indices: Vec<Dim<IxDynImpl>> = candidate_pattern.indices_as_dims.clone();
-        let untouched_indices: Vec<&Dim<IxDynImpl>> = untouched_indices.iter()
-                .filter(|index| !all_intersection_indices.contains(index))
-                .collect();
+        // // For last deal with the untouched indices
+        // let untouched_indices: Vec<Dim<IxDynImpl>> = candidate_pattern.indices_as_dims.clone();
+        // let untouched_indices: Vec<&Dim<IxDynImpl>> = untouched_indices.iter()
+        //         .filter(|index| !all_intersection_indices.contains(index))
+        //         .collect();
 
-        let old_prediction = tensor.density;
-        let new_prediction = candidate_pattern.density;
-        for untouched_index in untouched_indices {
-            candidate_model_rss = RssEvolution::updateRssAtIndex(&tensor.dims_values,
-                &candidate_model_rss, 
-                untouched_index, 
-                &old_prediction, 
-                &new_prediction);
-        }
+        // dbg!(untouched_indices.len());
+
+        // let old_prediction = tensor.density;
+        // let new_prediction = candidate_pattern.density;
+        // for untouched_index in untouched_indices {
+        //     candidate_model_rss = RssEvolution::updateRssAtIndex(&tensor.dims_values,
+        //         &candidate_model_rss, 
+        //         untouched_index, 
+        //         &old_prediction, 
+        //         &new_prediction);
+        // }
 
         return candidate_model_rss;
     }
@@ -340,9 +391,10 @@ impl RssEvolution{
 
         // Control structures
         let (untouched_delta_rss_s, 
-            intersections) = RssEvolution::analysePatternsRelations(&patterns, tensor);
+            intersections) = RssEvolution::analysePatternsRelations(&patterns, tensor, identifier_mapper);
         
         let prediction_matrix = RssEvolution::initializePredictionMatrix(&intersections, tensor);
+        dbg!(&prediction_matrix);
         let prediction_matrix = Arc::new(Mutex::new(prediction_matrix));
         // Control structures
         
@@ -356,7 +408,7 @@ impl RssEvolution{
             let minimum_temp_model_rss = Arc::new(Mutex::new(f64::MAX));
             let minimum_temp_model_pattern: Arc<Mutex<Option<&Pattern>>> = Arc::new(Mutex::new(None));
             let minimum_temp_model_pattern_index: Arc<Mutex<usize>> = Arc::new(Mutex::new(usize::MAX));
-            
+
             // patterns.par_iter().enumerate().for_each(|(index, pattern)|{
 
             //     let mut prediction_matrix = prediction_matrix.lock().unwrap();
@@ -390,7 +442,7 @@ impl RssEvolution{
                     pattern, tensor, 
                     identifier_mapper, 
                     &untouched_delta_rss_s, 
-                    &mut prediction_matrix, 
+                    &prediction_matrix, 
                     &intersections);
 
 
@@ -409,12 +461,16 @@ impl RssEvolution{
             let minimum_temp_model_pattern = minimum_temp_model_pattern.lock().unwrap();
             let minimum_temp_model_pattern_index = *minimum_temp_model_pattern_index.lock().unwrap();
 
-            if minimum_temp_model_rss <= minimum_rss_value { // Its worth to add a pattern
+            if minimum_temp_model_rss <= minimum_rss_value { // Its worth to add a pattern, add it
+                let selected_pattern = minimum_temp_model_pattern.unwrap();
+
                 minimum_rss_value = minimum_temp_model_rss;
-                sorted_patterns.push(minimum_temp_model_pattern.unwrap());
+                sorted_patterns.push(selected_pattern);
                 rss_evolution.push(minimum_rss_value);
 
                 patterns.remove(minimum_temp_model_pattern_index);
+                RssEvolution::updatePredictionMatrix(&mut prediction_matrix, &intersections, selected_pattern);
+
 
             }else{ break; }// No pattern decreases the rss
 

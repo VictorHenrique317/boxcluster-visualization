@@ -28,6 +28,14 @@ impl ApplicationService{
         println!("Total time taken: {:?}", duration);
 
         PlotService::plot(&self.application_state_service);
+
+        let pattern_1 = self.application_state_service.identifierMapper().getRepresentation(&1).asPattern();
+        let pattern_2 = self.application_state_service.identifierMapper().getRepresentation(&2).asPattern();
+        let pattern_3 = self.application_state_service.identifierMapper().getRepresentation(&3).asPattern();
+
+        dbg!(pattern_1.intersection(pattern_2).len());
+        dbg!(pattern_1.intersection(pattern_3).len());
+        dbg!(pattern_2.intersection(pattern_3).len());
     }
 
     pub fn changeTensor(&mut self, tensor_path: &String, patterns_path: &String){
