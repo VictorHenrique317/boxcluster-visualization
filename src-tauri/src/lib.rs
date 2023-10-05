@@ -65,7 +65,7 @@ fn testDag(){
     application_manager.init();
 
     dbg!(application_manager.getRssEvolution().iter().map(|(identifier, _)| identifier.clone()).collect::<Vec<u32>>());
-
+    // Starts at pattern 11
     // let mut test: HashSet<Dim<IxDynImpl>> = HashSet::new(); // 2.264
 }
 
