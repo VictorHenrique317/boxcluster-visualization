@@ -67,7 +67,7 @@ impl IdentifierMapper{
     }
 
     pub fn getOrderedRepresentations(&self) -> Vec<&IdentifierRepresentation>{
-        let mut keys: Vec<u32> = self.getIdentifiers();
+        let keys: Vec<u32> = self.getIdentifiers();
 
         let values: Vec<&IdentifierRepresentation> = keys.iter()
             .map(|k| self.mapping.get(k).unwrap())

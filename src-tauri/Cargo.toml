@@ -24,7 +24,7 @@ colored = "2.0.0"
 ndarray = "0.14.0"
 pyo3 = { version = "0.18", features = ["extension-module", "auto-initialize"] }
 numpy = "0.18"
-plotters = "0.3.4"
+plotters = "0.3.5"
 rayon = "1.7.0"
 
 [features]

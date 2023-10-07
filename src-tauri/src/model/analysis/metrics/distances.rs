@@ -125,7 +125,6 @@ impl Distances{
 
         return xuy_dims_values;
     }
-
     
     fn getXUY(tensor:&Tensor, x: &Pattern, y: &Pattern) -> Subtensor{
         let xuy_dims_values = Distances::getXUYDimsValues(x, y);

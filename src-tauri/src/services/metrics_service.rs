@@ -21,8 +21,7 @@ impl MetricsService{
         let rss_evolution = RssEvolution::new(
             identifier_mapper,
             tensor,
-            &empty_model_rss,
-            &intersections_predictions,
+            &empty_model_rss
         );
 
         let distances = Distances::new(
