@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use std::collections::HashMap;
 
-use crate::database::{pattern::Pattern, dag_node::{DagNode, self}, datapoint::DataPoint};
+use crate::database::{pattern::Pattern, dag_node::DagNode, datapoint::DataPoint};
 
 use super::identifier_representation::IdentifierRepresentation;
 
@@ -66,7 +66,7 @@ impl IdentifierMapper{
         let mut identifiers = identifiers.clone();
         identifiers.sort();
 
-        let mut representations = self.getRepresentationsFrom(&identifiers);
+        let representations = self.getRepresentationsFrom(&identifiers);
         // Representations will be naturally ordered
         return representations;
     }

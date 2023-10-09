@@ -1,6 +1,6 @@
 use plotters::style::RGBColor;
 
-use crate::{model::{identifier_mapper::IdentifierMapper, analysis::metrics::{coordinates::Coordinates, metric::Metric}}, database::{datapoint::DataPoint, pattern::{Pattern, self}}};
+use crate::{model::{identifier_mapper::IdentifierMapper, analysis::metrics::{coordinates::Coordinates, metric::Metric}}, database::{datapoint::DataPoint, pattern::Pattern}};
 
 pub struct DataPointService {}
 
@@ -15,21 +15,6 @@ impl DataPointService {
         // return normalized_size;
         return (*size as f32).powf(1.0 / *dimension as f32);
         
-    }
-
-    fn calculateStrokeWidth(normalized_max_size: &f32, normalized_size: &f32) -> u32 {
-        // let x = normalized_size / normalized_max_size;
-        // let interval = 4.0;
-        // let mut stroke_width = interval * (x.powi(2));
-
-        
-        // if stroke_width <= interval * 0.25 {
-        //     stroke_width = interval * 0.5;
-        // }
-
-        // dbg!(&(stroke_width as u32));
-        // return stroke_width as u32;
-        return 2;
     }
 
     fn densityToColor(density: &f64) -> RGBColor {

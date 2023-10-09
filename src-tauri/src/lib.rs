@@ -6,9 +6,9 @@ pub mod services;
 pub mod model;
 pub mod database;
 
-use std::{fs::File, collections::{HashMap, HashSet}, time::Instant};
 
-use ndarray::{Dim, IxDynImpl};
+
+
 use services::application::application_service::ApplicationService;
 
 pub fn main() {

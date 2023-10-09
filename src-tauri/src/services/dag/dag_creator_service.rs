@@ -2,7 +2,7 @@
 use std::collections::HashMap;
 use crate::database::dag_node::DagNode;
 use crate::database::pattern::{Pattern, Relation};
-use crate::{model::identifier_mapper::IdentifierMapper};
+use crate::model::identifier_mapper::IdentifierMapper;
 use crate::common::progress_bar;
 use colored::Colorize;
 use debug_print::{debug_println, debug_print};

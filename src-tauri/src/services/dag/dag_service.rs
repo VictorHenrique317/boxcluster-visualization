@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use crate::database::dag_node::DagNode;
 use crate::model::identifier_mapper::IdentifierMapper;
-use super::dag_creator_service::{DagCreatorService, self};
+use super::dag_creator_service::{DagCreatorService};
 
 pub struct DagService{
     font_nodes: Vec<u32>,

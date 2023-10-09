@@ -1,9 +1,4 @@
-use std::collections::HashMap;
-
 use plotters::style::RGBColor;
-use crate::model::{identifier_mapper::IdentifierMapper, analysis::metrics::{coordinates::Coordinates, metric::Metric}};
-use super::pattern::Pattern;
-
 
 #[derive(Debug, Clone)]
 pub struct DataPoint {

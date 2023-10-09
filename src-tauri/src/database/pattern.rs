@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use debug_print::{debug_println, debug_print};
 use itertools::Itertools;
 use ndarray::{IxDynImpl, Dim};
+use serde::{Deserialize, Serialize, ser::SerializeStruct};
 use std::hash::{Hash, Hasher};
 
 #[derive(PartialEq, Debug, Clone, Copy)]
@@ -38,6 +39,16 @@ impl Hash for Pattern {
     fn hash<H: Hasher>(&self, state: &mut H) {
         // Maybe can cause problems? Ideally we should hash dims_values (and not identifier) 
         self.identifier.hash(state);
+    }
+}
+
+impl Serialize for Pattern {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer, {
+        let mut state = serializer.serialize_struct("Pattern", 5)?;
+        state.serialize_field("identifier", &self.identifier)?;
+        state.serialize_field("density", &self.density)?;
+        state.serialize_field("size", &self.size)?;
+        state.end()
     }
 }
 

@@ -5,9 +5,7 @@ use ndarray::{IxDynImpl, Dim, ArrayD, Array, Array2};
 use numpy::{PyArray2, IntoPyArray};
 use pyo3::{Python, types::PyDict};
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
-
-use crate::{model::identifier_mapper::IdentifierMapper};
-
+use crate::model::identifier_mapper::IdentifierMapper;
 use super::{metric::Metric, distances::DistancesTrait};
 
 pub struct Coordinates {

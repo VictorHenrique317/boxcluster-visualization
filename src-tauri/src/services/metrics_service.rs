@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
-use std::collections::{HashMap, HashSet};
 
-use crate::{model::{analysis::{metrics::{empty_model_rss::EmptyModelRss, distances::Distances, coordinates::Coordinates, rss_evolution::RssEvolution, metric::Metric}, intersections_predictions::IntersectionsPredictions}, identifier_mapper::IdentifierMapper}, database::{tensor::Tensor, pattern::Pattern}};
+
+use crate::{model::{analysis::{metrics::{empty_model_rss::EmptyModelRss, distances::Distances, coordinates::Coordinates, rss_evolution::RssEvolution}, intersections_predictions::IntersectionsPredictions}, identifier_mapper::IdentifierMapper}, database::{tensor::Tensor, pattern::Pattern}};
 
 pub struct MetricsService{
     pub empty_model_rss: EmptyModelRss,

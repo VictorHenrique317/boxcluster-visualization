@@ -1,13 +1,7 @@
 #![allow(non_snake_case)]
 use std::collections::HashMap;
 use crate::database::dag_node::DagNode;
-use debug_print::{debug_println};
-
-#[derive(PartialEq, Debug, Clone, Copy)]
-enum InsertionPlace{
-    Bellow,
-    Above,
-}
+use debug_print::debug_println;
 
 pub (in crate::services::dag) struct DagArrangerService{
     fonts: Vec<u32>,
@@ -23,7 +17,7 @@ impl DagArrangerService{
     }
 
     pub fn init(&mut self, nodes: Vec<DagNode>){
-        let mut nodes: HashMap<u32, DagNode> = nodes.into_iter()
+        let nodes: HashMap<u32, DagNode> = nodes.into_iter()
             .map(|node| (node.identifier, node))
             .collect();
 
@@ -93,14 +87,6 @@ impl DagArrangerService{
 
     pub fn getNode(&self, identifier: &u32) -> &DagNode{
         return self.nodes.get(identifier).unwrap();
-    }
-
-    pub fn getNodes(&self) -> Vec<&DagNode>{
-        let mut nodes: Vec<&DagNode> = Vec::new();
-        for node in self.nodes.values(){
-            nodes.push(node);
-        }
-        return nodes;
     }
 
     pub fn getNodesIdentifiers(&self) -> Vec<u32>{

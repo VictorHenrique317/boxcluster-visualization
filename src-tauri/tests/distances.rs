@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 mod distances {
 
-    use std::{collections::HashMap, fs::File};
+    use std::collections::HashMap;
 
     use boxcluster_visualization::services::application::application_service::ApplicationService;
 
@@ -34,7 +34,7 @@ mod distances {
         let tensor_path = "tests/test_data/distance_test/a.txt".to_owned();
         let patterns_path = "tests/test_data/distance_test/a_patterns.txt".to_owned();
         
-        let mut application_manager = ApplicationService::new(&tensor_path, &patterns_path);
+        let application_manager = ApplicationService::new(&tensor_path, &patterns_path);
         let actual = application_manager.getDistances().clone();
 
         let mut expected: HashMap<u32, HashMap<u32, f64>> = HashMap::new();
@@ -49,7 +49,7 @@ mod distances {
         let tensor_path = "tests/test_data/distance_test/b.txt".to_owned();
         let patterns_path = "tests/test_data/distance_test/b_patterns.txt".to_owned();
         
-        let mut application_manager = ApplicationService::new(&tensor_path, &patterns_path);
+        let application_manager = ApplicationService::new(&tensor_path, &patterns_path);
         let actual = application_manager.getDistances().clone();
 
         let mut expected: HashMap<u32, HashMap<u32, f64>> = HashMap::new();
@@ -64,7 +64,7 @@ mod distances {
         let tensor_path = "tests/test_data/distance_test/c.txt".to_owned();
         let patterns_path = "tests/test_data/distance_test/c_patterns.txt".to_owned();
         
-        let mut application_manager = ApplicationService::new(&tensor_path, &patterns_path);
+        let application_manager = ApplicationService::new(&tensor_path, &patterns_path);
         let actual = application_manager.getDistances().clone();
 
         let mut expected: HashMap<u32, HashMap<u32, f64>> = HashMap::new();

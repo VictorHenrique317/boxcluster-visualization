@@ -1,33 +1,21 @@
 #![allow(non_snake_case)]
-use debug_print::debug_println;
+
 use std::collections::{HashMap, HashSet};
 
 use super::{dag_node::DagNode, pattern::Pattern};
 
 #[derive(Default)]
 pub struct Dag {
-    fonts: Vec<u32>,
     nodes: HashMap<u32, DagNode>,
 }
 
 impl Dag {
     pub fn new(patterns: &Vec<&Pattern>) -> Self {
         return Dag { 
-            fonts: Vec::new(), 
             nodes: Dag::createNodes(patterns),
         };
     }
 
-    
-
-    // pub fn getNodes(&self) -> HashMap<u32, &DagNode>{
-    //     return self.nodes.iter()
-    //         .map(|(id, n)| (*id, n))
-    //         .collect();
-    // }
-
-    
-    
     pub fn getNodesIdentifiers(&self) -> Vec<u32>{
         return self.nodes.keys().map(|i| *i).collect();
     }
@@ -64,7 +52,7 @@ impl Dag {
         return self.nodes;
     }
 
-    fn createNodes(patterns: &[&Pattern]) -> HashMap<u32, DagNode> {
+    fn createNodes(_patterns: &[&Pattern]) -> HashMap<u32, DagNode> {
         todo!()
     }
 

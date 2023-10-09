@@ -67,9 +67,9 @@ impl ApplicationService{
         PlotService::plot(&self.application_state_service);
     }
 
-    pub fn descendDag(&mut self, nex_identifier: &u32){
-        println!("\nDescending dag to: {}", nex_identifier);
-        self.application_state_service.descendDag(nex_identifier);
+    pub fn descendDag(&mut self, next_identifier: &u32){
+        println!("\nDescending dag to: {}", next_identifier);
+        self.application_state_service.descendDag(next_identifier);
         PlotService::plot(&self.application_state_service);
     }
 
@@ -93,8 +93,11 @@ impl ApplicationService{
         return self.application_state_service.getMetricsService().distances.get();
     }
 
-    pub fn getRssEvolution(&self) -> &Vec<(u32, f64)>{
-        return self.application_state_service.getMetricsService().rss_evolution.get();
+    pub fn getRssEvolution(&self) -> Vec<f64>{
+        return self.application_state_service.getMetricsService().rss_evolution.get().clone()
+            .into_iter()
+            .map(|size_rss| size_rss.1)
+            .collect();
     }
 
 }

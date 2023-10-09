@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use plotters::{prelude::{BitMapBackend, IntoDrawingArea, ChartBuilder, Circle}, style::{WHITE, Color, IntoFont}};
 
-use crate::{model::{identifier_mapper::IdentifierMapper, identifier_representation::IdentifierRepresentation}, database::pattern};
+use crate::{model::{identifier_representation::IdentifierRepresentation}};
 
 use super::application::application_state_service::ApplicationStateService;
 

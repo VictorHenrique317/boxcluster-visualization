@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use ndarray::{array, ArrayD};
+use ndarray::{ArrayD};
 
 #[derive(Debug)]
 pub enum TensorType {
