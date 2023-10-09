@@ -14,21 +14,21 @@ fn ascendDag(application_service: State<ApplicationServiceState>) {
 }
 
 fn main() {
-    tauri::Builder::default()
-        .manage(ApplicationServiceState(Default::default()))
-        .manage(PaginatorServiceState(Default::default()))
-        .invoke_handler(tauri::generate_handler![ 
-            ascendDag,
-            // getSoundingPattern,
-            // refreshPageSize,
-            // goToPage,
-            // goToFirstPage,
-            // goToLastPage,
-            // nextPage,
-            // previousPage
-            ])
-        .run(tauri::generate_context!())
-        .expect("Error while running tauri application");
+    // tauri::Builder::default()
+    //     .manage(ApplicationServiceState(Default::default()))
+    //     .manage(PaginatorServiceState(Default::default()))
+    //     .invoke_handler(tauri::generate_handler![ 
+    //         ascendDag,
+    //         // getSoundingPattern,
+    //         // refreshPageSize,
+    //         // goToPage,
+    //         // goToFirstPage,
+    //         // goToLastPage,
+    //         // nextPage,
+    //         // previousPage
+    //         ])
+    //     .run(tauri::generate_context!())
+    //     .expect("Error while running tauri application");
 
-    // boxcluster_visualization::main()
+    boxcluster_visualization::main()
 }
