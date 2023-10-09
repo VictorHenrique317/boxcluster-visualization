@@ -6,6 +6,16 @@ pub struct IoService {
     translator: Translator,
 }
 
+impl Default for IoService{
+    fn default() -> Self {
+        return IoService{
+            tensor_path: String::from(""),
+            patterns_path: String::from(""),
+            translator: Translator::default(),
+        };
+    }
+}
+
 impl IoService {
     pub fn new(tensor_path: &String, patterns_path: &String) -> IoService {
         let translator = Translator::new(&tensor_path);

@@ -35,7 +35,6 @@ mod distances {
         let patterns_path = "tests/test_data/distance_test/a_patterns.txt".to_owned();
         
         let mut application_manager = ApplicationService::new(&tensor_path, &patterns_path);
-        application_manager.init();
         let actual = application_manager.getDistances().clone();
 
         let mut expected: HashMap<u32, HashMap<u32, f64>> = HashMap::new();
@@ -51,7 +50,6 @@ mod distances {
         let patterns_path = "tests/test_data/distance_test/b_patterns.txt".to_owned();
         
         let mut application_manager = ApplicationService::new(&tensor_path, &patterns_path);
-        application_manager.init();
         let actual = application_manager.getDistances().clone();
 
         let mut expected: HashMap<u32, HashMap<u32, f64>> = HashMap::new();
@@ -67,7 +65,6 @@ mod distances {
         let patterns_path = "tests/test_data/distance_test/c_patterns.txt".to_owned();
         
         let mut application_manager = ApplicationService::new(&tensor_path, &patterns_path);
-        application_manager.init();
         let actual = application_manager.getDistances().clone();
 
         let mut expected: HashMap<u32, HashMap<u32, f64>> = HashMap::new();

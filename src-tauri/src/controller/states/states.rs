@@ -1,6 +1,5 @@
-use std::sync::{Mutex};
+use std::sync::Mutex;
+use crate::services::{dynamic_paginator_service::DynamicPaginatorService, application::application_service::ApplicationService};
 
-use crate::database::dag::Dag;
-
-pub struct DagState(pub Mutex<Dag>);
-// pub struct PaginatorState<'a>(pub Mutex<DynamicPaginator<'a>>);
+pub struct ApplicationServiceState(pub Mutex<ApplicationService>);
+pub struct PaginatorServiceState<'a>(pub Mutex<DynamicPaginatorService<'a>>);

@@ -56,6 +56,21 @@ impl IdentifierMapper{
         return self.mapping.values().collect();
     }
 
+    pub fn getRepresentationsFrom(&self, identifiers: &Vec<u32>) -> Vec<&IdentifierRepresentation>{
+        return identifiers.iter()
+            .map(|identifier| self.getRepresentation(identifier))
+            .collect();
+    }
+
+    pub fn getOrderedRepresentationsFrom(&self, identifiers: &Vec<u32>) -> Vec<&IdentifierRepresentation>{
+        let mut identifiers = identifiers.clone();
+        identifiers.sort();
+
+        let mut representations = self.getRepresentationsFrom(&identifiers);
+        // Representations will be naturally ordered
+        return representations;
+    }
+
     pub fn getIdentifiers(&self) -> Vec<u32>{
         let mut keys: Vec<u32> = self.mapping.keys().cloned().collect();
         keys.sort();
@@ -73,6 +88,18 @@ impl IdentifierMapper{
             .map(|k| self.mapping.get(k).unwrap())
             .collect();
         return values;
+    }
+
+    pub fn getOrderedPatterns(&self) -> Vec<&Pattern> {
+        return self.getOrderedRepresentations().iter()
+            .map(|representation| representation.asPattern())
+            .collect();
+    }
+
+    pub fn getOrderedPatternsFrom(&self, identifiers: &Vec<u32>) -> Vec<&Pattern> {
+        return self.getOrderedRepresentationsFrom(identifiers).iter()
+            .map(|representation| representation.asPattern())
+            .collect();
     }
 
     pub fn length(&self) -> u32{

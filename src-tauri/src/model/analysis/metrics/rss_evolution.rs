@@ -89,12 +89,13 @@ impl Metric<Vec<(u32, f64)>> for RssEvolution{
 }
 
 impl RssEvolution{
-    pub fn new(identifier_mapper: &IdentifierMapper, tensor: &Tensor, empty_model_rss: &EmptyModelRss) -> RssEvolution{
+    pub fn new(identifier_mapper: &IdentifierMapper, tensor: &Tensor, empty_model_rss: &EmptyModelRss, 
+        patterns: &Vec<&Pattern>) -> RssEvolution{
 
         println!("  RssEvolution...");
 
         return RssEvolution{
-            value: RssEvolution::calculate(identifier_mapper, tensor, empty_model_rss),
+            value: RssEvolution::calculate(identifier_mapper, tensor, empty_model_rss, patterns),
         }
     }
 
@@ -269,12 +270,8 @@ impl RssEvolution{
         return candidate_model_rss;
     }
 
-    fn calculate(identifier_mapper: &IdentifierMapper, tensor:&Tensor, empty_model_rss: &EmptyModelRss) 
+    fn calculate(identifier_mapper: &IdentifierMapper, tensor:&Tensor, empty_model_rss: &EmptyModelRss, patterns: &Vec<&Pattern>) 
         -> Vec<(u32, f64)>{
-    
-        let patterns: Vec<&Pattern> = identifier_mapper.getOrderedRepresentations().iter()
-                .map(|r| r.asPattern())
-                .collect();
         
         let pattern_nb = patterns.len();
 

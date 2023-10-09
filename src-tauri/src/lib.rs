@@ -58,17 +58,17 @@ fn testDag(){
     // let patterns_path = "tests/test_data/other_patterns/synth_co1_truncated_100.txt".to_owned();
 
     let tensor_path = "tests/test_data/rss_evolution_test/synth_co1.txt".to_owned();
-    let patterns_path = "tests/test_data/rss_evolution_test/synth_co1_patterns.txt".to_owned();
-    // let patterns_path = "tests/test_data/rss_evolution_test/synth_co1_truncated_100_patterns.txt".to_owned();
+    // let patterns_path = "tests/test_data/rss_evolution_test/synth_co1_patterns.txt".to_owned();
+    let patterns_path = "tests/test_data/rss_evolution_test/synth_co1_truncated_100_patterns.txt".to_owned();
 
     let mut application_manager = ApplicationService::new(&tensor_path, &patterns_path);
-    application_manager.init();
 
     let rss_evolution = application_manager.getRssEvolution().iter().map(|(_, model_rss)| model_rss.clone()).collect::<Vec<f64>>();
+    dbg!(rss_evolution.len());
 
-    for rss in rss_evolution{
-        println!("{}", rss);
-    }
+    application_manager.truncateModel(&100);
+    let rss_evolution = application_manager.getRssEvolution().iter().map(|(_, model_rss)| model_rss.clone()).collect::<Vec<f64>>();
+    dbg!(rss_evolution.len());
     // Starts at pattern 11
     // let mut test: HashSet<Dim<IxDynImpl>> = HashSet::new(); // 2.264
 }

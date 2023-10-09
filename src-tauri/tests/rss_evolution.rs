@@ -9,7 +9,6 @@ mod rss_evolution {
         let patterns_path = "tests/test_data/rss_evolution_test/synth_co1_truncated_20_patterns.txt".to_owned();
 
         let mut application_manager = ApplicationService::new(&tensor_path, &patterns_path);
-        application_manager.init();
         let mut raw_rss_s: Vec<f64> = application_manager.getRssEvolution().clone().iter()
                 .map(|(_, rss)| rss.clone())
                 .collect();
@@ -36,7 +35,6 @@ mod rss_evolution {
     //     let patterns_path = "tests/test_data/rss_evolution_test/synth_co1_patterns.txt".to_owned();
 
     //     let mut application_manager = ApplicationService::new(&tensor_path, &patterns_path);
-    //     application_manager.init();
     //     let raw_rss_s: Vec<f64> = application_manager.getRssEvolution().clone().iter()
     //             .map(|(_, rss)| rss.clone())
     //             .collect();

@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use std::collections::{HashMap, HashSet};
 
-use crate::{model::{analysis::{metrics::{empty_model_rss::EmptyModelRss, distances::Distances, coordinates::Coordinates, rss_evolution::RssEvolution, metric::Metric}, intersections_predictions::IntersectionsPredictions}, identifier_mapper::IdentifierMapper}, database::tensor::Tensor};
+use crate::{model::{analysis::{metrics::{empty_model_rss::EmptyModelRss, distances::Distances, coordinates::Coordinates, rss_evolution::RssEvolution, metric::Metric}, intersections_predictions::IntersectionsPredictions}, identifier_mapper::IdentifierMapper}, database::{tensor::Tensor, pattern::Pattern}};
 
 pub struct MetricsService{
     pub empty_model_rss: EmptyModelRss,
@@ -15,13 +15,14 @@ impl MetricsService{
         println!("Calculating metrics...");
 
         let intersections_predictions = IntersectionsPredictions::new(identifier_mapper);
-        
         let empty_model_rss = EmptyModelRss::new(tensor);
+        let patterns: Vec<&Pattern> = identifier_mapper.getOrderedPatterns();
 
         let rss_evolution = RssEvolution::new(
             identifier_mapper,
             tensor,
-            &empty_model_rss
+            &empty_model_rss,
+            &patterns
         );
 
         let distances = Distances::new(
@@ -44,12 +45,20 @@ impl MetricsService{
          };
     }
 
-    pub fn update(&mut self, identifier_mapper: &IdentifierMapper, visible_identifiers: &Vec<u32>) {
+    pub fn update(&mut self, tensor: &Tensor, identifier_mapper: &IdentifierMapper, visible_identifiers: &Vec<u32>) {
         let coordinates = Coordinates::new(
             identifier_mapper,
             &self.distances.getView(identifier_mapper, visible_identifiers),
         );
 
+        let rss_evolution = RssEvolution::new(
+            identifier_mapper,
+            tensor,
+            &self.empty_model_rss,
+            &identifier_mapper.getOrderedPatternsFrom(visible_identifiers)
+        );
+
         self.coordinates = coordinates;
+        self.rss_evolution = rss_evolution;
     }
 }

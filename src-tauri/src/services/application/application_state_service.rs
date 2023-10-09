@@ -7,6 +7,7 @@ use crate::services::dag::dag_service::{DagService};
 use crate::services::datapoint_service::DataPointService;
 use crate::services::metrics_service::MetricsService;
 
+#[derive(Default)]
 pub struct ApplicationStateService{
     tensor: Option<Tensor>,
     identifier_mapper: Option<IdentifierMapper>,
@@ -15,6 +16,7 @@ pub struct ApplicationStateService{
     dag_service: Option<DagService>,
 
     current_identifier: u32,
+    current_level_identifiers: Vec<u32>,
     visible_identifiers: Vec<u32>,
 }
 
@@ -28,6 +30,7 @@ impl ApplicationStateService{
             dag_service: None,
 
             current_identifier: 0,
+            current_level_identifiers: vec![],
             visible_identifiers: vec![],
         };
     }
@@ -54,7 +57,8 @@ impl ApplicationStateService{
         let dag_service = DagService::new(self.identifierMapper());
         self.dag_service = Some(dag_service);
 
-        self.visible_identifiers = self.dag_service.as_ref().unwrap().getFontNodes();
+        self.current_level_identifiers = self.dag_service.as_ref().unwrap().getFontNodes();
+        self.visible_identifiers = self.current_level_identifiers.clone();
         self.metrics_service = Some(metrics_service);
         
     }
@@ -64,11 +68,14 @@ impl ApplicationStateService{
         self.changePatterns(patterns);
     }
 
-    fn update(&mut self, new_visible_identifiers: Vec<u32>) {
-        self.metrics_service.as_mut().unwrap()
-            .update(self.identifier_mapper.as_ref().unwrap(), &new_visible_identifiers);
+    fn update(&mut self, new_current_level_identifiers: Vec<u32>) {
+        let tensor = self.tensor.as_ref().unwrap();
 
-        self.visible_identifiers = new_visible_identifiers;
+        self.metrics_service.as_mut().unwrap()
+            .update(tensor, self.identifier_mapper.as_ref().unwrap(), &new_current_level_identifiers);
+
+        self.current_level_identifiers = new_current_level_identifiers.clone();
+        self.visible_identifiers = new_current_level_identifiers;
     }
 
     pub fn ascendDag(&mut self) {
@@ -90,14 +97,16 @@ impl ApplicationStateService{
         self.update(next_identifiers);
     }
 
-    pub fn truncate(&mut self, new_size: usize){
-        let mut new_visible_identifiers: Vec<u32> = self.getMetricsService().rss_evolution.get().clone().iter()
-            .map(|(identifier, _)| *identifier)
-            .collect();
+    pub fn truncateModel(&mut self, new_size: &u32){
+        let mut visible_identifiers = self.current_level_identifiers.clone();
+        visible_identifiers.truncate(*new_size as usize);
 
-        new_visible_identifiers.truncate(new_size+1);
+        let tensor = self.tensor.as_ref().unwrap();
 
-        self.update(new_visible_identifiers);
+        self.metrics_service.as_mut().unwrap()
+            .update(tensor, self.identifier_mapper.as_ref().unwrap(), &visible_identifiers);
+
+        self.visible_identifiers = visible_identifiers;
     }
 
     pub fn identifierMapper(&self) -> &IdentifierMapper{
@@ -105,7 +114,7 @@ impl ApplicationStateService{
     }
 
     pub fn visibleIdentifiers(&self) -> &Vec<u32>{
-        return &self.visible_identifiers;
+        return &self.current_level_identifiers;
     }
 
     pub fn getMetricsService(&self) -> &MetricsService{

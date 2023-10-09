@@ -8,40 +8,38 @@ pub struct ApplicationService{
     application_state_service: ApplicationStateService,
 }
 
+impl Default for ApplicationService{
+    fn default() -> Self {
+        return ApplicationService{
+            io_service: IoService::default(),
+            application_state_service: ApplicationStateService::default(),
+        };
+    }
+}
+
 impl ApplicationService{
     pub fn new(tensor_path: &String, patterns_path: &String) -> ApplicationService{
-        return ApplicationService{
+        let mut instance = ApplicationService{
             io_service: IoService::new(tensor_path, patterns_path),
             application_state_service: ApplicationStateService::new(),
         };
+
+        ApplicationService::init(&mut instance);
+        return instance;
     }
 
-    pub fn init(&mut self){
+    fn init(instance: &mut ApplicationService){
         let start_time = Instant::now();
 
-        let tensor = self.io_service.readTensor();
-        let patterns = self.io_service.readPatterns();
-        self.application_state_service.changeTensor(tensor, patterns);
+        let tensor = instance.io_service.readTensor();
+        let patterns = instance.io_service.readPatterns();
+        instance.application_state_service.changeTensor(tensor, patterns);
 
         let end_time = Instant::now();
         let duration = end_time - start_time;
         println!("Total time taken: {:?}", duration);
 
-        PlotService::plot(&self.application_state_service);
-
-        // let pattern_1 = self.application_state_service.identifierMapper().getRepresentation(&1).asPattern();
-        // let pattern_2 = self.application_state_service.identifierMapper().getRepresentation(&2).asPattern();
-        // let pattern_3 = self.application_state_service.identifierMapper().getRepresentation(&3).asPattern();
-        // let pattern_4 = self.application_state_service.identifierMapper().getRepresentation(&4).asPattern();
-
-        // dbg!(pattern_1.intersection(pattern_2).len());
-        // dbg!(pattern_1.intersection(pattern_3).len());
-        // dbg!(pattern_1.intersection(pattern_4).len());
-        
-        // dbg!(pattern_2.intersection(pattern_3).len());
-        // dbg!(pattern_2.intersection(pattern_4).len());
-
-        // dbg!(pattern_3.intersection(pattern_4).len());
+        PlotService::plot(&instance.application_state_service);
     }
 
     pub fn changeTensor(&mut self, tensor_path: &String, patterns_path: &String){
@@ -72,6 +70,12 @@ impl ApplicationService{
     pub fn descendDag(&mut self, nex_identifier: &u32){
         println!("\nDescending dag to: {}", nex_identifier);
         self.application_state_service.descendDag(nex_identifier);
+        PlotService::plot(&self.application_state_service);
+    }
+
+    pub fn truncateModel(&mut self, new_size: &u32){
+        println!("\nTruncating model to {} patterns", new_size);
+        self.application_state_service.truncateModel(&new_size);
         PlotService::plot(&self.application_state_service);
     }
 
