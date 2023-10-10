@@ -90,11 +90,11 @@ fn previousPage(paginator_service: State<PaginatorServiceState>,
 
 //////////////////////////// Application ////////////////////////////
 #[tauri::command]
-fn changeTensor(application_service: State<ApplicationServiceState>, tensor_path: String, patterns_path: String) {
+fn initApplication(application_service: State<ApplicationServiceState>, tensor_path: String, patterns_path: String) {
     println!("Calling changeTensor...");
 
     let mut application_service = application_service.0.lock().unwrap();
-    application_service.changeTensor(&tensor_path, &patterns_path);
+    application_service.init(&tensor_path, &patterns_path);
 
 }
 
@@ -159,7 +159,7 @@ fn main() {
             nextPage,
             previousPage,
 
-            changeTensor,
+            initApplication,
             changePatterns,
             ascendDag,
             descendDag,

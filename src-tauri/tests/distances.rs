@@ -34,8 +34,9 @@ mod distances {
         let tensor_path = "tests/test_data/distance_test/a.txt".to_owned();
         let patterns_path = "tests/test_data/distance_test/a_patterns.txt".to_owned();
         
-        let application_manager = ApplicationService::new(&tensor_path, &patterns_path);
-        let actual = application_manager.getDistances().clone();
+        let mut model_manager = ApplicationService::default();
+        model_manager.init(&tensor_path, &patterns_path);
+        let actual = model_manager.getDistances().clone();
 
         let mut expected: HashMap<u32, HashMap<u32, f64>> = HashMap::new();
         expected.insert(1, HashMap::from_iter(vec![(2, 0.0039)].into_iter()));
@@ -49,8 +50,9 @@ mod distances {
         let tensor_path = "tests/test_data/distance_test/b.txt".to_owned();
         let patterns_path = "tests/test_data/distance_test/b_patterns.txt".to_owned();
         
-        let application_manager = ApplicationService::new(&tensor_path, &patterns_path);
-        let actual = application_manager.getDistances().clone();
+        let mut model_manager = ApplicationService::default();
+        model_manager.init(&tensor_path, &patterns_path);
+        let actual = model_manager.getDistances().clone();
 
         let mut expected: HashMap<u32, HashMap<u32, f64>> = HashMap::new();
         expected.insert(1, HashMap::from_iter(vec![(2, 0.7665)].into_iter()));
@@ -64,8 +66,9 @@ mod distances {
         let tensor_path = "tests/test_data/distance_test/c.txt".to_owned();
         let patterns_path = "tests/test_data/distance_test/c_patterns.txt".to_owned();
         
-        let application_manager = ApplicationService::new(&tensor_path, &patterns_path);
-        let actual = application_manager.getDistances().clone();
+        let mut model_manager = ApplicationService::default();
+        model_manager.init(&tensor_path, &patterns_path);
+        let actual = model_manager.getDistances().clone();
 
         let mut expected: HashMap<u32, HashMap<u32, f64>> = HashMap::new();
         expected.insert(1, HashMap::from_iter(vec![(2, 0.0474)].into_iter()));

@@ -18,37 +18,21 @@ impl Default for ApplicationService{
 }
 
 impl ApplicationService{
-    pub fn new(tensor_path: &String, patterns_path: &String) -> ApplicationService{
-        let mut instance = ApplicationService{
-            io_service: IoService::new(tensor_path, patterns_path),
-            application_state_service: ApplicationStateService::new(),
-        };
-
-        ApplicationService::init(&mut instance);
-        return instance;
-    }
-
-    fn init(instance: &mut ApplicationService){
+    pub fn init(&mut self, tensor_path: &String, patterns_path: &String){
         let start_time = Instant::now();
+        println!("Initializing model...");
 
-        let tensor = instance.io_service.readTensor();
-        let patterns = instance.io_service.readPatterns();
-        instance.application_state_service.changeTensor(tensor, patterns);
+        self.io_service = IoService::new(tensor_path, patterns_path);
+        let tensor = self.io_service.readTensor();
+        let patterns = self.io_service.readPatterns();
+
+        self.application_state_service = ApplicationStateService::default();
+        self.application_state_service.init(tensor, patterns);
 
         let end_time = Instant::now();
         let duration = end_time - start_time;
         println!("Total time taken: {:?}", duration);
 
-        PlotService::plot(&instance.application_state_service);
-    }
-
-    pub fn changeTensor(&mut self, tensor_path: &String, patterns_path: &String){
-        println!("\nChanging tensor to: {}", tensor_path);
-        self.io_service = IoService::new(tensor_path, patterns_path);
-        let tensor = self.io_service.readTensor();
-        let patterns = self.io_service.readPatterns();
-
-        self.application_state_service.changeTensor(tensor, patterns);
         PlotService::plot(&self.application_state_service);
     }
 

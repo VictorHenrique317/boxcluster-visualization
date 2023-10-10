@@ -32,7 +32,8 @@ mod dag {
         let patterns_path = "tests/test_data/dag_test_patterns/simple-overlap.txt".to_owned();
         let tensor_path = "tests/test_data/dag_test_patterns/simple-overlap.txt".to_owned();
         
-        let model_manager = ApplicationService::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::default();
+        model_manager.init(&tensor_path, &patterns_path);
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
         expected_subs.insert(1, vec![2]);
@@ -57,7 +58,8 @@ mod dag {
         let patterns_path = "tests/test_data/dag_test_patterns/simple-overlap-2.txt".to_owned();
         let tensor_path = "tests/test_data/dag_test_patterns/simple-overlap-2.txt".to_owned();
         
-        let model_manager = ApplicationService::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::default();
+        model_manager.init(&tensor_path, &patterns_path);
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
         expected_subs.insert(1, vec![2]);
@@ -84,7 +86,8 @@ mod dag {
         let patterns_path = "tests/test_data/dag_test_patterns/double-diff-overlap.txt".to_owned();
         let tensor_path = "tests/test_data/dag_test_patterns/double-diff-overlap.txt".to_owned();
         
-        let model_manager = ApplicationService::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::default();
+        model_manager.init(&tensor_path, &patterns_path);
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
         expected_subs.insert(1, vec![2, 3]);
@@ -111,7 +114,8 @@ mod dag {
         let patterns_path = "tests/test_data/dag_test_patterns/triple-diff-overlap.txt".to_owned();
         let tensor_path = "tests/test_data/dag_test_patterns/triple-diff-overlap.txt".to_owned();
         
-        let model_manager = ApplicationService::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::default();
+        model_manager.init(&tensor_path, &patterns_path);
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
         expected_subs.insert(1, vec![2, 3, 4]);
@@ -140,7 +144,8 @@ mod dag {
         let patterns_path = "tests/test_data/dag_test_patterns/quadruple-diff-overlap.txt".to_owned();
         let tensor_path = "tests/test_data/dag_test_patterns/quadruple-diff-overlap.txt".to_owned();
         
-        let model_manager = ApplicationService::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::default();
+        model_manager.init(&tensor_path, &patterns_path);
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
         expected_subs.insert(1, vec![2, 3, 4, 5]);
@@ -171,7 +176,8 @@ mod dag {
         let patterns_path = "tests/test_data/dag_test_patterns/simple-msub.txt".to_owned();
         let tensor_path = "tests/test_data/dag_test_patterns/simple-msub.txt".to_owned();
         
-        let model_manager = ApplicationService::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::default();
+        model_manager.init(&tensor_path, &patterns_path);
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
         expected_subs.insert(1, vec![2]);
@@ -198,7 +204,8 @@ mod dag {
         let patterns_path = "tests/test_data/dag_test_patterns/simple-msub-2.txt".to_owned();
         let tensor_path = "tests/test_data/dag_test_patterns/simple-msub-2.txt".to_owned();
         
-        let model_manager = ApplicationService::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::default();
+        model_manager.init(&tensor_path, &patterns_path);
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
         expected_subs.insert(1, vec![2, 3]);
@@ -227,7 +234,8 @@ mod dag {
         let patterns_path = "tests/test_data/dag_test_patterns/complex-msub.txt".to_owned();
         let tensor_path = "tests/test_data/dag_test_patterns/complex-msub.txt".to_owned();
         
-        let model_manager = ApplicationService::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::default();
+        model_manager.init(&tensor_path, &patterns_path);
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
         expected_subs.insert(1, vec![2, 5, 6]);
@@ -262,7 +270,8 @@ mod dag {
         let patterns_path = "tests/test_data/dag_test_patterns/simple-msuper.txt".to_owned();
         let tensor_path = "tests/test_data/dag_test_patterns/simple-msuper.txt".to_owned();
         
-        let model_manager = ApplicationService::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::default();
+        model_manager.init(&tensor_path, &patterns_path);
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
         expected_subs.insert(1, vec![2,4]);
@@ -293,7 +302,8 @@ mod dag {
         let patterns_path = "tests/test_data/dag_test_patterns/simple-mroot.txt".to_owned();
         let tensor_path = "tests/test_data/dag_test_patterns/simple-mroot.txt".to_owned();
         
-        let model_manager = ApplicationService::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::default();
+        model_manager.init(&tensor_path, &patterns_path);
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
         expected_subs.insert(1, vec![2,5]);
@@ -326,7 +336,8 @@ mod dag {
         let patterns_path = "tests/test_data/dag_test_patterns/simple-line.txt".to_owned();
         let tensor_path = "tests/test_data/dag_test_patterns/simple-line.txt".to_owned();
         
-        let model_manager = ApplicationService::new(&tensor_path, &patterns_path);
+        let mut model_manager = ApplicationService::default();
+        model_manager.init(&tensor_path, &patterns_path);
 
         let mut expected_subs: HashMap<u32, Vec<u32>> = HashMap::new();
         expected_subs.insert(1, vec![2]);

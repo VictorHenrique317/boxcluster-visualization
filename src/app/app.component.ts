@@ -71,7 +71,10 @@ export class AppComponent implements AfterViewInit{
   }
 
   public async openTensorDialog(){
-    const selected = await open({ multiple: false});
+    const options = {
+      multiple: false
+    };
+    const selected = await open(options);
     if (selected === null) { return; } // No tensor selected
     
     this.tensor_path = selected.toString();
@@ -82,7 +85,10 @@ export class AppComponent implements AfterViewInit{
   }
 
   public async openPatternsDialog(){
-    const selected = await open({ multiple: false});
+    const options = {
+      multiple: false
+    };
+    const selected = await open(options);
     if (selected === null) { return; } // No tensor selected
     
     this.patterns_path = selected.toString();
@@ -90,7 +96,7 @@ export class AppComponent implements AfterViewInit{
     
     if (this.tensor_path != "" && this.patterns_path != ""){
       // Both are defined
-      invoke("changeTensor", {tensorPath: this.tensor_path, patternsPath: this.patterns_path}).then((result: any) =>{
+      invoke("initApplication", {tensorPath: this.tensor_path, patternsPath: this.patterns_path}).then((result: any) =>{
         this.upload_file_mode = "tensor";
         this.model_loaded = true;
       });

@@ -2,7 +2,6 @@
 use crate::database::pattern::Pattern;
 use crate::database::tensor::Tensor;
 
-use crate::model::analysis::metrics::metric::Metric;
 use crate::model::identifier_mapper::IdentifierMapper;
 use crate::services::dag::dag_service::DagService;
 use crate::services::datapoint_service::DataPointService;
@@ -22,18 +21,9 @@ pub struct ApplicationStateService{
 }
 
 impl ApplicationStateService{
-    pub fn new() -> ApplicationStateService{
-        return ApplicationStateService{
-            tensor: None,
-            identifier_mapper: None,
-
-            metrics_service: None,
-            dag_service: None,
-
-            current_identifier: 0,
-            current_level_identifiers: vec![],
-            visible_identifiers: vec![],
-        };
+    pub fn init(&mut self, tensor: Tensor, patterns: Vec<Pattern>){
+        self.tensor = Some(tensor);
+        self.changePatterns(patterns);
     }
 
     pub fn changePatterns(&mut self, patterns: Vec<Pattern>){
@@ -61,11 +51,6 @@ impl ApplicationStateService{
         self.current_level_identifiers = self.dag_service.as_ref().unwrap().getFontNodes();
         self.visible_identifiers = self.current_level_identifiers.clone();
         self.metrics_service = Some(metrics_service);
-    }
-
-    pub fn changeTensor(&mut self, tensor: Tensor, patterns: Vec<Pattern>){
-        self.tensor = Some(tensor);
-        self.changePatterns(patterns);
     }
 
     fn update(&mut self, new_current_level_identifiers: Vec<u32>) {
