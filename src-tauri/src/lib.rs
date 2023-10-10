@@ -63,12 +63,12 @@ fn testDag(){
 
     let mut application_manager = ApplicationService::new(&tensor_path, &patterns_path);
 
-    let rss_evolution = application_manager.getRssEvolution().iter().map(|(_, model_rss)| model_rss.clone()).collect::<Vec<f64>>();
-    dbg!(rss_evolution.len());
+    // let rss_evolution = application_manager.getRssEvolution().iter().map(|(_, model_rss)| model_rss.clone()).collect::<Vec<f64>>();
+    // dbg!(rss_evolution.len());
 
-    application_manager.truncateModel(&100);
-    let rss_evolution = application_manager.getRssEvolution().iter().map(|(_, model_rss)| model_rss.clone()).collect::<Vec<f64>>();
-    dbg!(rss_evolution.len());
+    // application_manager.truncateModel(&100);
+    // let rss_evolution = application_manager.getRssEvolution().iter().map(|(_, model_rss)| model_rss.clone()).collect::<Vec<f64>>();
+    // dbg!(rss_evolution.len());
     // Starts at pattern 11
     // let mut test: HashSet<Dim<IxDynImpl>> = HashSet::new(); // 2.264
 }

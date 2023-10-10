@@ -78,7 +78,8 @@ impl UntouchedRss{
 }
 
 pub struct RssEvolution{
-    value: Vec<(u32, f64)>, 
+    value: Vec<(u32, f64)>,
+    truncated_value: Vec<(u32, f64)>,
 }
 
 #[allow(non_camel_case_types)]
@@ -93,9 +94,11 @@ impl RssEvolution{
         patterns: &Vec<&Pattern>) -> RssEvolution{
 
         println!("  RssEvolution...");
-
+        
+        let rss_evolution = RssEvolution::calculate(identifier_mapper, tensor, empty_model_rss, patterns);
         return RssEvolution{
-            value: RssEvolution::calculate(identifier_mapper, tensor, empty_model_rss, patterns),
+            value: rss_evolution.clone(),
+            truncated_value: rss_evolution,
         }
     }
 
@@ -307,6 +310,21 @@ impl RssEvolution{
 
         bar.finish();
         return rss_evolution;
+    }
+
+    pub fn truncate(&mut self, new_size: &u32){
+        let full_rss_evolution: Vec<(u32, f64)> = self.value.clone();
         
+        // retain the first k + 1 elements, where k is the new size
+        let truncated_rss_evolution: Vec<(u32, f64)> = full_rss_evolution.into_iter()
+            .take(*new_size as usize + 1)
+            .map(|(pattern_identifier, rss)| (pattern_identifier, rss))
+            .collect();
+
+        self.truncated_value = truncated_rss_evolution;
+    }
+
+    pub fn getTruncated(&self) -> &Vec<(u32, f64)>{
+        return &self.truncated_value;
     }
 }

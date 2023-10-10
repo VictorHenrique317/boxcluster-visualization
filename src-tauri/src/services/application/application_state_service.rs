@@ -2,6 +2,7 @@
 use crate::database::pattern::Pattern;
 use crate::database::tensor::Tensor;
 
+use crate::model::analysis::metrics::metric::Metric;
 use crate::model::identifier_mapper::IdentifierMapper;
 use crate::services::dag::dag_service::DagService;
 use crate::services::datapoint_service::DataPointService;
@@ -60,7 +61,6 @@ impl ApplicationStateService{
         self.current_level_identifiers = self.dag_service.as_ref().unwrap().getFontNodes();
         self.visible_identifiers = self.current_level_identifiers.clone();
         self.metrics_service = Some(metrics_service);
-        
     }
 
     pub fn changeTensor(&mut self, tensor: Tensor, patterns: Vec<Pattern>){
@@ -99,13 +99,11 @@ impl ApplicationStateService{
 
     pub fn truncateModel(&mut self, new_size: &u32){
         let mut visible_identifiers = self.current_level_identifiers.clone();
+        visible_identifiers.sort();
         visible_identifiers.truncate(*new_size as usize);
-
-        let tensor = self.tensor.as_ref().unwrap();
-
+        
         self.metrics_service.as_mut().unwrap()
-            .update(tensor, self.identifier_mapper.as_ref().unwrap(), &visible_identifiers);
-
+            .rss_evolution.truncate(new_size);
         self.visible_identifiers = visible_identifiers;
     }
 

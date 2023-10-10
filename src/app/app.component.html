@@ -1,11 +1,16 @@
 <body>
     <aside #aside>
-        <header #header matRipple [matRippleCentered]="true" (click)="openFileDialog()">
+        <header *ngIf="upload_file_mode=='tensor'" #header matRipple [matRippleCentered]="true" (click)="openTensorDialog()">
             <mat-icon aria-hidden="false" aria-label="open_file" fontIcon="upload_file"></mat-icon>
-            <h1>{{file_name}}</h1>
+            <h1>Choose tensor</h1>
         </header>
 
-        <app-dynamic-paginator *ngIf="file_path" [matList_height]="matList_height"></app-dynamic-paginator>
+        <header *ngIf="upload_file_mode=='patterns'" #header matRipple [matRippleCentered]="true" (click)="openPatternsDialog()">
+            <mat-icon aria-hidden="false" aria-label="open_file" fontIcon="upload_file"></mat-icon>
+            <h1>Choose patterns</h1>
+        </header>
+
+        <app-dynamic-paginator *ngIf="model_loaded" [matList_height]="matList_height"></app-dynamic-paginator>
         
     </aside>
 

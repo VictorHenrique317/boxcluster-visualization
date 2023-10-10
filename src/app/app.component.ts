@@ -52,8 +52,12 @@ export class AppComponent implements AfterViewInit{
   @ViewChild("aside") aside: ElementRef<HTMLElement>;
   @ViewChild("header") header: ElementRef<HTMLElement>;
 
-  public file_path: string;
-  public file_name: string = "Open file";
+  public tensor_path: string = "";
+  public tensor_name: string = "";
+  public patterns_path: string = "";
+
+  public upload_file_mode = "tensor";
+  public model_loaded = false;
   public matList_height: number;
 
   length = 50;
@@ -66,26 +70,30 @@ export class AppComponent implements AfterViewInit{
     this.matList_height = this.aside.nativeElement.clientHeight - this.header.nativeElement.clientHeight;
   }
 
-  public async openFileDialog(){
+  public async openTensorDialog(){
     const selected = await open({ multiple: false});
-    if (selected === null) { return; } // No file selected
+    if (selected === null) { return; } // No tensor selected
     
-    this.file_path = selected.toString();
-    this.file_name = this.file_path.split('\\').pop().split('/').pop();
-    if (this.file_path == ""){ return; } // No tensor selected
+    this.tensor_path = selected.toString();
+    this.tensor_name = this.tensor_path.split('\\').pop().split('/').pop();
+    if (this.tensor_path == ""){ return; } // No tensor selected
+
+    this.upload_file_mode = "patterns";
+  }
+
+  public async openPatternsDialog(){
+    const selected = await open({ multiple: false});
+    if (selected === null) { return; } // No tensor selected
     
-    invoke("readFile", {path: this.file_path});
-    // this.fileService.openFileDialog().then(path =>{
-    //     this.fileService.readFile(path).then(new_dag =>{
-    //         let new_mapping = new Map<number, Pattern>();
-
-    //         for (let entry of new Map(Object.entries(new_dag.mapping))){
-    //             new_mapping.set(parseInt(entry[0]), entry[1]);
-    //         } // unnecessary?
-
-    //         new_dag.mapping = new_mapping;
-    //         this.dag = new_dag;
-    //     });
-    // });
+    this.patterns_path = selected.toString();
+    if (this.patterns_path == ""){ return; } // No patterns selected
+    
+    if (this.tensor_path != "" && this.patterns_path != ""){
+      // Both are defined
+      invoke("changeTensor", {tensorPath: this.tensor_path, patternsPath: this.patterns_path}).then((result: any) =>{
+        this.upload_file_mode = "tensor";
+        this.model_loaded = true;
+      });
+    }
   }
 }

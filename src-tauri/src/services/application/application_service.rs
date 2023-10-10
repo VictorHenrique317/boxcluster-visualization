@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use std::{collections::HashMap, time::Instant};
-use crate::{services::{io_service::IoService, plot_service::PlotService}, model::analysis::metrics::metric::Metric};
+use crate::{services::{io_service::IoService, plot_service::PlotService}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper}};
 use super::application_state_service::ApplicationStateService;
 
 pub struct ApplicationService{
@@ -93,11 +93,22 @@ impl ApplicationService{
         return self.application_state_service.getMetricsService().distances.get();
     }
 
-    pub fn getRssEvolution(&self) -> Vec<f64>{
+    pub fn getFullRssEvolution(&self) -> Vec<f64>{
         return self.application_state_service.getMetricsService().rss_evolution.get().clone()
             .into_iter()
             .map(|size_rss| size_rss.1)
             .collect();
+    }
+
+    pub fn getTruncatedRssEvolution(&self) -> Vec<f64>{
+        return self.application_state_service.getMetricsService().rss_evolution.getTruncated().clone()
+            .into_iter()
+            .map(|size_rss| size_rss.1)
+            .collect();
+    }
+
+    pub fn getIdentifierMapper(&self) -> &IdentifierMapper {
+        return self.application_state_service.identifierMapper();
     }
 
 }
