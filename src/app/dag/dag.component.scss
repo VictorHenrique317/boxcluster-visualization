@@ -4,7 +4,7 @@ body{
     justify-content: center;
     padding-top: 0em;
     // background-color: yellow;
-    height: 100%;
+    height: 90vh;
 
     aside{
         height: 100%;
@@ -25,10 +25,10 @@ body{
         justify-content: center;
 
         canvas{
-            max-width: 80vw; // may change if flex-grow is changed
-            max-height: 100vh;
+            // max-width: 80vw; // may change if flex-grow is changed
+            // max-height: 100vh;
 
-            // background-color: red;
+            background-color: red;
             object-fit:contain;
         }
     }

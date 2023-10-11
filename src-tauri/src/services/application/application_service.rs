@@ -24,7 +24,7 @@ impl ApplicationService{
 
         self.io_service = IoService::new(tensor_path, patterns_path);
         let tensor = self.io_service.readTensor();
-        let patterns = self.io_service.readPatterns();
+        let patterns = self.io_service.readPatterns().unwrap();
 
         self.application_state_service = ApplicationStateService::default();
         self.application_state_service.init(tensor, patterns);
@@ -36,10 +36,30 @@ impl ApplicationService{
         PlotService::plot(&self.application_state_service);
     }
 
+    pub fn getFlattenedSupers(&self) -> HashMap<u32, Vec<u32>>{
+        let identifier_mapper = self.application_state_service.identifierMapper();
+        return self.application_state_service.getDagService().getFlattenedSupers(identifier_mapper);
+    }
+
+    pub fn getFlattenedSubs(&self) -> HashMap<u32, Vec<u32>>{
+        let identifier_mapper = self.application_state_service.identifierMapper();
+        return self.application_state_service.getDagService().getFlattenedSubs(identifier_mapper);
+    }
+
+    pub fn getDistances(&self) -> &HashMap<u32, HashMap<u32, f64>>{
+        return self.application_state_service.getMetricsService().distances.get();
+    }
+
+    pub fn getIdentifierMapper(&self) -> &IdentifierMapper {
+        return self.application_state_service.identifierMapper();
+    }
+
+    // ================ External API ================
+
     pub fn changePatterns(&mut self, patterns_path: &String){
         println!("\nChanging patterns to: {}", patterns_path);
         self.io_service.setPatternsPath(patterns_path);
-        let patterns = self.io_service.readPatterns();
+        let patterns = self.io_service.readPatterns().unwrap();
 
         self.application_state_service.changePatterns(patterns);
         PlotService::plot(&self.application_state_service);
@@ -63,18 +83,11 @@ impl ApplicationService{
         PlotService::plot(&self.application_state_service);
     }
 
-    pub fn getFlattenedSupers(&self) -> HashMap<u32, Vec<u32>>{
-        let identifier_mapper = self.application_state_service.identifierMapper();
-        return self.application_state_service.getDagService().getFlattenedSupers(identifier_mapper);
-    }
-
-    pub fn getFlattenedSubs(&self) -> HashMap<u32, Vec<u32>>{
-        let identifier_mapper = self.application_state_service.identifierMapper();
-        return self.application_state_service.getDagService().getFlattenedSubs(identifier_mapper);
-    }
-
-    pub fn getDistances(&self) -> &HashMap<u32, HashMap<u32, f64>>{
-        return self.application_state_service.getMetricsService().distances.get();
+    pub fn getCoordinates(&self) -> Vec<Vec<f64>>{
+        return self.application_state_service.getMetricsService().coordinates.get()
+        .iter()
+        .map(|(_, coordinates)| vec![coordinates.0, coordinates.1])
+        .collect();
     }
 
     pub fn getFullRssEvolution(&self) -> Vec<f64>{
@@ -89,10 +102,6 @@ impl ApplicationService{
             .into_iter()
             .map(|size_rss| size_rss.1)
             .collect();
-    }
-
-    pub fn getIdentifierMapper(&self) -> &IdentifierMapper {
-        return self.application_state_service.identifierMapper();
     }
 
 }

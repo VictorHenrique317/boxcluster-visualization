@@ -39,11 +39,12 @@ impl IoService {
         return tensor_reader.read();
     }
 
-    pub fn readPatterns(&self) -> Vec<Pattern> {
+    pub fn readPatterns(&self) -> Result<Vec<Pattern>, Box<dyn std::error::Error>> {
         println!("Reading patterns ...");
         let pattern_reader = PatternReader::new(
                 &self.patterns_path,
-                &self.translator);
-        return pattern_reader.read();
+                &self.translator)?;
+
+        return Ok(pattern_reader.read());
     }
 }

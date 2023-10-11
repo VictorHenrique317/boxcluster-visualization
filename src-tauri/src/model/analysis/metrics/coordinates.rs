@@ -9,12 +9,12 @@ use crate::model::identifier_mapper::IdentifierMapper;
 use super::{metric::Metric, distances::DistancesTrait};
 
 pub struct Coordinates {
-    value: HashMap<u32, (f32, f32)>,
+    value: HashMap<u32, (f64, f64)>,
 }
 
 #[allow(non_camel_case_types)]
-impl Metric<HashMap<u32, (f32, f32)>> for Coordinates{
-    fn get(&self) -> &HashMap<u32, (f32, f32)> {
+impl Metric<HashMap<u32, (f64, f64)>> for Coordinates{
+    fn get(&self) -> &HashMap<u32, (f64, f64)> {
         return &self.value;
     }
 }
@@ -48,7 +48,7 @@ impl Coordinates {
         return squared_proximity_matrix;
     }
 
-    fn SklearnMDS(dissimilarity_matrix: Array2<f64>) -> HashMap<u32, (f32, f32)>{
+    fn SklearnMDS(dissimilarity_matrix: Array2<f64>) -> HashMap<u32, (f64, f64)>{
         pyo3::prepare_freethreaded_python();
         let xy_matrix: Array2<f64> = Python::with_gil(|py| {
             let sklearn = py.import("sklearn.manifold").unwrap();
@@ -69,18 +69,18 @@ impl Coordinates {
         });
 
         let n_rows = xy_matrix.shape()[0];
-        let mut xys: HashMap<u32, (f32, f32)> = HashMap::new();
+        let mut xys: HashMap<u32, (f64, f64)> = HashMap::new();
         for i in 0..n_rows {
             let xy_row = xy_matrix.row(i);
             let identifier = (i + 1) as u32;
             let x = *xy_row.get(0).unwrap() ;
             let y = *xy_row.get(1).unwrap();
-            xys.insert(identifier, (x as f32, y as f32));
+            xys.insert(identifier, (x, y));
         }
         return xys;
     }
 
-    pub fn fitTransformMDS<T: DistancesTrait>(distances: &T, identifier_mapper: &IdentifierMapper) -> HashMap<u32, (f32, f32)>{
+    pub fn fitTransformMDS<T: DistancesTrait>(distances: &T, identifier_mapper: &IdentifierMapper) -> HashMap<u32, (f64, f64)>{
         println!("  Applying Multi Dimensional Scaling...");
         let n: usize = identifier_mapper.length() as usize;
         let dissimilarity_matrix = Coordinates::buildDissimilarityMatrix(distances, n);
@@ -88,7 +88,7 @@ impl Coordinates {
         return xys;
     }
 
-    fn calculate<T: DistancesTrait>(identifier_mapper: &IdentifierMapper, distances: &T) -> HashMap<u32, (f32, f32)> {
+    fn calculate<T: DistancesTrait>(identifier_mapper: &IdentifierMapper, distances: &T) -> HashMap<u32, (f64, f64)> {
         return Coordinates::fitTransformMDS(distances, &identifier_mapper);
     }
 }

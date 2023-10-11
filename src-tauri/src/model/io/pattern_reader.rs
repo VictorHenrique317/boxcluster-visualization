@@ -1,4 +1,8 @@
 #![allow(non_snake_case)]
+use std::error::Error;
+
+use serde::de;
+
 use crate::database::pattern::Pattern;
 use super::{translator::Translator, reader::Reader};
 
@@ -9,12 +13,16 @@ pub struct PatternReader<'a> {
 }
 
 impl PatternReader<'_>{
-    pub fn new<'a>(file_path: &String, translator: &'a Translator) -> PatternReader<'a> {
-        return PatternReader {
+    pub fn new<'a>(file_path: &String, translator: &'a Translator) -> Result<PatternReader<'a>, Box<dyn Error>> {
+        let density = Reader::fileHasDensity(&file_path)?;
+
+        let instance = PatternReader {
             file_path: file_path.clone(),
             translator: translator,
-            file_has_densities: Reader::fileHasDensity(&file_path),
+            file_has_densities: density,
         };
+
+        return Ok(instance);
     }
 
     pub fn read<'a>(self) -> Vec<Pattern>{

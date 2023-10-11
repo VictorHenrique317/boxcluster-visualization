@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use std::{fs::{self, File}, num::{ParseFloatError, ParseIntError}};
+use std::{fs::{self, File}, num::{ParseFloatError, ParseIntError}, error::Error};
 use std::io::{prelude::*, BufReader};
 
 pub struct Reader{}
@@ -34,7 +34,7 @@ impl Reader{
         return first_line;
     }
 
-    fn tryGetDensity(vector: &Vec<String>) -> Option<f64>{
+    fn tryGetDensity(vector: &Vec<String>) -> Result<Option<f64>, Box<dyn Error>>{
         let mut density: Option<f64> = None;
         let vector_length = vector.len();
         for (i, dim_values_str) in vector.iter().enumerate() {
@@ -46,28 +46,28 @@ impl Reader{
                     
                     let density_test_2: Result<u32, ParseIntError> = dim_values_str.parse(); // Tries to parse to int
                     if density_test_2.is_err(){ // Then its the true density
-                        density = Some(density_test_1.unwrap());
+                        density = Some(density_test_1?);
                     }
                 }
             }
         }
-        return density;
+        return Ok(density);
     }
 
-    pub fn fileHasDensity(file_path: &String) -> bool {
-        let file = File::open(file_path).unwrap();
+    pub fn fileHasDensity(file_path: &String) -> Result<bool, Box<dyn Error>> {
+        let file = File::open(file_path)?;
         let reader = BufReader::new(file);
 
         for line in reader.lines() { // Line per line
-            let current_line = line.unwrap();
+            let current_line = line?;
             let dimensions: Vec<String> = current_line.split(" ")
                 .map(|i| i.to_owned())
                 .collect();
 
-            let density = Reader::tryGetDensity(&dimensions);
-            if density.is_some(){ return true; }
+            let density = Reader::tryGetDensity(&dimensions)?;
+            if density.is_some(){ return Ok(true); }
         }
 
-        return false;
+        return Ok(false);
     }
 }

@@ -146,6 +146,14 @@ fn ascendDag(application_service: State<ApplicationServiceState>) {
     application_service.ascendDag();
 }
 
+#[tauri::command]
+fn getCoordinates(application_service: State<ApplicationServiceState>) -> Vec<Vec<f64>> {
+    println!("Calling getCoordinates...");
+
+    let application_service = application_service.0.lock().unwrap();
+    return application_service.getCoordinates();
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(ApplicationServiceState(Default::default()))
@@ -165,7 +173,8 @@ fn main() {
             descendDag,
             truncateModel,
             getFullRssEvolution,
-            getTruncatedRssEvolution
+            getTruncatedRssEvolution,
+            getCoordinates
             ])
         .run(tauri::generate_context!())
         .expect("Error while running tauri application");

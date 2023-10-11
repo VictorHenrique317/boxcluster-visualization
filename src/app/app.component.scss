@@ -15,6 +15,9 @@ body{
     display: flex;
     flex-direction: row;
 
+    width: 100vw;
+    height: 100vh;
+
     aside{
         background-color: mat.get-color-from-palette($primary-palette, 900);
         color: mat.get-color-from-palette($primary-palette, '900-contrast');
@@ -25,6 +28,7 @@ body{
         max-width: 20vw; 
         min-width: 20vw;
         max-height: 100vh;
+        min-height: 100vh;
         header{
             min-height: 10vh;
             max-height: 10vh;
@@ -71,11 +75,14 @@ body{
 
     #main-app{
         // background-color: green;
+        width: 80vw;
+        height: 100vh;
         flex: 4;
         display: flex;
         flex-direction: column;
 
         nav{
+            height: 10vh;
             padding-top: 1em;
             // background-color: red;
             flex: 1;
@@ -104,6 +111,8 @@ body{
         }
 
         app-dag{
+            width: 80vw;
+            height: 90vh;
             flex: 14;
             // font-size: 5em;
         }
