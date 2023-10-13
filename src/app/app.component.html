@@ -44,7 +44,13 @@
             </div>
         </nav>
         
-        <app-dag></app-dag>
+        <app-dag #dag
+            (mousedown)="canvasMouseDownHandler($event)" 
+            (mousemove)="canvasMouseMoveHandler($event)" 
+            (mouseup)="canvasMouseUpHandler()"
+            (wheel)="canvasWheelHandler($event)">
+        </app-dag>
+
 <!--     
         <footer>
             <p>footer</p>

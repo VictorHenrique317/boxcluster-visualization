@@ -7,6 +7,11 @@ fn main() {
   }
 
   #[cfg(target_os="windows")]{
+    println!("cargo:rustc-link-lib=python310"); 
+    // Install python 3.10.11
+    // set PYO3_PYTHON="C:\\Python310\\python.exe"
+    // set LIB="C:\\Python310\\libs;%LIB%"
   }
+
   tauri_build::build()
 }

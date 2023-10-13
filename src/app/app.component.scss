@@ -4,10 +4,14 @@
 
 // $primary-palette: map-get($map: , $key: )
 
+$max_nav_height: 3em;
+
 body{
     // $background: map-get($theme, background);
+    overflow: hidden;
     background-color: $background-color;
     position: absolute;
+    z-index: 1;
     top: 0px;
     right: 0;
     left: 0;
@@ -30,13 +34,13 @@ body{
         max-height: 100vh;
         min-height: 100vh;
         header{
-            min-height: 10vh;
-            max-height: 10vh;
+            min-height: $max_nav_height;
+            max-height: $max_nav_height;
+            padding-top: 1em;
+            padding-bottom: 1em;
+            padding-left: 1em;
 
             user-select: none;
-            padding-top: 1em;
-            padding-left: 1em;
-            padding-bottom: 1em;
 
             display: flex;
             flex-direction: row;
@@ -82,15 +86,16 @@ body{
         flex-direction: column;
 
         nav{
-            height: 10vh;
+            max-height: $max_nav_height;
             padding-top: 1em;
-            // background-color: red;
+            padding-bottom: 1em;
+
             flex: 1;
             display: flex;
             align-items: flex-start;
             justify-content: flex-start;
             padding-left: 1em;
-            // background-color: mat.get-color-from-palette($primary-palette, 500);
+
             background-color: mat.get-color-from-palette($primary-palette, 700);
 
             button{

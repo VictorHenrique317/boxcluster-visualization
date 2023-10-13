@@ -51,6 +51,7 @@ import { open } from '@tauri-apps/api/dialog';
 export class AppComponent implements AfterViewInit{
   @ViewChild("aside") aside: ElementRef<HTMLElement>;
   @ViewChild("header") header: ElementRef<HTMLElement>;
+  @ViewChild("dag") dag: DagComponent;
 
   public tensor_path: string = "";
   public tensor_name: string = "";
@@ -101,5 +102,21 @@ export class AppComponent implements AfterViewInit{
         this.model_loaded = true;
       });
     }
+  }
+
+  public canvasMouseDownHandler(event: MouseEvent){
+    this.dag.mouseDownHandler(event);
+  }
+
+  public canvasMouseMoveHandler(event: MouseEvent){
+    this.dag.mouseMoveHandler(event);
+  }
+
+  public canvasMouseUpHandler(){
+    this.dag.mouseUpHandler();
+  }
+
+  public canvasWheelHandler(event: WheelEvent){
+    this.dag.wheelHandler(event);
   }
 }
