@@ -22,6 +22,8 @@ import { CommonModule } from "@angular/common";
 import { PatternSummaryComponent } from "./pattern-summary/pattern-summary.component";
 import { DynamicPaginatorComponent } from "./dynamic-paginator/dynamic-paginator.component";
 import { open } from '@tauri-apps/api/dialog';
+import { RssViewComponent } from "./rss-view/rss-view.component";
+import { provideRouter, Router, RouterOutlet} from "@angular/router";
 
 @Component({
   selector: "app-root",
@@ -29,8 +31,10 @@ import { open } from '@tauri-apps/api/dialog';
   styleUrls:['./app.component.scss'],
   standalone: true,
   imports: [
+    RouterOutlet,
     CommonModule,
     DagComponent,
+    RssViewComponent,
     PatternSummaryComponent, 
     DynamicPaginatorComponent,
     MatSlideToggleModule, 
@@ -51,7 +55,8 @@ import { open } from '@tauri-apps/api/dialog';
 export class AppComponent implements AfterViewInit{
   @ViewChild("aside") aside: ElementRef<HTMLElement>;
   @ViewChild("header") header: ElementRef<HTMLElement>;
-  @ViewChild("dag") dag: DagComponent;
+  
+  private dag: DagComponent;
 
   public tensor_path: string = "";
   public tensor_name: string = "";
@@ -65,10 +70,14 @@ export class AppComponent implements AfterViewInit{
   pageSize = 10;
   pageIndex = 0;
 
-  constructor(){}
+  public dag_view = true;
+  public rss_view = false;
+
+  constructor(private router: Router){}
 
   ngAfterViewInit(){
     this.matList_height = this.aside.nativeElement.clientHeight - this.header.nativeElement.clientHeight;
+    this.router.navigate(['/dagview']);
   }
 
   public async openTensorDialog(){
@@ -100,7 +109,14 @@ export class AppComponent implements AfterViewInit{
       invoke("initApplication", {tensorPath: this.tensor_path, patternsPath: this.patterns_path}).then((result: any) =>{
         this.upload_file_mode = "tensor";
         this.model_loaded = true;
+        this.router.navigate(['/dagview']);
       });
+    }
+  }
+
+  public onActivate(componentInstance: any) {
+    if (componentInstance instanceof DagComponent) {
+      this.dag = componentInstance;
     }
   }
 
@@ -118,5 +134,9 @@ export class AppComponent implements AfterViewInit{
 
   public canvasWheelHandler(event: WheelEvent){
     this.dag.wheelHandler(event);
+  }
+
+  public openFullSizeRss(){
+    this.router.navigate(['/rssview']);
   }
 }

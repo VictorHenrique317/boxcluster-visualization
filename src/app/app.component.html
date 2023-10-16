@@ -38,18 +38,31 @@
             <button mat-raised-button>Show hierarchy</button>
             <button mat-raised-button>Go back</button>
             <button mat-raised-button>Pin/ unpin</button>
+            
             <div id="draw-buttons">
                 <button mat-raised-button>+</button>
                 <button mat-raised-button>-</button>
             </div>
+            <button mat-raised-button (click)="openFullSizeRss()" >RSS</button>
         </nav>
         
-        <app-dag #dag
+        <!-- <app-dag #dag *ngIf="dag_view"
             (mousedown)="canvasMouseDownHandler($event)" 
             (mousemove)="canvasMouseMoveHandler($event)" 
             (mouseup)="canvasMouseUpHandler()"
             (wheel)="canvasWheelHandler($event)">
-        </app-dag>
+        </app-dag> -->
+
+        <!-- <app-rss-view *ngIf="rss_view" #rssViewer></app-rss-view> -->
+        
+        <div id="router"
+            (mousedown)="canvasMouseDownHandler($event)" 
+            (mousemove)="canvasMouseMoveHandler($event)" 
+            (mouseup)="canvasMouseUpHandler()"
+            (wheel)="canvasWheelHandler($event)"
+        >
+            <router-outlet (activate)="onActivate($event)"></router-outlet>
+        </div>
 
 <!--     
         <footer>
