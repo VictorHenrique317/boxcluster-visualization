@@ -7,6 +7,7 @@ import { AfterViewInit } from '@angular/core'
 import {cover, contain} from 'intrinsic-scale';
 import { Coordinate } from 'src/models/coordinate';
 import { invoke } from '@tauri-apps/api';
+import { CanvasService } from '../services/canva.service';
 
 // https://angular.io/guide/template-syntax
 
@@ -40,10 +41,12 @@ export class DagComponent implements AfterViewInit{
     y: 0
   };
 
-  constructor(){}
+  constructor(private canvas_service: CanvasService){}
   
   ngAfterViewInit(){
-    this.fixCanvasRendering();
+    this.context = this.canvas.nativeElement.getContext("2d");
+    this.canvas_service.fixCanvasRendering(this.dagWindow, this.canvas);
+
     this.maximum_dx = this.canvas.nativeElement.width * 2;
     this.maximum_dy = this.canvas.nativeElement.height * 2;
 
@@ -56,22 +59,6 @@ export class DagComponent implements AfterViewInit{
 
     // this.getCoordinates();
     this.drawCoordinates();
-  }
-
-  private fixCanvasRendering() {
-    const originalWidth = this.canvas.nativeElement.width;
-    const originalHeight = this.canvas.nativeElement.height;
-  
-    this.canvas.nativeElement.width = this.dagWindow.nativeElement.clientWidth;
-    this.canvas.nativeElement.height = this.dagWindow.nativeElement.clientHeight;
-  
-    this.context = this.canvas.nativeElement.getContext("2d");
-    let ratio = Math.min(
-      this.canvas.nativeElement.clientWidth / originalWidth,
-      this.canvas.nativeElement.clientHeight / originalHeight
-    );
-    
-    this.context.scale(1, 1);
   }
 
   private scaleToFitCanvas(x: number, y:number, radius: number){
@@ -125,15 +112,8 @@ export class DagComponent implements AfterViewInit{
     this.context.stroke();
   }
 
-  private clearCanvas(){
-    this.context.setTransform(1, 0, 0, 1, 0, 0);
-    this.context.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
-  }
-
   public onResize(event) {
-    this.clearCanvas();
-    this.canvas.nativeElement.width = this.dagWindow.nativeElement.clientWidth;
-    this.canvas.nativeElement.height = this.dagWindow.nativeElement.clientHeight;
+    this.canvas_service.onResize(this.canvas, this.dagWindow);
   }
 
   public mouseDownHandler(e) {
@@ -174,12 +154,11 @@ export class DagComponent implements AfterViewInit{
           y: e.clientY
         };
     
-        this.clearCanvas();
+        this.canvas_service.clearCanvas(this.canvas);
         this.drawCoordinates();
     }
   }
   
-
   public mouseUpHandler() {
     this.isDragging = false;
   }
@@ -208,7 +187,7 @@ export class DagComponent implements AfterViewInit{
     this.totalDy -= mouseY * (this.scale - oldScale);
   
     // Redraw the canvas
-    this.clearCanvas();
+    this.canvas_service.clearCanvas(this.canvas);
     this.drawCoordinates();
 
     console.log(this.scale);
