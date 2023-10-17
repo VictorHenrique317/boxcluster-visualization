@@ -77,7 +77,7 @@ export class AppComponent implements AfterViewInit{
 
   ngAfterViewInit(){
     this.matList_height = this.aside.nativeElement.clientHeight - this.header.nativeElement.clientHeight;
-    this.router.navigate(['/dagview']);
+    this.router.navigate(['/rssview']);
   }
 
   public async openTensorDialog(){
@@ -121,19 +121,28 @@ export class AppComponent implements AfterViewInit{
   }
 
   public canvasMouseDownHandler(event: MouseEvent){
-    this.dag.mouseDownHandler(event);
+    if (this.router.url == '/dagview'){
+      this.dag.mouseDownHandler(event);
+    }
+    
   }
 
   public canvasMouseMoveHandler(event: MouseEvent){
-    this.dag.mouseMoveHandler(event);
+    if (this.router.url == '/dagview'){
+      this.dag.mouseMoveHandler(event);
+    }
   }
 
-  public canvasMouseUpHandler(){
-    this.dag.mouseUpHandler();
+  public canvasMouseUpHandler(event: MouseEvent){
+    if (this.router.url == '/dagview'){
+      this.dag.mouseUpHandler();
+    }
   }
 
   public canvasWheelHandler(event: WheelEvent){
-    this.dag.wheelHandler(event);
+    if (this.router.url == '/dagview'){
+      this.dag.wheelHandler(event);
+    }
   }
 
   public openFullSizeRss(){

@@ -58,7 +58,7 @@
         <div id="router"
             (mousedown)="canvasMouseDownHandler($event)" 
             (mousemove)="canvasMouseMoveHandler($event)" 
-            (mouseup)="canvasMouseUpHandler()"
+            (mouseup)="canvasMouseUpHandler($event)"
             (wheel)="canvasWheelHandler($event)"
         >
             <router-outlet (activate)="onActivate($event)"></router-outlet>

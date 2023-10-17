@@ -82,7 +82,7 @@ export class DagComponent implements AfterViewInit{
 
     this.context.translate(this.totalDx, this.totalDy);
     this.context.scale(this.scale, this.scale);
-    this.drawGrid();
+    this.canvas_service.drawGrid(this.canvas, this.maximum_dx*4, this.maximum_dy*4);
     
     for (let i = 0; i < this.coordinates.length; i++){
       let coordinate = this.coordinates[i];
@@ -91,26 +91,6 @@ export class DagComponent implements AfterViewInit{
   
     this.context.restore();
   } 
-
-  private drawGrid() {
-    const gridSize = 50;
-  
-    // Draw vertical lines
-    for (let x = -this.maximum_dx*4; x <= this.maximum_dx*8; x += gridSize) {
-      this.context.moveTo(x, -this.maximum_dy);
-      this.context.lineTo(x, this.maximum_dy*2);
-    }
-  
-    // Draw horizontal lines
-    for (let y = -this.maximum_dy*4; y <= this.maximum_dy*8; y += gridSize) {
-      this.context.moveTo(-this.maximum_dx, y);
-      this.context.lineTo(this.maximum_dx*2, y);
-    }
-  
-    // Set the line color and stroke the lines
-    this.context.strokeStyle = 'lightgrey';
-    this.context.stroke();
-  }
 
   public onResize(event) {
     this.canvas_service.onResize(this.canvas, this.dagWindow);

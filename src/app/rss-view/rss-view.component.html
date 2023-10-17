@@ -1,4 +1,16 @@
 <body #rssWindow>
-    <canvas></canvas>
-    <mat-slider></mat-slider>
+    <canvas #canvas></canvas>
+    <div id="slider-div">
+        <mat-slider 
+            class="example-margin"
+            [max]="max"
+            [min]="1"
+            [step]="1"
+            [discrete]="false"
+            [showTickMarks]="true">
+        <input matSliderThumb [(ngModel)]="pattern_number" #slider>
+        </mat-slider>
+
+        <p>Number of patterns: {{pattern_number}} </p>
+    </div>
 </body> 

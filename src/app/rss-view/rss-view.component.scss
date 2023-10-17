@@ -1,6 +1,42 @@
+@use '@angular/material' as mat;
+@import '../../theme.scss';
+
 body{
     height: 100%;
     width: 100%;
+    padding: 0 0 0 0;
+    margin : 0 0 0 0;
+
     
-    background-color: red;
+    // background-color: red;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+
+    canvas{
+        width: 90%;
+        height: 70%; // Of available space
+        margin-left: 4%;
+
+        border: 4px solid mat.get-color-from-palette($primary-palette, 700);
+        // background-color: green;
+    }
+
+    #slider-div{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        width: 100%;
+        // background-color: brown;
+
+        padding-left: 5%;
+        padding-top: 5%;
+        // padding-bottom: 1%;
+        .mat-mdc-slider {
+            width: 85%;
+            // background-color: yellow;
+        }
+    }
 }
