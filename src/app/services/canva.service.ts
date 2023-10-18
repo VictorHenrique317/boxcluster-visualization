@@ -43,4 +43,11 @@ export class CanvasService {
     canvas.nativeElement.getContext("2d").stroke();
   }
 
+  public drawCircle(canvas: ElementRef<HTMLCanvasElement>, x:number, y:number, radius:number){
+    canvas.nativeElement.getContext("2d").beginPath(); // Start a new path
+    canvas.nativeElement.getContext("2d").arc(x,y, radius, 0, Math.PI*2, false);
+    canvas.nativeElement.getContext("2d").fill();
+  }
+
+
 }

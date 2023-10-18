@@ -96,8 +96,8 @@ impl ApplicationStateService{
         return self.identifier_mapper.as_ref().unwrap();
     }
 
-    pub fn visibleIdentifiers(&self) -> &Vec<u32>{
-        return &self.current_level_identifiers;
+    pub fn getVisibleIdentifiers(&self) -> &Vec<u32>{
+        return &self.visible_identifiers;
     }
 
     pub fn getMetricsService(&self) -> &MetricsService{

@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use std::{collections::HashMap, time::Instant};
-use crate::{services::{io_service::IoService, plot_service::PlotService}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper}};
+use crate::{services::{io_service::IoService, plot_service::PlotService}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper}, database::datapoint::DataPoint};
 use super::application_state_service::ApplicationStateService;
 
 pub struct ApplicationService{
@@ -83,11 +83,12 @@ impl ApplicationService{
         PlotService::plot(&self.application_state_service);
     }
 
-    pub fn getCoordinates(&self) -> Vec<Vec<f64>>{
-        return self.application_state_service.getMetricsService().coordinates.get()
-        .iter()
-        .map(|(_, coordinates)| vec![coordinates.0, coordinates.1])
-        .collect();
+    pub fn getDataPoints(&self) -> Vec<DataPoint>{
+        let visible_identifiers = self.application_state_service.getVisibleIdentifiers();
+        return self.application_state_service.identifierMapper()
+            .getOrderedDataPointsFrom(visible_identifiers).into_iter()
+            .map(|datapoint| datapoint.clone())
+            .collect();
     }
 
     pub fn getFullRssEvolution(&self) -> Vec<f64>{

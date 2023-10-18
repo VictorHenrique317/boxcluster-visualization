@@ -3,6 +3,7 @@
     <div id="slider-div">
         <mat-slider 
             class="example-margin"
+            (change)="onSliderChange($event)"
             [max]="max"
             [min]="1"
             [step]="1"

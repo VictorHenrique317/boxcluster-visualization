@@ -77,7 +77,7 @@ export class AppComponent implements AfterViewInit{
 
   ngAfterViewInit(){
     this.matList_height = this.aside.nativeElement.clientHeight - this.header.nativeElement.clientHeight;
-    this.router.navigate(['/rssview']);
+    this.router.navigate(['']);
   }
 
   public async openTensorDialog(){
@@ -110,6 +110,7 @@ export class AppComponent implements AfterViewInit{
         this.upload_file_mode = "tensor";
         this.model_loaded = true;
         this.router.navigate(['/dagview']);
+        // this.dag.getCoordinates();
       });
     }
   }
@@ -143,6 +144,10 @@ export class AppComponent implements AfterViewInit{
     if (this.router.url == '/dagview'){
       this.dag.wheelHandler(event);
     }
+  }
+
+  public openDagView(){
+    this.router.navigate(['/dagview']);
   }
 
   public openFullSizeRss(){

@@ -57,7 +57,7 @@ export class DagComponent implements AfterViewInit{
     let coord5: Coordinate = {x: 1, y: 1, radius: 10};
     this.coordinates = [coord1, coord2, coord3, coord4, coord5];
 
-    // this.getCoordinates();
+    this.getCoordinates();
     this.drawCoordinates();
   }
 
@@ -69,13 +69,6 @@ export class DagComponent implements AfterViewInit{
 
     return {x: scaled_x, y: scaled_y, radius: scaled_radius};
   }
-  
-  private drawCircle(x:number, y:number, radius:number){
-    let scaled = this.scaleToFitCanvas(x, y, radius);
-    this.context.beginPath(); // Start a new path
-    this.context.arc(scaled.x,scaled.y, scaled.radius, 0, Math.PI*2, false);
-    this.context.fill();
-  }
 
   private drawCoordinates(){
     this.context.save();
@@ -86,7 +79,8 @@ export class DagComponent implements AfterViewInit{
     
     for (let i = 0; i < this.coordinates.length; i++){
       let coordinate = this.coordinates[i];
-      this.drawCircle(coordinate.x, coordinate.y, coordinate.radius);
+      let scaled_coordinates = this.scaleToFitCanvas(coordinate.x, coordinate.y, coordinate.radius);
+      this.canvas_service.drawCircle(this.canvas, scaled_coordinates.x, scaled_coordinates.y, scaled_coordinates.radius);
     }
   
     this.context.restore();
@@ -117,7 +111,7 @@ export class DagComponent implements AfterViewInit{
       let maximum_dx = this.canvas.nativeElement.width * this.scale * 2;
       let maximum_dy = this.canvas.nativeElement.height * this.scale * 2;
       
-      console.log(this.scale);
+      // console.log(this.scale);
       if ((temp_total_dx / this.scale) > maximum_dx / this.scale) {return;} // Left side block
       if (temp_total_dx / this.scale < -maximum_dx) {return;} // Right side block
       if (temp_total_dy / this.scale < -maximum_dy) {;return;} // Bottom side block
@@ -170,7 +164,7 @@ export class DagComponent implements AfterViewInit{
     this.canvas_service.clearCanvas(this.canvas);
     this.drawCoordinates();
 
-    console.log(this.scale);
+    // console.log(this.scale);
   }
 
   public getCoordinates(){

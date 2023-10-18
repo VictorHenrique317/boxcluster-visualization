@@ -102,6 +102,18 @@ impl IdentifierMapper{
             .collect();
     }
 
+    pub fn getOrderedDataPoints(&self) -> Vec<&DataPoint> {
+        return self.getOrderedRepresentations().iter()
+            .map(|representation| representation.asDataPoint())
+            .collect();
+    }
+
+    pub fn getOrderedDataPointsFrom(&self, identifiers: &Vec<u32>) -> Vec<&DataPoint> {
+        return self.getOrderedRepresentationsFrom(identifiers).iter()
+            .map(|representation| representation.asDataPoint())
+            .collect();
+    }
+
     pub fn length(&self) -> u32{
         return self.mapping.len() as u32;
     }

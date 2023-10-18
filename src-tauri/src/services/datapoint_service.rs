@@ -17,11 +17,11 @@ impl DataPointService {
         
     }
 
-    fn densityToColor(density: &f64) -> RGBColor {
-        let r = (density * 255.0) as u8;
-        let g = 255 - r;
-        let b = 0;
-        return RGBColor(r, g, b);
+    fn densityToColor(density: &f64) -> (u32, u32, u32) {
+        let r = (density * 255.0) as u32;
+        let g = (255 - r) as u32;
+        let b = 0 as u32;
+        return (r, g, b);
     }
 
     pub fn createDataPoints(identifier_mapper: &IdentifierMapper, coordinates: &Coordinates) -> Vec<DataPoint> {
@@ -46,16 +46,19 @@ impl DataPointService {
             let size = DataPointService::normalizeSize(&pattern.size, &dimension);
             // let stroke_width = DataPointService::calculateStrokeWidth(&max_size, &size);
             let stroke_width = 2;
+            let color = DataPointService::densityToColor(&pattern.density);
             
             let datapoint = DataPoint::new(
                 &pattern.identifier,
                 &size,
                 &stroke_width,
-                &DataPointService::densityToColor(&pattern.density),
                 &(coord.0 as f32),
-                &(coord.1 as f32)
+                &(coord.1 as f32),
+                &color.0,
+                &color.1,
+                &color.2,
                 );
-                datapoints.push(datapoint);
+            datapoints.push(datapoint);
         }
 
         return datapoints;

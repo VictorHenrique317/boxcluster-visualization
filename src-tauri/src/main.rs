@@ -4,7 +4,7 @@
     windows_subsystem = "windows"
 )]
 
-use boxcluster_visualization::{self, controller::states::states::*, database::pattern::Pattern};
+use boxcluster_visualization::{self, controller::states::states::*, database::{pattern::Pattern, datapoint::DataPoint}};
 use tauri::State;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -147,11 +147,11 @@ fn ascendDag(application_service: State<ApplicationServiceState>) {
 }
 
 #[tauri::command]
-fn getCoordinates(application_service: State<ApplicationServiceState>) -> Vec<Vec<f64>> {
-    println!("Calling getCoordinates...");
+fn getDataPoints(application_service: State<ApplicationServiceState>) -> Vec<DataPoint> {
+    println!("Calling getDataPoints...");
 
     let application_service = application_service.0.lock().unwrap();
-    return application_service.getCoordinates();
+    return application_service.getDataPoints();
 }
 
 fn main() {
@@ -174,7 +174,7 @@ fn main() {
             truncateModel,
             getFullRssEvolution,
             getTruncatedRssEvolution,
-            getCoordinates
+            getDataPoints
             ])
         .run(tauri::generate_context!())
         .expect("Error while running tauri application");

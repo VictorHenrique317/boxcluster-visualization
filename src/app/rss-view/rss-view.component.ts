@@ -9,6 +9,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatCardModule} from '@angular/material/card';
 import { Coordinate } from 'src/models/coordinate';
 import { invoke } from '@tauri-apps/api';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-rss-view',
@@ -25,28 +26,127 @@ export class RssViewComponent {
   @ViewChild('canvas') canvas: ElementRef<HTMLCanvasElement>;
   @ViewChild('rssWindow') rssWindow: ElementRef<HTMLBodyElement>;
 
-  max = 100;
+  max:number;
   pattern_number = 1;
+  max_y: number;
+  y_range: number;
 
   private context: CanvasRenderingContext2D;
   public rss_evolution: Array<number>;
+  public coordinates: Array<Coordinate>; // y goes from 0 to 1
 
-  constructor(private canvas_service: CanvasService){}
+  constructor(private canvas_service: CanvasService, private cdr: ChangeDetectorRef){}
 
-  ngAfterViewInit(){
-    this.context = this.canvas.nativeElement.getContext("2d");
-    this.canvas_service.fixCanvasRendering(this.rssWindow, this.canvas);
-    this.canvas_service.drawGrid(this.canvas, this.canvas.nativeElement.width*4, this.canvas.nativeElement.height);
+  ngAfterViewInit() {
+      this.context = this.canvas.nativeElement.getContext("2d");
+      this.canvas_service.fixCanvasRendering(this.rssWindow, this.canvas);
+      this.canvas_service.drawGrid(this.canvas, this.canvas.nativeElement.width*4, this.canvas.nativeElement.height);
 
-    this.getRssEvolution();
-  } 
-
-  public getRssEvolution(){
-    this.rss_evolution = [44356, 44256, 44156, 43956, 4389, 4370, 4365];
-    // invoke("getFullRssEvolution").then((result: Array<number>) =>{
-    //   this.rss_evolution = result;
-    //   console.log(this.rss_evolution);
-    // });
+      this.rss_evolution = [55563.5,
+        55548.7,
+        55534.2,
+        55519.6,
+        55505.7,
+        55492.6,
+        55479.7,
+        55467,
+        55454.9,
+        55443.1,
+        55432.9,
+        55423,
+        55413.4,
+        55403.8,
+        55394.2,
+        55384.9,
+        55375.5,
+        55366.3,
+        55357,
+        55347.8]
+        // invoke("getFullRssEvolution").then((result: Array<number>) =>{
+        //   this.rss_evolution = result;
+        //   console.log(this.rss_evolution);
+        // });
+      this.updateMax();
+      this.calculateCoordinates();
+      this.drawRssEvolution();
   }
+
+  updateMax() {
+    this.max = this.rss_evolution.length;
+    this.cdr.detectChanges();
+  }
+
+  private calculateCoordinates(){
+    let min_rss = Math.min(...this.rss_evolution);
+    let max_rss = Math.max(...this.rss_evolution);
+    this.max_y = max_rss;
+    this.y_range = max_rss - min_rss;
+  
+    this.coordinates = [];
+    for (let i = 0; i < this.rss_evolution.length; i++){
+      let rss = this.rss_evolution[i];
+      let x = i/this.max;
+      let y = (rss - min_rss) / this.y_range; // Scale y to be between 0 and 1
+      let radius = 10;
+      let coordinate: Coordinate = {x: x, y: y, radius: radius};
+      this.coordinates.push(coordinate);
+    }
+  }
+  
+  private scaleToFitCanvas(x: number, y:number, radius: number){
+    // Define padding (as a percentage of canvas size)
+    let paddingX = 0.02 * this.canvas.nativeElement.width;
+    let paddingY = 0.05 * this.canvas.nativeElement.height;
+  
+    // Adjust canvas size to account for padding
+    let adjustedWidth = this.canvas.nativeElement.width - 2 * paddingX;
+    let adjustedHeight = this.canvas.nativeElement.height - 2 * paddingY;
+  
+    // Scale x and y to fit within the adjusted canvas size, and add padding
+    let scaled_x = x * adjustedWidth + paddingX;
+    let scaled_y = (1 - y) * adjustedHeight + paddingY; // Flip y axis so that higher values are at the top
+    let scaled_radius = radius;
+  
+    return {x: scaled_x, y: scaled_y, radius: scaled_radius};
+  }
+  
+
+  private drawRssEvolution(){
+    for (let i = 0; i < this.coordinates.length; i++){
+      let coordinate = this.coordinates[i];
+      let scaled_coordinates = this.scaleToFitCanvas(coordinate.x, coordinate.y, coordinate.radius);
+      // console.log(scaled_coordinates); // 930x463 canvas size
+      this.canvas_service.drawCircle(this.canvas, scaled_coordinates.x, scaled_coordinates.y, scaled_coordinates.radius);
+    }
+  }
+
+  onSliderChange(event: any) {
+    // Clear the last drawn line by restoring the saved state
+    this.context.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
+    this.context.restore();
+  
+    // Save the current state of the canvas before drawing the new line
+    this.context.save();
+  
+    // This function will be called when the slider is stopped being dragged
+    let coordinate = this.coordinates[this.pattern_number -1];
+    let {x, y} = this.scaleToFitCanvas(coordinate.x, coordinate.y, coordinate.radius);
+    
+    this.canvas_service.drawGrid(this.canvas, this.canvas.nativeElement.width*4, this.canvas.nativeElement.height);
+    this.drawRssEvolution();
+
+    // Draw a vertical line at the x position of the i-th point
+    this.context.strokeStyle = 'red';
+    this.context.lineWidth = 5;
+    this.context.beginPath();
+    this.context.moveTo(x, 0);
+    this.context.lineTo(x, this.canvas.nativeElement.height);
+    this.context.stroke();
+
+    
+    
+  }
+  
+  
 
 }
