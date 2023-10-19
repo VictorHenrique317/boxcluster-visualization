@@ -3,6 +3,4 @@ export class Pattern{
     dims_values: Array<Array<number>>;
     density: number;
     size: number;
-    supers: Array<number>;
-    subs: Array<number>;
 }

@@ -31,7 +31,6 @@ export class PatternSummaryComponent implements AfterViewInit{
   private padding_bottom = 16;
   private mat_list_padding = 0; // 8
   private paginator_options_padding = 16;
-
   
   ngAfterViewInit(){
     this.height = this.matListItemContainer.nativeElement.clientHeight;
@@ -39,11 +38,11 @@ export class PatternSummaryComponent implements AfterViewInit{
     this.height += this.padding_bottom;
 
     this.available_height -= this.mat_list_padding * 2 + this.paginator_options_padding;
-
     let page_size = Math.floor(this.available_height / this.height);
-    // console.log("available height: %d, summary height: %d", this.available_height, this.height);
 
     this.page_size.emit(page_size);
+
+    console.log(this.pattern.dims_values);
   }
 
 }

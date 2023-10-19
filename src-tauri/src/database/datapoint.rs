@@ -16,7 +16,7 @@ pub struct DataPoint {
 
 impl Serialize for DataPoint {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer, {
-        let mut state = serializer.serialize_struct("DataPoint", 6)?;
+        let mut state = serializer.serialize_struct("DataPoint", 8)?;
         state.serialize_field("identifier", &self.identifier)?;
         state.serialize_field("size", &self.size)?;
         state.serialize_field("stroke_width", &self.stroke_width)?;

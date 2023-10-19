@@ -57,6 +57,7 @@ export class AppComponent implements AfterViewInit{
   @ViewChild("header") header: ElementRef<HTMLElement>;
   
   private dag: DagComponent;
+  private rss_view: RssViewComponent;
 
   public tensor_path: string = "";
   public tensor_name: string = "";
@@ -69,9 +70,6 @@ export class AppComponent implements AfterViewInit{
   length = 50;
   pageSize = 10;
   pageIndex = 0;
-
-  public dag_view = true;
-  public rss_view = false;
 
   constructor(private router: Router){}
 
@@ -119,6 +117,15 @@ export class AppComponent implements AfterViewInit{
     if (componentInstance instanceof DagComponent) {
       this.dag = componentInstance;
     }
+
+    if (componentInstance instanceof RssViewComponent) {
+      this.rss_view = componentInstance;
+    }
+
+    if(this.rss_view != undefined){
+      console.log(this.rss_view.getPatternNumber());
+    }
+
   }
 
   public canvasMouseDownHandler(event: MouseEvent){

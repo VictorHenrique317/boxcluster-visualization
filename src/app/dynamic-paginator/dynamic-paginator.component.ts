@@ -42,8 +42,11 @@ export class DynamicPaginatorComponent implements AfterViewInit {
     this.navigation_options_height = this.navigation_options.nativeElement.clientHeight;
     this.available_height = this.matList_height - this.navigation_options_height;
 
+    console.log("matList_height: %d, navigation_options_height: %d, available_height: %d", this.matList_height, this.navigation_options_height, this.available_height);
+
     invoke("getSoundingPattern").then((sounding_pattern: Pattern) =>{
       this.page_items = [sounding_pattern];
+      console.log("Sounding pattern: %o", sounding_pattern);
     });
   }
 

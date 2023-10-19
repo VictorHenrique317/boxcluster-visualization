@@ -5,9 +5,10 @@ import { ViewChild } from '@angular/core'
 import { ElementRef } from '@angular/core'
 import { AfterViewInit } from '@angular/core'
 import {cover, contain} from 'intrinsic-scale';
-import { Coordinate } from 'src/models/coordinate';
+import { DataPoint } from 'src/models/datapoint';
 import { invoke } from '@tauri-apps/api';
 import { CanvasService } from '../services/canva.service';
+import { DagViewService } from '../services/dag-view.service';
 
 // https://angular.io/guide/template-syntax
 
@@ -19,6 +20,9 @@ import { CanvasService } from '../services/canva.service';
   styleUrls: ['./dag.component.scss']
 })
 export class DagComponent implements AfterViewInit{
+  @ViewChild('dagWindow') dagWindow: ElementRef<HTMLBodyElement>;
+  private subscribed_datapoints: Array<DataPoint>;
+
   @ViewChild('canvas') canvas: ElementRef<HTMLCanvasElement>;
   private context: CanvasRenderingContext2D;
   private totalDx = 0;
@@ -30,10 +34,6 @@ export class DagComponent implements AfterViewInit{
   private scaleMultiplier: number = 0.8;
   private minimum_scale: number = 0.5;
 
-  @ViewChild('dagWindow') dagWindow: ElementRef<HTMLBodyElement>;
-
-  public coordinates: Array<Coordinate>;
-
   // Variables to keep track of the mouse position and left-button status 
   private isDragging = false;
   private previousMousePosition = {
@@ -41,7 +41,12 @@ export class DagComponent implements AfterViewInit{
     y: 0
   };
 
-  constructor(private canvas_service: CanvasService){}
+  constructor(private canvas_service: CanvasService, private dagview_service: DagViewService){
+    this.dagview_service.datapoints$.subscribe(value => {
+      this.subscribed_datapoints = value;
+      this.drawDataPoints();
+    });
+  }
   
   ngAfterViewInit(){
     this.context = this.canvas.nativeElement.getContext("2d");
@@ -50,15 +55,14 @@ export class DagComponent implements AfterViewInit{
     this.maximum_dx = this.canvas.nativeElement.width * 2;
     this.maximum_dy = this.canvas.nativeElement.height * 2;
 
-    let coord1: Coordinate = {x: 0, y: 0, radius: 10};
-    let coord2: Coordinate = {x: -1, y: -1, radius: 10};
-    let coord3: Coordinate = {x: -1, y: 1, radius: 10};
-    let coord4: Coordinate = {x: 1, y: -1, radius: 10};
-    let coord5: Coordinate = {x: 1, y: 1, radius: 10};
-    this.coordinates = [coord1, coord2, coord3, coord4, coord5];
+    // let coord1: Coordinate = {x: 0, y: 0, radius: 10};
+    // let coord2: Coordinate = {x: -1, y: -1, radius: 10};
+    // let coord3: Coordinate = {x: -1, y: 1, radius: 10};
+    // let coord4: Coordinate = {x: 1, y: -1, radius: 10};
+    // let coord5: Coordinate = {x: 1, y: 1, radius: 10};
+    // this.datapoints = [coord1, coord2, coord3, coord4, coord5];
 
-    this.getCoordinates();
-    this.drawCoordinates();
+    this.dagview_service.updateDataPoints();
   }
 
   private scaleToFitCanvas(x: number, y:number, radius: number){
@@ -70,17 +74,17 @@ export class DagComponent implements AfterViewInit{
     return {x: scaled_x, y: scaled_y, radius: scaled_radius};
   }
 
-  private drawCoordinates(){
+  private drawDataPoints(){
     this.context.save();
 
     this.context.translate(this.totalDx, this.totalDy);
     this.context.scale(this.scale, this.scale);
     this.canvas_service.drawGrid(this.canvas, this.maximum_dx*4, this.maximum_dy*4);
     
-    for (let i = 0; i < this.coordinates.length; i++){
-      let coordinate = this.coordinates[i];
-      let scaled_coordinates = this.scaleToFitCanvas(coordinate.x, coordinate.y, coordinate.radius);
-      this.canvas_service.drawCircle(this.canvas, scaled_coordinates.x, scaled_coordinates.y, scaled_coordinates.radius);
+    for (let i = 0; i < this.subscribed_datapoints.length; i++){
+      let datapoint = this.subscribed_datapoints[i];
+      let scaled_datapoint = this.scaleToFitCanvas(datapoint.x, datapoint.y, datapoint.size);
+      this.canvas_service.drawCircle(this.canvas, scaled_datapoint.x, scaled_datapoint.y, scaled_datapoint.radius);
     }
   
     this.context.restore();
@@ -129,7 +133,7 @@ export class DagComponent implements AfterViewInit{
         };
     
         this.canvas_service.clearCanvas(this.canvas);
-        this.drawCoordinates();
+        this.drawDataPoints();
     }
   }
   
@@ -162,16 +166,9 @@ export class DagComponent implements AfterViewInit{
   
     // Redraw the canvas
     this.canvas_service.clearCanvas(this.canvas);
-    this.drawCoordinates();
+    this.drawDataPoints();
 
     // console.log(this.scale);
-  }
-
-  public getCoordinates(){
-    invoke("getCoordinates").then((result: Array<Coordinate>) =>{
-      this.coordinates = result;
-      console.log(this.coordinates);
-    });
   }
 
 }

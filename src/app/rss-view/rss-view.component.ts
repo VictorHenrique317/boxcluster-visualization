@@ -7,9 +7,10 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatCardModule} from '@angular/material/card';
-import { Coordinate } from 'src/models/coordinate';
+import { DataPoint } from 'src/models/datapoint';
 import { invoke } from '@tauri-apps/api';
 import { ChangeDetectorRef } from '@angular/core';
+import { DagViewService } from '../services/dag-view.service';
 
 @Component({
   selector: 'app-rss-view',
@@ -33,42 +34,42 @@ export class RssViewComponent {
 
   private context: CanvasRenderingContext2D;
   public rss_evolution: Array<number>;
-  public coordinates: Array<Coordinate>; // y goes from 0 to 1
+  public coordinates: Array<Array<number>>; // y goes from 0 to 1
 
-  constructor(private canvas_service: CanvasService, private cdr: ChangeDetectorRef){}
+  constructor(private canvas_service: CanvasService, private dagview_service: DagViewService ,private cdr: ChangeDetectorRef){}
 
   ngAfterViewInit() {
       this.context = this.canvas.nativeElement.getContext("2d");
       this.canvas_service.fixCanvasRendering(this.rssWindow, this.canvas);
       this.canvas_service.drawGrid(this.canvas, this.canvas.nativeElement.width*4, this.canvas.nativeElement.height);
 
-      this.rss_evolution = [55563.5,
-        55548.7,
-        55534.2,
-        55519.6,
-        55505.7,
-        55492.6,
-        55479.7,
-        55467,
-        55454.9,
-        55443.1,
-        55432.9,
-        55423,
-        55413.4,
-        55403.8,
-        55394.2,
-        55384.9,
-        55375.5,
-        55366.3,
-        55357,
-        55347.8]
-        // invoke("getFullRssEvolution").then((result: Array<number>) =>{
-        //   this.rss_evolution = result;
-        //   console.log(this.rss_evolution);
-        // });
-      this.updateMax();
-      this.calculateCoordinates();
-      this.drawRssEvolution();
+      // this.rss_evolution = [55563.5,
+      //   55548.7,
+      //   55534.2,
+      //   55519.6,
+      //   55505.7,
+      //   55492.6,
+      //   55479.7,
+      //   55467,
+      //   55454.9,
+      //   55443.1,
+      //   55432.9,
+      //   55423,
+      //   55413.4,
+      //   55403.8,
+      //   55394.2,
+      //   55384.9,
+      //   55375.5,
+      //   55366.3,
+      //   55357,
+      //   55347.8]
+      
+      invoke("getFullRssEvolution").then((result: Array<number>) =>{
+        this.rss_evolution = result;
+        this.updateMax();
+        this.calculateCoordinates();
+        this.drawRssEvolution();
+      });
   }
 
   updateMax() {
@@ -88,7 +89,7 @@ export class RssViewComponent {
       let x = i/this.max;
       let y = (rss - min_rss) / this.y_range; // Scale y to be between 0 and 1
       let radius = 10;
-      let coordinate: Coordinate = {x: x, y: y, radius: radius};
+      let coordinate = [x, y];
       this.coordinates.push(coordinate);
     }
   }
@@ -109,14 +110,13 @@ export class RssViewComponent {
   
     return {x: scaled_x, y: scaled_y, radius: scaled_radius};
   }
-  
 
   private drawRssEvolution(){
     for (let i = 0; i < this.coordinates.length; i++){
       let coordinate = this.coordinates[i];
-      let scaled_coordinates = this.scaleToFitCanvas(coordinate.x, coordinate.y, coordinate.radius);
+      let scaled_coordinate = this.scaleToFitCanvas(coordinate[0], coordinate[1], 10);
       // console.log(scaled_coordinates); // 930x463 canvas size
-      this.canvas_service.drawCircle(this.canvas, scaled_coordinates.x, scaled_coordinates.y, scaled_coordinates.radius);
+      this.canvas_service.drawCircle(this.canvas, scaled_coordinate.x, scaled_coordinate.y, scaled_coordinate.radius);
     }
   }
 
@@ -130,7 +130,7 @@ export class RssViewComponent {
   
     // This function will be called when the slider is stopped being dragged
     let coordinate = this.coordinates[this.pattern_number -1];
-    let {x, y} = this.scaleToFitCanvas(coordinate.x, coordinate.y, coordinate.radius);
+    let {x, y} = this.scaleToFitCanvas(coordinate[0], coordinate[1], 10);
     
     this.canvas_service.drawGrid(this.canvas, this.canvas.nativeElement.width*4, this.canvas.nativeElement.height);
     this.drawRssEvolution();
@@ -143,10 +143,14 @@ export class RssViewComponent {
     this.context.lineTo(x, this.canvas.nativeElement.height);
     this.context.stroke();
 
-    
-    
+    this.dagview_service.truncateDataPoints(this.pattern_number);
   }
   
-  
+  public getPatternNumber(): number{  
+    return this.pattern_number;
+  }
 
+  public setPatternNumber(pattern_number: number){
+    this.pattern_number = pattern_number;
+  }
 }

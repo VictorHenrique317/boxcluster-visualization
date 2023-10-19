@@ -44,8 +44,9 @@ impl Hash for Pattern {
 
 impl Serialize for Pattern {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer, {
-        let mut state = serializer.serialize_struct("Pattern", 5)?;
+        let mut state = serializer.serialize_struct("Pattern", 4)?;
         state.serialize_field("identifier", &self.identifier)?;
+        state.serialize_field("dims_values", &self.dims_values)?;
         state.serialize_field("density", &self.density)?;
         state.serialize_field("size", &self.size)?;
         state.end()
