@@ -1,4 +1,5 @@
 import { ElementRef, Injectable } from '@angular/core';
+import { Color } from 'src/models/color';
 
 @Injectable({
   providedIn: 'root'
@@ -43,9 +44,10 @@ export class CanvasService {
     canvas.nativeElement.getContext("2d").stroke();
   }
 
-  public drawCircle(canvas: ElementRef<HTMLCanvasElement>, x:number, y:number, radius:number){
+  public drawCircle(canvas: ElementRef<HTMLCanvasElement>, x:number, y:number, radius:number, color:Color){
     canvas.nativeElement.getContext("2d").beginPath(); // Start a new path
     canvas.nativeElement.getContext("2d").arc(x,y, radius, 0, Math.PI*2, false);
+    canvas.nativeElement.getContext("2d").fillStyle = `rgb(${color.r}, ${color.g}, ${color.b})`;
     canvas.nativeElement.getContext("2d").fill();
   }
 

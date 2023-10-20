@@ -75,7 +75,7 @@ export class AppComponent implements AfterViewInit{
 
   ngAfterViewInit(){
     this.matList_height = this.aside.nativeElement.clientHeight - this.header.nativeElement.clientHeight;
-    this.router.navigate(['']);
+    this.router.navigate(['dagview']);
   }
 
   public async openTensorDialog(){
@@ -107,8 +107,10 @@ export class AppComponent implements AfterViewInit{
       invoke("initApplication", {tensorPath: this.tensor_path, patternsPath: this.patterns_path}).then((result: any) =>{
         this.upload_file_mode = "tensor";
         this.model_loaded = true;
-        this.router.navigate(['/dagview']);
-        // this.dag.getCoordinates();
+        // Forcing a reload
+        this.router.navigateByUrl('', {skipLocationChange: true}).then(()=>
+        this.router.navigate(["dagview"]));
+
       });
     }
   }

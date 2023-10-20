@@ -11,6 +11,7 @@ import { DataPoint } from 'src/models/datapoint';
 import { invoke } from '@tauri-apps/api';
 import { ChangeDetectorRef } from '@angular/core';
 import { DagViewService } from '../services/dag-view.service';
+import { Color } from 'src/models/color';
 
 @Component({
   selector: 'app-rss-view',
@@ -63,7 +64,7 @@ export class RssViewComponent {
       //   55366.3,
       //   55357,
       //   55347.8]
-      
+
       invoke("getFullRssEvolution").then((result: Array<number>) =>{
         this.rss_evolution = result;
         this.updateMax();
@@ -115,8 +116,8 @@ export class RssViewComponent {
     for (let i = 0; i < this.coordinates.length; i++){
       let coordinate = this.coordinates[i];
       let scaled_coordinate = this.scaleToFitCanvas(coordinate[0], coordinate[1], 10);
-      // console.log(scaled_coordinates); // 930x463 canvas size
-      this.canvas_service.drawCircle(this.canvas, scaled_coordinate.x, scaled_coordinate.y, scaled_coordinate.radius);
+      let color: Color = {r: 0, g: 0, b: 0};
+      this.canvas_service.drawCircle(this.canvas, scaled_coordinate.x, scaled_coordinate.y, scaled_coordinate.radius, color);
     }
   }
 

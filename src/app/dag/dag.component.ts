@@ -9,6 +9,8 @@ import { DataPoint } from 'src/models/datapoint';
 import { invoke } from '@tauri-apps/api';
 import { CanvasService } from '../services/canva.service';
 import { DagViewService } from '../services/dag-view.service';
+import { Subscription } from 'rxjs';
+import { Color } from 'src/models/color';
 
 // https://angular.io/guide/template-syntax
 
@@ -21,18 +23,20 @@ import { DagViewService } from '../services/dag-view.service';
 })
 export class DagComponent implements AfterViewInit{
   @ViewChild('dagWindow') dagWindow: ElementRef<HTMLBodyElement>;
+  private datapoints_subscription: Subscription;
   private subscribed_datapoints: Array<DataPoint>;
 
   @ViewChild('canvas') canvas: ElementRef<HTMLCanvasElement>;
   private context: CanvasRenderingContext2D;
   private totalDx = 0;
   private totalDy = 0;
-  private maximum_dx = 0;
-  private maximum_dy = 0;
+  private maximum_dislocation_multiplier = 0.5;
+  private maximum_dx: number;
+  private maximum_dy: number;
 
   private scale: number = 1.0;
   private scaleMultiplier: number = 0.8;
-  private minimum_scale: number = 0.5;
+  private minimum_scale: number = 0.8;
 
   // Variables to keep track of the mouse position and left-button status 
   private isDragging = false;
@@ -42,7 +46,7 @@ export class DagComponent implements AfterViewInit{
   };
 
   constructor(private canvas_service: CanvasService, private dagview_service: DagViewService){
-    this.dagview_service.datapoints$.subscribe(value => {
+    this.datapoints_subscription = this.dagview_service.datapoints$.subscribe(value => {
       this.subscribed_datapoints = value;
       this.drawDataPoints();
     });
@@ -52,17 +56,11 @@ export class DagComponent implements AfterViewInit{
     this.context = this.canvas.nativeElement.getContext("2d");
     this.canvas_service.fixCanvasRendering(this.dagWindow, this.canvas);
 
-    this.maximum_dx = this.canvas.nativeElement.width * 2;
-    this.maximum_dy = this.canvas.nativeElement.height * 2;
-
-    // let coord1: Coordinate = {x: 0, y: 0, radius: 10};
-    // let coord2: Coordinate = {x: -1, y: -1, radius: 10};
-    // let coord3: Coordinate = {x: -1, y: 1, radius: 10};
-    // let coord4: Coordinate = {x: 1, y: -1, radius: 10};
-    // let coord5: Coordinate = {x: 1, y: 1, radius: 10};
-    // this.datapoints = [coord1, coord2, coord3, coord4, coord5];
-
     this.dagview_service.updateDataPoints();
+  }
+
+  ngOnDestroy(){
+    this.datapoints_subscription.unsubscribe();
   }
 
   private scaleToFitCanvas(x: number, y:number, radius: number){
@@ -84,7 +82,8 @@ export class DagComponent implements AfterViewInit{
     for (let i = 0; i < this.subscribed_datapoints.length; i++){
       let datapoint = this.subscribed_datapoints[i];
       let scaled_datapoint = this.scaleToFitCanvas(datapoint.x, datapoint.y, datapoint.size);
-      this.canvas_service.drawCircle(this.canvas, scaled_datapoint.x, scaled_datapoint.y, scaled_datapoint.radius);
+      let color: Color = {r: datapoint.r, g: datapoint.g, b: datapoint.b};
+      this.canvas_service.drawCircle(this.canvas, scaled_datapoint.x, scaled_datapoint.y, scaled_datapoint.radius, color);
     }
   
     this.context.restore();
@@ -112,14 +111,14 @@ export class DagComponent implements AfterViewInit{
       let temp_total_dy = (this.totalDy + dy);
   
       // Update maximum dx and dy based on the current scale
-      let maximum_dx = this.canvas.nativeElement.width * this.scale * 2;
-      let maximum_dy = this.canvas.nativeElement.height * this.scale * 2;
+      this.maximum_dx = this.canvas.nativeElement.width * this.scale * this.maximum_dislocation_multiplier;
+      this.maximum_dy = this.canvas.nativeElement.height * this.scale * this.maximum_dislocation_multiplier;
       
       // console.log(this.scale);
-      if ((temp_total_dx / this.scale) > maximum_dx / this.scale) {return;} // Left side block
-      if (temp_total_dx / this.scale < -maximum_dx) {return;} // Right side block
-      if (temp_total_dy / this.scale < -maximum_dy) {;return;} // Bottom side block
-      if ((temp_total_dy / this.scale) > maximum_dy / this.scale) {return;} // Top side block
+      if ((temp_total_dx / this.scale) > this.maximum_dx / this.scale) {return;} // Left side block
+      if (temp_total_dx / this.scale < -this.maximum_dx) {return;} // Right side block
+      if (temp_total_dy / this.scale < -this.maximum_dy) {;return;} // Bottom side block
+      if ((temp_total_dy / this.scale) > this.maximum_dy / this.scale) {return;} // Top side block
   
       this.totalDx = temp_total_dx;
       this.totalDy = temp_total_dy;
