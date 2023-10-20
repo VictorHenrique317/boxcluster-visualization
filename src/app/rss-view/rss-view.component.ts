@@ -42,7 +42,7 @@ export class RssViewComponent {
   ngAfterViewInit() {
       this.context = this.canvas.nativeElement.getContext("2d");
       this.canvas_service.fixCanvasRendering(this.rssWindow, this.canvas);
-      this.canvas_service.drawGrid(this.canvas, this.canvas.nativeElement.width*4, this.canvas.nativeElement.height);
+      this.canvas_service.drawGrid(this.canvas, this.canvas.nativeElement.width*4, this.canvas.nativeElement.height, 50);
 
       // this.rss_evolution = [55563.5,
       //   55548.7,
@@ -133,7 +133,7 @@ export class RssViewComponent {
     let coordinate = this.coordinates[this.pattern_number -1];
     let {x, y} = this.scaleToFitCanvas(coordinate[0], coordinate[1], 10);
     
-    this.canvas_service.drawGrid(this.canvas, this.canvas.nativeElement.width*4, this.canvas.nativeElement.height);
+    this.canvas_service.drawGrid(this.canvas, this.canvas.nativeElement.width*4, this.canvas.nativeElement.height, 50);
     this.drawRssEvolution();
 
     // Draw a vertical line at the x position of the i-th point

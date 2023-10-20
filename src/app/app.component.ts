@@ -75,7 +75,7 @@ export class AppComponent implements AfterViewInit{
 
   ngAfterViewInit(){
     this.matList_height = this.aside.nativeElement.clientHeight - this.header.nativeElement.clientHeight;
-    this.router.navigate(['dagview']);
+    this.router.navigate(['']);
   }
 
   public async openTensorDialog(){

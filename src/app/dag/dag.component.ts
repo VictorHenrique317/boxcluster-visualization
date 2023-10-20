@@ -77,13 +77,13 @@ export class DagComponent implements AfterViewInit{
 
     this.context.translate(this.totalDx, this.totalDy);
     this.context.scale(this.scale, this.scale);
-    this.canvas_service.drawGrid(this.canvas, this.maximum_dx*4, this.maximum_dy*4);
+    this.canvas_service.drawGrid(this.canvas, this.maximum_dx*4, this.maximum_dy*4, 10);
     
     for (let i = 0; i < this.subscribed_datapoints.length; i++){
       let datapoint = this.subscribed_datapoints[i];
       let scaled_datapoint = this.scaleToFitCanvas(datapoint.x, datapoint.y, datapoint.size);
       let color: Color = {r: datapoint.r, g: datapoint.g, b: datapoint.b};
-      this.canvas_service.drawCircle(this.canvas, scaled_datapoint.x, scaled_datapoint.y, scaled_datapoint.radius, color);
+      this.canvas_service.drawCircle(this.canvas, scaled_datapoint.x, scaled_datapoint.y, scaled_datapoint.radius/2, color);
     }
   
     this.context.restore();
