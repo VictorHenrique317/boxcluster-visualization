@@ -2,6 +2,7 @@
 // https://material.angular.io/components/categories
 // https://css-tricks.com/snippets/css/a-guide-to-flexbox/
 // https://br.pinterest.com/pin/800022321275429738/
+import * as numeric from 'numeric';
 
 import { AfterViewInit, Component, ElementRef, ViewChild } from "@angular/core";
 import { invoke } from "@tauri-apps/api/tauri";
@@ -24,6 +25,8 @@ import { DynamicPaginatorComponent } from "./dynamic-paginator/dynamic-paginator
 import { open } from '@tauri-apps/api/dialog';
 import { RssViewComponent } from "./rss-view/rss-view.component";
 import { provideRouter, Router, RouterOutlet} from "@angular/router";
+
+
 
 @Component({
   selector: "app-root",
@@ -162,4 +165,30 @@ export class AppComponent implements AfterViewInit{
   public openFullSizeRss(){
     this.router.navigate(['/rssview']);
   }
+
+//   private classicMds(distances: number[][], dimensions: number = 2) {
+//     // square distances
+//     let M = distances.map(row => row.map(value => numeric.mul(-0.5, numeric.pow(value, 2))));
+
+//     // double centre the rows/columns
+//     function mean(A: number[]) { return numeric.div(numeric.add.apply(null, A), A.length); }
+//     let rowMeans = M.map(row => mean(row)),
+//         colMeans = numeric.transpose(M).map(col => mean(col)),
+//         totalMean = mean(rowMeans);
+
+//     for (let i = 0; i < M.length; ++i) {
+//         for (let j =0; j < M[0].length; ++j) {
+//             M[i][j] += totalMean - rowMeans[i] - colMeans[j];
+//         }
+//     }
+
+//     // take the SVD of the double centred matrix, and return the
+//     // points from it
+//     let ret = numeric.svd(M),
+//         eigenValues = numeric.sqrt(ret.S);
+//     return ret.U.map(function(row: number[]) {
+//         return numeric.mul(row, eigenValues).splice(0, dimensions);
+//     });
+// }
+
 }
