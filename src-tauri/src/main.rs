@@ -155,29 +155,29 @@ fn getDataPoints(application_service: State<ApplicationServiceState>) -> Vec<Dat
 }
 
 fn main() {
-    // tauri::Builder::default()
-    //     .manage(ApplicationServiceState(Default::default()))
-    //     .manage(PaginatorServiceState(Default::default()))
-    //     .invoke_handler(tauri::generate_handler![ 
-    //         getSoundingPattern,
-    //         refreshPageSize,
-    //         goToPage,
-    //         goToFirstPage,
-    //         goToLastPage,
-    //         nextPage,
-    //         previousPage,
+    tauri::Builder::default()
+        .manage(ApplicationServiceState(Default::default()))
+        .manage(PaginatorServiceState(Default::default()))
+        .invoke_handler(tauri::generate_handler![ 
+            getSoundingPattern,
+            refreshPageSize,
+            goToPage,
+            goToFirstPage,
+            goToLastPage,
+            nextPage,
+            previousPage,
 
-    //         initApplication,
-    //         changePatterns,
-    //         ascendDag,
-    //         descendDag,
-    //         truncateModel,
-    //         getFullRssEvolution,
-    //         getTruncatedRssEvolution,
-    //         getDataPoints
-    //         ])
-    //     .run(tauri::generate_context!())
-    //     .expect("Error while running tauri application");
+            initApplication,
+            changePatterns,
+            ascendDag,
+            descendDag,
+            truncateModel,
+            getFullRssEvolution,
+            getTruncatedRssEvolution,
+            getDataPoints
+            ])
+        .run(tauri::generate_context!())
+        .expect("Error while running tauri application");
 
-    boxcluster_visualization::main()
+    // boxcluster_visualization::main()
 }

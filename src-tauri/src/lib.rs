@@ -228,7 +228,7 @@ fn testDag(){
     application_manager.init(&tensor_path, &patterns_path);
 
     let rss_evolution = application_manager.getTruncatedRssEvolution();
-    // dbg!(rss_evolution);
+    dbg!(rss_evolution);
     // dbg!(rss_evolution.len());
 
     // application_manager.truncateModel(&100);
