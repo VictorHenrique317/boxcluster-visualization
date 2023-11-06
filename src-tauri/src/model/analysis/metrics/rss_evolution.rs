@@ -1,5 +1,5 @@
 use ndarray::{ArrayD, Dim, IxDynImpl};
-use rayon::prelude::{IntoParallelRefIterator, ParallelIterator, IndexedParallelIterator};
+use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use std::iter::Iterator;
 use crate::common::progress_bar;
 use crate::database::pattern::{Pattern, self};
@@ -127,7 +127,6 @@ impl RssEvolution{
         let prediction_matrix = PredictionMatrix::new();
         let untouched_rss_s = UntouchedRss::new();
         let intersections_indices = IntersectionsIndices::new();
-        let seen_intersection_pairs: HashSet<OrderedPair> = HashSet::new();
         let mut overlappings: HashMap<u32, HashSet<u32>> = HashMap::new();
 
         for pattern in patterns {
@@ -151,7 +150,6 @@ impl RssEvolution{
         let prediction_matrix: Arc<Mutex<PredictionMatrix>> = Arc::new(Mutex::new(prediction_matrix));
         let untouched_rss_s: Arc<Mutex<UntouchedRss>> = Arc::new(Mutex::new(untouched_rss_s));
         let intersections_indices: Arc<Mutex<IntersectionsIndices>> = Arc::new(Mutex::new(intersections_indices));
-        let seen_intersection_pairs: Arc<Mutex<HashSet<OrderedPair>>> = Arc::new(Mutex::new(seen_intersection_pairs));
         
         patterns.par_iter().for_each(|pattern| {
             let mut pattern_intersections: HashMap<u32, Vec<Dim<IxDynImpl>>> = HashMap::new();
@@ -160,15 +158,9 @@ impl RssEvolution{
             for other_pattern in patterns {
                 if pattern.identifier == other_pattern.identifier { continue; } // Itself
 
-                if !overlappings.get(&pattern.identifier).unwrap().contains(&other_pattern.identifier) || 
-                    !overlappings.get(&other_pattern.identifier).unwrap().contains(&pattern.identifier)
-                { continue; } // These two do not overlap
-
-                let intersection_pair = OrderedPair::new(pattern, other_pattern);
-                let mut seen_intersection_pairs = seen_intersection_pairs.lock().unwrap();
-                // if seen_intersection_pairs.contains(&intersection_pair) { continue; } // Already seen
-                seen_intersection_pairs.insert(intersection_pair);
-                drop(seen_intersection_pairs);
+                let self_overlappings = overlappings.get(&pattern.identifier);
+                if self_overlappings.is_none() { continue; } // This pattern doesnt overlap any other pattern
+                if !self_overlappings.unwrap().contains(&other_pattern.identifier) { continue; } // These two do not overlap
 
                 let intersection_indices: Vec<Dim<IxDynImpl>> = pattern.intersection(other_pattern)
                     .into_iter()
@@ -328,75 +320,6 @@ impl RssEvolution{
         bar.finish();
         return rss_evolution;
     }
-
-    // fn calculateSubmodelRss(empty_model_rss: &EmptyModelRss, tensor: &Tensor, considered_patterns: &Vec<&Pattern>, prediction_matrix: &mut PredictionMatrix,intersections_indices: &IntersectionsIndices, untouched_delta_rss: &UntouchedRss) -> f64 {
-    //     let mut total_rss = empty_model_rss.get().clone();
-    //     let mut prediction_matrix: HashMap<Dim<IxDynImpl>, f64> = HashMap::new();
-
-    //     for (i, pattern) in considered_patterns.iter().enumerate(){
-    //         let current_prediction = pattern.density;
-    //         total_rss += untouched_delta_rss.get(&pattern.identifier).unwrap().1;
-    //         if untouched_delta_rss.get(&pattern.identifier).unwrap().0 == pattern.size { continue; } // No intersection
-
-    //         let intersectors = intersections_indices.get(&pattern.identifier).unwrap();
-
-    //         for (_, intersection_indices) in intersectors {
-    //             for index in intersection_indices {
-
-    //                 let previous_prediction = prediction_matrix.get(index);
-    //                 if previous_prediction.is_none(){
-    //                     total_rss = RssEvolution::updateRssAtIndex(&tensor.dims_values, 
-    //                         &total_rss, 
-    //                         index, 
-    //                         &tensor.density, &current_prediction, 
-    //                         &mut prediction_matrix);
-
-    //                     continue;
-    //                 }
-
-    //                 let previous_prediction = previous_prediction.unwrap().clone();
-    //                 let max_prediction = previous_prediction.max(current_prediction);
-
-    //                 total_rss = RssEvolution::updateRssAtIndex(&tensor.dims_values, 
-    //                     &total_rss, 
-    //                     index, 
-    //                     &previous_prediction, &max_prediction, 
-    //                     &mut prediction_matrix)
-    //             }
-    //         }
-    //     }
-
-    //     return total_rss;
-    // }
-
-    // fn calculate(identifier_mapper: &IdentifierMapper, tensor:&Tensor, empty_model_rss: &EmptyModelRss, patterns: &Vec<&Pattern>) -> Vec<(u32, f64)> {
-    //     // 17s, 13s, 7s
-    //     let bar = progress_bar::new((patterns.len() + 1) as u64, "  RSS Evolution");
-    //     let (
-    //         mut prediction_matrix, 
-    //         untouched_delta_rss, 
-    //         intersections_indices) = 
-    //             RssEvolution::createControlStructures(tensor, &patterns, identifier_mapper);
-
-    //     bar.inc(1);
-
-    //     let mut rss_evolution: Vec<(u32, f64)> = Vec::new();
-    //     rss_evolution.push((0, *empty_model_rss.get()));
-
-    //     let mut considered_patterns: Vec<&Pattern> = Vec::new();
-        
-    //     for (i, pattern) in patterns.iter().enumerate(){
-    //         considered_patterns.push(pattern.clone());
-
-    //         let current_rss = RssEvolution::calculateSubmodelRss(empty_model_rss, tensor, &considered_patterns, &mut prediction_matrix, &intersections_indices, &untouched_delta_rss);
-
-    //         rss_evolution.push(((i+1) as u32, current_rss));
-    //         bar.inc(1);
-    //     }
-        
-    //     bar.finish();
-    //     return rss_evolution;
-    // }
 
     pub fn truncate(&mut self, new_size: &u32){
         let full_rss_evolution: Vec<(u32, f64)> = self.value.clone();
