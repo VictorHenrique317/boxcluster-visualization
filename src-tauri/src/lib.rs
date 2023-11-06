@@ -214,21 +214,21 @@ fn testDag(){
     // let tensor_path = "tests/test_data/tensors/retweets2d.txt".to_owned();
     // let patterns_path = "tests/test_data/other_patterns/retweets2d_patterns.txt".to_owned();
 
-    // let tensor_path = "tests/test_data/tensors/synth_co1.txt".to_owned();
-    // let patterns_path = "tests/test_data/other_patterns/synth_co1_truncated_100.txt".to_owned();
+    let tensor_path = "tests/test_data/tensors/synth_co1.txt".to_owned();
+    let patterns_path = "tests/test_data/other_patterns/synth_co1.txt".to_owned();
 
     // let tensor_path = "tests/test_data/rss_evolution_test/synth_co1.txt".to_owned();
     // let patterns_path = "tests/test_data/rss_evolution_test/synth_co1_patterns.txt".to_owned();
     // let patterns_path = "tests/test_data/rss_evolution_test/synth_co1_truncated_20_patterns.txt".to_owned();
 
-    let tensor_path = "tests/test_data/tensors/retweets3d.txt".to_owned();
-    let patterns_path = "tests/test_data/other_patterns/retweets3d_patterns.txt".to_owned();
+    // let tensor_path = "tests/test_data/tensors/retweets3d.txt".to_owned();
+    // let patterns_path = "tests/test_data/other_patterns/retweets3d_patterns.txt".to_owned();
 
     let mut application_manager = ApplicationService::default();
     application_manager.init(&tensor_path, &patterns_path);
 
     let rss_evolution = application_manager.getTruncatedRssEvolution();
-    dbg!(rss_evolution);
+    // dbg!(rss_evolution);
     // dbg!(rss_evolution.len());
 
     // application_manager.truncateModel(&100);

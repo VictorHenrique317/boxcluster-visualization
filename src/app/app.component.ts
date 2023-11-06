@@ -2,7 +2,7 @@
 // https://material.angular.io/components/categories
 // https://css-tricks.com/snippets/css/a-guide-to-flexbox/
 // https://br.pinterest.com/pin/800022321275429738/
-import * as numeric from 'numeric';
+// import * as numeric from 'numeric';
 
 import { AfterViewInit, Component, ElementRef, ViewChild } from "@angular/core";
 import { invoke } from "@tauri-apps/api/tauri";
