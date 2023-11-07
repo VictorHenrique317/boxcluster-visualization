@@ -191,7 +191,7 @@ impl Distances{
                         
                         let pair = OrderedPair::new(x, y);
                         let (untouched_rss, x_y_intersection_rss) = Distances::calculatePairRss(tensor, intersections_predictions, &pair);
-        
+                        
                         let untouched_rss_x = *untouched_rss.get(&x.identifier).unwrap();
                         let untouched_rss_y = *untouched_rss.get(&y.identifier).unwrap();
         

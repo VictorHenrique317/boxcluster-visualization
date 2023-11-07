@@ -162,6 +162,7 @@ impl Pattern {
         // Relation of the actual pattern
         let self_dims_values = self.dims_values.iter();
         let mut other_dims_values = pattern.dims_values.iter();
+        let mut full_intersection = true;
 
         for self_dims_value in self_dims_values{
             let other_dims_value = other_dims_values.next().unwrap();
@@ -186,9 +187,13 @@ impl Pattern {
             }
 
             if intersection_percentage < 1.0{
-                debug_println!("{:?}", Relation::Overlaps);
-                return Relation::Overlaps;
+                full_intersection = false;
             }
+        }
+
+        if full_intersection == false {
+            debug_println!("{:?}", Relation::Overlaps);
+            return Relation::Overlaps;
         }
 
         // Here all dimensions have 100% intersection
