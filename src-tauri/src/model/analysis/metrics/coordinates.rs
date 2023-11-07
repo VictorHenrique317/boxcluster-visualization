@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use std::{collections::HashMap, sync::{Mutex, Arc}};
-use nalgebra::{DMatrix, DVector};
+use nalgebra::{DMatrix, DVector, SVD};
 use ndarray::{IxDynImpl, Dim, ArrayD, Array, Array2};
 use numpy::{PyArray2, IntoPyArray};
 use pyo3::{Python, types::PyDict};
@@ -88,49 +88,42 @@ impl Coordinates {
     // }
 
     fn mds(distances: DMatrix<f64>, dimensions: usize) -> HashMap<u32, (f64, f64)> {
+        // square distances
         let mut m = distances.map(|x| -0.5 * x.powi(2));
-    
+
+        // double centre the rows/columns
         let row_means = m.row_mean();
         let col_means = m.column_mean();
-        let total_mean = m.mean();
-    
+        let total_mean = row_means.mean();
+
         for i in 0..m.nrows() {
             for j in 0..m.ncols() {
                 m[(i, j)] += total_mean - row_means[i] - col_means[j];
             }
         }
-    
-        let svd = m.svd(true, true);
-        let mut singular_values = svd.singular_values.map(|x| x.sqrt());
-        let mut u = svd.u.unwrap();
-    
-        // Create a vector of indices from 0 to n
-        let mut indices: Vec<usize> = (0..singular_values.len()).collect();
-    
-        // Sort the indices by singular values in descending order
-        indices.sort_by(|&i, &j| singular_values[j].partial_cmp(&singular_values[i]).unwrap());
-    
-        // Reorder singular values and U matrix using sorted indices
-        let singular_values_vec: Vec<f64> = indices.iter().map(|&i| singular_values[i]).collect();
-        singular_values = DVector::from_vec(singular_values_vec);
-    
-        let u_vec: Vec<DVector<f64>> = indices.iter().map(|&i| u.column(i).into_owned()).collect();
-        u = DMatrix::from_columns(&u_vec);
-    
+
+        // take the SVD of the double centred matrix, and return the
+        // points from it
+        let svd = SVD::new(m, true, true);
+        let eigen_values = svd.singular_values.map(|x| x.sqrt());
+
+        let u = svd.u.unwrap();
         let mut result = DMatrix::zeros(u.nrows(), dimensions);
-    
+
         for i in 0..u.nrows() {
             for j in 0..dimensions {
-                result[(i, j)] = u[(i, j)] * singular_values[j];
+                result[(i, j)] = u[(i, j)] * eigen_values[j];
             }
         }
-        
+
+        // Convert result to hashmap
+        let n_rows = result.nrows();
         let mut xys: HashMap<u32, (f64, f64)> = HashMap::new();
-        for i in 0..result.nrows() {
-            let point: Vec<f64> = result.row(i).iter().cloned().collect();
-            let x = point[0];
-            let y = point[1];
-            xys.insert((i + 1) as u32, (x, y)); //TODO: Wrong identifiers?
+        for i in 0..n_rows {
+            let identifier = (i + 1) as u32;
+            let x = result[(i, 0)];
+            let y = result[(i, 1)];
+            xys.insert(identifier, (x, y));
         }
 
         return xys;

@@ -146,6 +146,8 @@ impl RssEvolution{
                 }
             }
         }
+
+        dbg!(&overlappings);
         
         let prediction_matrix: Arc<Mutex<PredictionMatrix>> = Arc::new(Mutex::new(prediction_matrix));
         let untouched_rss_s: Arc<Mutex<UntouchedRss>> = Arc::new(Mutex::new(untouched_rss_s));

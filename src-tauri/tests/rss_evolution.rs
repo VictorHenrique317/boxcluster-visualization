@@ -82,4 +82,43 @@ mod rss_evolution {
             assert_eq!(&expected.floor(), actual, "Failed at index {}", i);
         }
     }
+
+    #[test]
+    fn rssRetweets2d(){
+        let tensor_path = "tests/test_data/tensors/retweets2d.txt".to_owned();
+        let patterns_path = "tests/test_data/rss_evolution_test/retweets2d_patterns.txt".to_owned();
+
+        let mut model_manager = ApplicationService::default();
+        model_manager.init(&tensor_path, &patterns_path);
+
+        let mut raw_rss_s: Vec<f64> = model_manager.getFullRssEvolution().clone().iter()
+                .map(|rss| rss.clone())
+                .collect();
+
+        let mut actual: Vec<f64> = Vec::new();
+
+        for raw_rss in raw_rss_s{
+            let rounded_rss = raw_rss.floor();
+            actual.push(rounded_rss);
+        }
+
+        let expected: Vec<f64> = vec![
+            3912.143858984434,
+            3545.1035100228373,
+            3340.8235042141255,
+            3151.558870759262,
+            2964.3160995763415,
+            2809.7095969131565,
+            2664.7349061057785,
+            2532.1601962607906,
+            2426.8181667673275,
+            2342.5661142617405,
+            2298.0227991037286,
+            2285.048142554222,
+        ];
+
+        for (i, (actual, expected)) in actual.iter().zip(expected.iter()).enumerate(){
+            assert_eq!(&expected.floor(), actual, "Failed at index {}", i);
+        }
+    }
 }
