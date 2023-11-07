@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use plotters::{prelude::{BitMapBackend, IntoDrawingArea, ChartBuilder, Circle}, style::{WHITE, Color, IntoFont, RGBAColor, RGBColor}};
+use plotters::{prelude::{BitMapBackend, IntoDrawingArea, ChartBuilder, Circle}, style::{WHITE, Color, IntoFont, RGBAColor, RGBColor, TextStyle}};
 
 use crate::{model::{identifier_representation::IdentifierRepresentation}};
 
@@ -58,7 +58,12 @@ impl PlotService{
             
         for identifier_representation in representations{
             let datapoint = identifier_representation.asDataPoint();
-            let color = RGBColor(datapoint.r as u8, datapoint.g as u8, datapoint.b as u8).filled();
+            let mut color = RGBColor(datapoint.r as u8, datapoint.g as u8, datapoint.b as u8).filled();
+            
+
+            // 2 e 7
+            // if datapoint.identifier == 2 {color = RGBColor(0, 255, 0).filled();}
+            // if datapoint.identifier == 7 {color = RGBColor(0, 0, 255).filled();}
 
             // let pattern = identifier_representation.asPattern();
             // dbg!(datapoint.color);
@@ -66,8 +71,7 @@ impl PlotService{
             
             chart.draw_series(
                 std::iter::once(Circle::new((
-                    datapoint.x, 
-                    datapoint.y), 
+                    datapoint.x, datapoint.y), 
                     2 * datapoint.size as i32,
                     color.filled()
                     // ShapeStyle {
