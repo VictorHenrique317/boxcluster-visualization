@@ -61,15 +61,16 @@ export class DagComponent implements AfterViewInit{
   }
   
   ngAfterViewInit(){
-    // this.width = 1280;
-    this.width = 800;
+    // this.width = 1024;
+    this.width = 1024;
     // this.height = 720;
-    this.height = 800;
+    this.height = 720;
   
     this.d3_svg = d3.select(this.vizualization_div.nativeElement)
       .append('svg')
         .attr('width', this.width)
         .attr('height', this.height);
+
 
     let x = d3.scaleLinear()
       .domain([0, 1])
@@ -82,10 +83,10 @@ export class DagComponent implements AfterViewInit{
       .call(x_axis);
 
     let y = d3.scaleLinear()
-      .domain([0, 1])
+      .domain([1, 0])
       .range([this.height, 0]);
 
-    let y_axis = d3.axisLeft(y);
+    let y_axis = d3.axisRight(y);
 
     this.d3_svg.append('g')
       .attr('transform', `translate(0,${0})`)
