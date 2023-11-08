@@ -78,7 +78,7 @@ export class AppComponent implements AfterViewInit{
 
   ngAfterViewInit(){
     this.matList_height = this.aside.nativeElement.clientHeight - this.header.nativeElement.clientHeight;
-    this.router.navigate(['']);
+    this.router.navigate(['dagview']);
   }
 
   public async openTensorDialog(){
@@ -135,26 +135,26 @@ export class AppComponent implements AfterViewInit{
 
   public canvasMouseDownHandler(event: MouseEvent){
     if (this.router.url == '/dagview'){
-      this.dag.mouseDownHandler(event);
+      // this.dag.mouseDownHandler(event);
     }
     
   }
 
   public canvasMouseMoveHandler(event: MouseEvent){
     if (this.router.url == '/dagview'){
-      this.dag.mouseMoveHandler(event);
+      // this.dag.mouseMoveHandler(event);
     }
   }
 
   public canvasMouseUpHandler(event: MouseEvent){
     if (this.router.url == '/dagview'){
-      this.dag.mouseUpHandler();
+      // this.dag.mouseUpHandler();
     }
   }
 
   public canvasWheelHandler(event: WheelEvent){
     if (this.router.url == '/dagview'){
-      this.dag.wheelHandler(event);
+      // this.dag.wheelHandler(event);
     }
   }
 

@@ -1,7 +1,7 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {MatSliderModule} from '@angular/material/slider';
-import { CanvasService } from '../services/canva.service';
+import { SvgService } from '../services/svg.service';
 import { FormsModule } from '@angular/forms';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatInputModule} from '@angular/material/input';
@@ -37,12 +37,12 @@ export class RssViewComponent {
   public rss_evolution: Array<number>;
   public coordinates: Array<Array<number>>; // y goes from 0 to 1
 
-  constructor(private canvas_service: CanvasService, private dagview_service: DagViewService ,private cdr: ChangeDetectorRef){}
+  constructor(private canvas_service: SvgService, private dagview_service: DagViewService ,private cdr: ChangeDetectorRef){}
 
   ngAfterViewInit() {
-      this.context = this.canvas.nativeElement.getContext("2d");
-      this.canvas_service.fixCanvasRendering(this.rssWindow, this.canvas);
-      this.canvas_service.drawGrid(this.canvas, this.canvas.nativeElement.width*4, this.canvas.nativeElement.height, 50);
+      // this.context = this.canvas.nativeElement.getContext("2d");
+      // this.canvas_service.fixCanvasRendering(this.rssWindow, this.canvas);
+      // this.canvas_service.drawGrid(this.canvas, this.canvas.nativeElement.width*4, this.canvas.nativeElement.height, 50);
 
       // this.rss_evolution = [55563.5,
       //   55548.7,
@@ -113,38 +113,38 @@ export class RssViewComponent {
   }
 
   private drawRssEvolution(){
-    for (let i = 0; i < this.coordinates.length; i++){
-      let coordinate = this.coordinates[i];
-      let scaled_coordinate = this.scaleToFitCanvas(coordinate[0], coordinate[1], 10);
-      let color: Color = {r: 0, g: 0, b: 0};
-      this.canvas_service.drawCircle(this.canvas, scaled_coordinate.x, scaled_coordinate.y, scaled_coordinate.radius, color);
-    }
+    // for (let i = 0; i < this.coordinates.length; i++){
+    //   let coordinate = this.coordinates[i];
+    //   let scaled_coordinate = this.scaleToFitCanvas(coordinate[0], coordinate[1], 10);
+    //   let color: Color = {r: 0, g: 0, b: 0};
+    //   this.canvas_service.drawCircle(this.canvas, scaled_coordinate.x, scaled_coordinate.y, scaled_coordinate.radius, color);
+    // }
   }
 
   onSliderChange(event: any) {
-    // Clear the last drawn line by restoring the saved state
-    this.context.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
-    this.context.restore();
+    // // Clear the last drawn line by restoring the saved state
+    // this.context.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
+    // this.context.restore();
   
-    // Save the current state of the canvas before drawing the new line
-    this.context.save();
+    // // Save the current state of the canvas before drawing the new line
+    // this.context.save();
   
-    // This function will be called when the slider is stopped being dragged
-    let coordinate = this.coordinates[this.pattern_number -1];
-    let {x, y} = this.scaleToFitCanvas(coordinate[0], coordinate[1], 10);
+    // // This function will be called when the slider is stopped being dragged
+    // let coordinate = this.coordinates[this.pattern_number -1];
+    // let {x, y} = this.scaleToFitCanvas(coordinate[0], coordinate[1], 10);
     
-    this.canvas_service.drawGrid(this.canvas, this.canvas.nativeElement.width*4, this.canvas.nativeElement.height, 50);
-    this.drawRssEvolution();
+    // this.canvas_service.drawGrid(this.canvas, this.canvas.nativeElement.width*4, this.canvas.nativeElement.height, 50);
+    // this.drawRssEvolution();
 
-    // Draw a vertical line at the x position of the i-th point
-    this.context.strokeStyle = 'red';
-    this.context.lineWidth = 5;
-    this.context.beginPath();
-    this.context.moveTo(x, 0);
-    this.context.lineTo(x, this.canvas.nativeElement.height);
-    this.context.stroke();
+    // // Draw a vertical line at the x position of the i-th point
+    // this.context.strokeStyle = 'red';
+    // this.context.lineWidth = 5;
+    // this.context.beginPath();
+    // this.context.moveTo(x, 0);
+    // this.context.lineTo(x, this.canvas.nativeElement.height);
+    // this.context.stroke();
 
-    this.dagview_service.truncateDataPoints(this.pattern_number);
+    // this.dagview_service.truncateDataPoints(this.pattern_number);
   }
   
   public getPatternNumber(): number{  

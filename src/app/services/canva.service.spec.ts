@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { CanvasService } from './canva.service';
+import { SvgService } from './svg.service';
 
 describe('CanvaService', () => {
-  let service: CanvasService;
+  let service: SvgService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(CanvasService);
+    service = TestBed.inject(SvgService);
   });
 
   it('should be created', () => {
