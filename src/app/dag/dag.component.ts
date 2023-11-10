@@ -181,7 +181,7 @@ export class DagComponent implements AfterViewInit{
     
     let scaled_datapoints = this.scaleToFitPlot(this.subscribed_datapoints);
   
-    this.svg.selectAll('circle')
+    let circles = this.svg.selectAll('circle')
       .data(scaled_datapoints)
       .enter()
       .append('circle')
@@ -189,26 +189,7 @@ export class DagComponent implements AfterViewInit{
         .attr('cy', d => this.y_scale(d.y))
         .attr('r', d => d.size)
         // .attr('stroke-width', d => d.stroke_width)
-        .attr('fill', d => `rgb(${d.r}, ${d.g}, ${d.b})`)
-        .call(d3.drag()
-            .on("start", (event, d: DataPoint) => {
-              console.log("dragstarted");
-              d3.select(event.sourceEvent.target).raise().attr("stroke", "black");
-            })
-            .on("drag", (event, d: DataPoint) => {
-              d.x = this.x_scale.invert(event.x);
-              d.y = this.y_scale.invert(event.y);
-
-              console.log(d.x);
-
-              d3.select(event.sourceEvent.target).attr("cx", this.x_scale(d.x)).attr("cy", this.y_scale(d.y));
-            })
-            
-            .on("end", (event, d: DataPoint) => {
-              console.log("dragended");
-              d3.select(event.sourceEvent.target).attr("stroke", null);
-            })
-        );
+        .attr('fill', d => `rgb(${d.r}, ${d.g}, ${d.b})`);
   }
 
   private dragstarted(event, d) {
