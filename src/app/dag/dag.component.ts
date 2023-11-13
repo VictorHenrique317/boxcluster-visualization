@@ -30,7 +30,8 @@ export class DagComponent implements AfterViewInit{
   @ViewChild('vizualization_div') vizualization_div: ElementRef<HTMLDivElement>;
   private svg: any;
   private plot: any;
-  private drag: any;
+  private width:number; 
+  private height:number;
   private y_correction = 70;
   private plot_padding = 50;
   private x_scale: any;
@@ -56,21 +57,20 @@ export class DagComponent implements AfterViewInit{
   constructor(private svg_service: SvgService, private dagview_service: DagViewService){
     this.datapoints_subscription = this.dagview_service.datapoints$.subscribe(value => {
       this.subscribed_datapoints = value;
-      this.drawDataPoints();
+      this.updatePlot();
     });
   }
   
   ngAfterViewInit(){
     this.dagview_service.updateDataPoints();
-
-    this.createPlot();
+    this.createSvg();
   }
 
   ngOnDestroy(){
     this.datapoints_subscription.unsubscribe();
   }
 
-  private createPlot(){
+  private createSvg(){
     let width = 1024;
     let height = 720;
 
@@ -79,24 +79,17 @@ export class DagComponent implements AfterViewInit{
         .attr('width', width)
         .attr('height',height);
 
-    this.plot = this.svg.append('g');
-
-    this.drag = d3.drag()
-      .on("start", this.dragstarted)
-      .on("drag", this.dragged)
-      .on("end", this.dragended);
-
-    this.updatePlot(width, height);
+    this.rescaleSvg(width, height);
   }
 
-  private updatePlot(width: number, height: number) {
+  private rescaleSvg(width: number, height: number){
     d3.select('svg').selectAll('*').remove();
 
     this.svg
       .attr('width', width)
       .attr('height', height);
 
-      // X axis
+    // X axis
     let x_scale = d3.scaleLinear()
       .domain([-1, 1])
       .range([0, width]);
@@ -110,51 +103,45 @@ export class DagComponent implements AfterViewInit{
 
     let y_axis = d3.axisRight(y_scale);
 
-    this.svg.append('g')
-      .attr('transform', `translate(0,${(height - this.y_correction)/2})`)
-      .call(x_axis);
+    // this.svg.append('g')
+    //   .attr('transform', `translate(0,${(height - this.y_correction)/2})`)
+    //   .call(x_axis);
 
-    this.svg.append('g')
-      .attr('transform', `translate(${width/2},0)`)
-      .call(y_axis);
+    // this.svg.append('g')
+    //   .attr('transform', `translate(${width/2},0)`)
+    //   .call(y_axis);
 
     this.x_scale = x_scale;
     this.y_scale = y_scale;
+    this.width = width;
+    this.height = height;
 
-    this.drawGridLines(width, height);
-    this.drawDataPoints();
+    this.updatePlot();
   }
 
-  private drawGridLines(width: number, height: number){
-    // // Define the gridlines
-    // let xGridlines = d3.axisBottom(this.x_scale)
-    //   .ticks(20)
-    //   .tickSize(-height + 2)
-    //   .tickFormat(() => "");
+  private drawGridLines(){
+    // Define the gridlines
+    let xGridlines = d3.axisBottom(this.x_scale)
+      .ticks(20)
+      .tickSize(-this.height + 2)
+      .tickFormat(() => "");
 
-    // let yGridlines = d3.axisLeft(this.y_scale)
-    //   .ticks(20)
-    //   .tickSize(-width + 2)
-    //   .tickFormat(() => "");
+    let yGridlines = d3.axisLeft(this.y_scale)
+      .ticks(20)
+      .tickSize(-this.width + 2)
+      .tickFormat(() => "");
 
-    // // Add the X gridlines
-    // this.svg.append("g")			
-    //   .attr("class", "grid")
-    //   .attr("transform", "translate(0," + (height) + ")")
-    //   .call(xGridlines);
+    // Add the X gridlines
+    this.plot.append("g")			
+      .attr("class", "grid")
+      .attr("transform", "translate(0," + (this.height) + ")")
+      .call(xGridlines);
 
-    // // Add the Y gridlines
-    // this.svg.append("g")			
-    //   .attr("class", "grid")
-    //   .attr("transform", "translate(" + 0 + ",0)")
-    //   .call(yGridlines);
-  }
-
-  public onResize(event) {
-    let width = this.dagWindow.nativeElement.clientWidth;
-    let height = this.dagWindow.nativeElement.clientHeight;
-
-    this.updatePlot(width, height);
+    // Add the Y gridlines
+    this.plot.append("g")			
+      .attr("class", "grid")
+      .attr("transform", "translate(" + 0 + ",0)")
+      .call(yGridlines);
   }
 
   private scaleToFitPlot(datapoints: Array<DataPoint>) {
@@ -175,13 +162,10 @@ export class DagComponent implements AfterViewInit{
   }
 
   private drawDataPoints() {
-    if(this.svg == null){ return; }
-
-    this.svg.selectAll('circle').remove();
-    
+    if(this.plot == null){ return; }
     let scaled_datapoints = this.scaleToFitPlot(this.subscribed_datapoints);
-  
-    let circles = this.svg.selectAll('circle')
+
+    this.plot.selectAll('circle')
       .data(scaled_datapoints)
       .enter()
       .append('circle')
@@ -192,17 +176,99 @@ export class DagComponent implements AfterViewInit{
         .attr('fill', d => `rgb(${d.r}, ${d.g}, ${d.b})`);
   }
 
-  private dragstarted(event, d) {
+  private updatePlot(){
+    if (this.svg == null) { return; }
     
-    d3.select(this.vizualization_div.nativeElement).raise().attr("stroke", "black");
+    this.svg.selectAll('*').remove();
+
+    this.plot = this.svg.append("g")
+      .attr("id", "plot")
+      .attr("transform", "translate("+ this.totalDx +", "+ this.totalDy +")");
+
+    this.drawGridLines();
+    this.drawDataPoints();
   }
 
-  private dragged(event, d) {
-    console.log("dragged");
-    d3.select(this.vizualization_div.nativeElement).attr("cx", d.x = event.x).attr("cy", d.y = event.y);
+  public onResize(event) {
+    let width = this.dagWindow.nativeElement.clientWidth;
+    let height = this.dagWindow.nativeElement.clientHeight;
+
+    this.rescaleSvg(width, height);
   }
 
-  private dragended(event, d) {
-    d3.select(this.vizualization_div.nativeElement).attr("stroke", null);
+  public mouseDownHandler(e) {
+    this.isDragging = true;
+    this.previousMousePosition = {
+      x: e.clientX,
+      y: e.clientY
+    };
   }
+  
+  public mouseMoveHandler(e) {
+    if (this.isDragging == false) { return; }
+
+    const dx = e.clientX - this.previousMousePosition.x;
+    const dy = e.clientY - this.previousMousePosition.y;
+
+    // Update the total translation
+    let temp_total_dx = (this.totalDx + dx);
+    let temp_total_dy = (this.totalDy + dy);
+
+    // Update maximum dx and dy based on the current scale
+    this.maximum_dx = this.width * this.scale * this.maximum_dislocation_multiplier;
+    this.maximum_dy = this.height * this.scale * this.maximum_dislocation_multiplier;
+    
+    // console.log(this.scale);
+    if ((temp_total_dx / this.scale) > this.maximum_dx / this.scale) {return;} // Left side block
+    if (temp_total_dx / this.scale < -this.maximum_dx) {return;} // Right side block
+    if (temp_total_dy / this.scale < -this.maximum_dy) {;return;} // Bottom side block
+    if ((temp_total_dy / this.scale) > this.maximum_dy / this.scale) {return;} // Top side block
+
+    this.totalDx = temp_total_dx;
+    this.totalDy = temp_total_dy;
+
+    // console.log(this.totalDx, this.totalDy);
+
+    // Update the mouse position
+    this.previousMousePosition = {
+        x: e.clientX,
+        y: e.clientY
+      };
+  
+    this.updatePlot();
+  }
+  
+  public mouseUpHandler() {
+    this.isDragging = false;
+  }
+  
+  // public wheelHandler(event: WheelEvent) {
+  //   event.preventDefault();
+  
+  //   // Calculate the mouse position in canvas coordinates
+  //   const rect = this.canvas.nativeElement.getBoundingClientRect();
+  //   const mouseX = (event.clientX - rect.left - this.totalDx) / this.scale;
+  //   const mouseY = (event.clientY - rect.top - this.totalDy) / this.scale;
+  
+  //   // Update the scale
+  //   const oldScale = this.scale;
+  //   if (event.deltaY < 0) { // Zoom in
+  //     this.scale /= this.scaleMultiplier;
+
+  //   } else { // Zoom out
+  //     let temp_scale = this.scale * this.scaleMultiplier;
+  //     if (temp_scale < this.minimum_scale){ return;} // Minimum amount of zoom
+  //     this.scale = temp_scale;
+  //   }
+  
+  //   // Update the translation to center the zoom effect at the mouse position
+  //   this.totalDx -= mouseX * (this.scale - oldScale);
+  //   this.totalDy -= mouseY * (this.scale - oldScale);
+  
+  //   // Redraw the canvas
+  //   this.canvas_service.clearCanvas(this.canvas);
+  //   this.drawDataPoints();
+
+  //   // console.log(this.scale);
+  // }
 }

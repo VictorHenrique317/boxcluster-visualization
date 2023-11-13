@@ -57,10 +57,10 @@
         <!-- <app-rss-view *ngIf="rss_view" #rssViewer></app-rss-view> -->
         
         <div id="router"
-            (mousedown)="canvasMouseDownHandler($event)" 
-            (mousemove)="canvasMouseMoveHandler($event)" 
-            (mouseup)="canvasMouseUpHandler($event)"
-            (wheel)="canvasWheelHandler($event)"
+            (mousedown)="svgMouseDownHandler($event)" 
+            (mousemove)="svgMouseMoveHandler($event)" 
+            (mouseup)="svgMouseUpHandler($event)"
+            (wheel)="svgWheelHandler($event)"
         >
             <router-outlet (activate)="onActivate($event)"></router-outlet>
         </div>

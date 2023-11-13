@@ -59,7 +59,7 @@ export class AppComponent implements AfterViewInit{
   @ViewChild("aside") aside: ElementRef<HTMLElement>;
   @ViewChild("header") header: ElementRef<HTMLElement>;
   
-  private dag: DagComponent;
+  protected dag_view: DagComponent;
   private rss_view: RssViewComponent;
 
   public tensor_path: string = "";
@@ -120,7 +120,7 @@ export class AppComponent implements AfterViewInit{
 
   public onActivate(componentInstance: any) {
     if (componentInstance instanceof DagComponent) {
-      this.dag = componentInstance;
+      this.dag_view = componentInstance;
     }
 
     if (componentInstance instanceof RssViewComponent) {
@@ -130,29 +130,28 @@ export class AppComponent implements AfterViewInit{
     if(this.rss_view != undefined){
       console.log(this.rss_view.getPatternNumber());
     }
-
   }
 
-  public canvasMouseDownHandler(event: MouseEvent){
+  public svgMouseDownHandler(event: MouseEvent){
     if (this.router.url == '/dagview'){
-      // this.dag.mouseDownHandler(event);
+      this.dag_view.mouseDownHandler(event);
     }
     
   }
 
-  public canvasMouseMoveHandler(event: MouseEvent){
+  public svgMouseMoveHandler(event: MouseEvent){
     if (this.router.url == '/dagview'){
-      // this.dag.mouseMoveHandler(event);
+      this.dag_view.mouseMoveHandler(event);
     }
   }
 
-  public canvasMouseUpHandler(event: MouseEvent){
+  public svgMouseUpHandler(event: MouseEvent){
     if (this.router.url == '/dagview'){
-      // this.dag.mouseUpHandler();
+      this.dag_view.mouseUpHandler();
     }
   }
 
-  public canvasWheelHandler(event: WheelEvent){
+  public svgWheelHandler(event: WheelEvent){
     if (this.router.url == '/dagview'){
       // this.dag.wheelHandler(event);
     }
