@@ -57,51 +57,46 @@ export class DagComponent implements AfterViewInit{
   constructor(private svg_service: SvgService, private dagview_service: DagViewService){
     this.datapoints_subscription = this.dagview_service.datapoints$.subscribe(value => {
       this.subscribed_datapoints = value;
-      this.updatePlot();
+      this.drawDataPoints();
     });
   }
   
   ngAfterViewInit(){
     this.dagview_service.updateDataPoints();
-    this.createSvg();
+    
+    let width = 1024;
+    let height = 720;
+    this.createSvg(width, height);
+    this.rescaleSvg(width, height);
+    this.createPlot();
   }
 
   ngOnDestroy(){
     this.datapoints_subscription.unsubscribe();
   }
 
-  private createSvg(){
-    let width = 1024;
-    let height = 720;
-
+  private createSvg(width: number, height: number){
     this.svg = d3.select(this.vizualization_div.nativeElement)
       .append('svg')
         .attr('width', width)
         .attr('height',height);
-
-    this.rescaleSvg(width, height);
   }
 
-  private rescaleSvg(width: number, height: number){
-    d3.select('svg').selectAll('*').remove();
+  private createPlot(){
+    if(this.plot != undefined){ this.svg.select("#plot").remove(); }
 
-    this.svg
-      .attr('width', width)
-      .attr('height', height);
+    console.log("Initializing plot..");
+    this.plot = this.svg.append("g")
+      .attr("id", "plot")
+      .attr("transform", "translate("+ this.totalDx +", "+ this.totalDy +")");
 
-    // X axis
-    let x_scale = d3.scaleLinear()
-      .domain([-1, 1])
-      .range([0, width]);
+    this.drawGridLines();
+    this.drawDataPoints();
+  }
 
-    let x_axis = d3.axisBottom(x_scale);
-
-    // Y axis
-    let y_scale = d3.scaleLinear()
-      .domain([-1, 1])
-      .range([height - this.y_correction, 0]);
-
-    let y_axis = d3.axisRight(y_scale);
+  // private createAxis(){
+    // let x_axis = d3.axisBottom(x_scale);
+    // let y_axis = d3.axisRight(y_scale);
 
     // this.svg.append('g')
     //   .attr('transform', `translate(0,${(height - this.y_correction)/2})`)
@@ -110,37 +105,75 @@ export class DagComponent implements AfterViewInit{
     // this.svg.append('g')
     //   .attr('transform', `translate(${width/2},0)`)
     //   .call(y_axis);
+  // }
+
+  private rescaleSvg(width: number, height: number){
+    this.svg
+      .attr('width', width)
+      .attr('height', height);
+
+    let x_scale = d3.scaleLinear()
+      .domain([-1, 1])
+      .range([0, width]);
+
+    let y_scale = d3.scaleLinear()
+      .domain([-1, 1])
+      .range([height - this.y_correction, 0]);
 
     this.x_scale = x_scale;
     this.y_scale = y_scale;
     this.width = width;
     this.height = height;
 
-    this.updatePlot();
+    this.createPlot();
   }
 
   private drawGridLines(){
-    // Define the gridlines
+    let expasion_factor = 2;
+
+    this.plot.selectAll('.grid').remove();
+
     let xGridlines = d3.axisBottom(this.x_scale)
       .ticks(20)
-      .tickSize(-this.height + 2)
+      .tickSize(2*expasion_factor*(-this.height + 2))
       .tickFormat(() => "");
 
     let yGridlines = d3.axisLeft(this.y_scale)
       .ticks(20)
-      .tickSize(-this.width + 2)
+      .tickSize(2*expasion_factor*(-this.width + 2))
       .tickFormat(() => "");
 
     // Add the X gridlines
     this.plot.append("g")			
-      .attr("class", "grid")
-      .attr("transform", "translate(0," + (this.height) + ")")
+      .attr("class", "grid-line")
+      .attr("transform", "translate("+ -this.width +"," + expasion_factor*(this.height) + ")")
+      .call(xGridlines);
+
+      this.plot.append("g")			
+      .attr("class", "grid-line")
+      .attr("transform", "translate("+ 0 +"," + expasion_factor*(this.height) + ")")
+      .call(xGridlines);
+
+    this.plot.append("g")			
+      .attr("class", "grid-line")
+      .attr("transform", "translate("+ this.width +"," + expasion_factor*(this.height) + ")")
       .call(xGridlines);
 
     // Add the Y gridlines
+    let y_correction = -35;
     this.plot.append("g")			
-      .attr("class", "grid")
-      .attr("transform", "translate(" + 0 + ",0)")
+      .attr("class", "grid-line")
+      .attr("transform", "translate(" + -this.width + ","+ -this.height +")")
+      .call(yGridlines);
+
+    this.plot.append("g")			
+      .attr("class", "grid-line")
+      .attr("transform", "translate(" + -this.width + ","+ (0 + y_correction) + ")")
+      .call(yGridlines);
+
+    this.plot.append("g")			
+      .attr("class", "grid-line")
+      .attr("transform", "translate(" + -this.width + ","+ (this.height + 2*y_correction) +")")
       .call(yGridlines);
   }
 
@@ -163,6 +196,8 @@ export class DagComponent implements AfterViewInit{
 
   private drawDataPoints() {
     if(this.plot == null){ return; }
+    this.plot.selectAll('circle').remove();
+
     let scaled_datapoints = this.scaleToFitPlot(this.subscribed_datapoints);
 
     this.plot.selectAll('circle')
@@ -174,19 +209,6 @@ export class DagComponent implements AfterViewInit{
         .attr('r', d => d.size)
         // .attr('stroke-width', d => d.stroke_width)
         .attr('fill', d => `rgb(${d.r}, ${d.g}, ${d.b})`);
-  }
-
-  private updatePlot(){
-    if (this.svg == null) { return; }
-    
-    this.svg.selectAll('*').remove();
-
-    this.plot = this.svg.append("g")
-      .attr("id", "plot")
-      .attr("transform", "translate("+ this.totalDx +", "+ this.totalDy +")");
-
-    this.drawGridLines();
-    this.drawDataPoints();
   }
 
   public onResize(event) {
@@ -235,7 +257,8 @@ export class DagComponent implements AfterViewInit{
         y: e.clientY
       };
   
-    this.updatePlot();
+    this.plot
+      .attr("transform", "translate("+ this.totalDx +", "+ this.totalDy +")");
   }
   
   public mouseUpHandler() {
