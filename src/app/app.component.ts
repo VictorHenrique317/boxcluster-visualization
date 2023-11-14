@@ -132,30 +132,11 @@ export class AppComponent implements AfterViewInit{
     }
   }
 
-  public svgMouseDownHandler(event: MouseEvent){
-    if (this.router.url == '/dagview'){
-      this.dag_view.mouseDownHandler(event);
-    }
-    
-  }
-
-  public svgMouseMoveHandler(event: MouseEvent){
-    if (this.router.url == '/dagview'){
-      this.dag_view.mouseMoveHandler(event);
-    }
-  }
-
-  public svgMouseUpHandler(event: MouseEvent){
-    if (this.router.url == '/dagview'){
-      this.dag_view.mouseUpHandler();
-    }
-  }
-
-  public svgWheelHandler(event: WheelEvent){
-    if (this.router.url == '/dagview'){
-      // this.dag.wheelHandler(event);
-    }
-  }
+  // public svgWheelHandler(event: WheelEvent){
+  //   if (this.router.url == '/dagview'){
+  //     // this.dag.wheelHandler(event);
+  //   }
+  // }
 
   public openDagView(){
     this.router.navigate(['/dagview']);

@@ -84,15 +84,27 @@ export class DagComponent implements AfterViewInit{
 
   private createPlot(){
     if(this.plot != undefined){ this.svg.select("#plot").remove(); }
-
+  
     console.log("Initializing plot..");
-    this.plot = this.svg.append("g")
-      .attr("id", "plot")
-      .attr("transform", "translate("+ this.totalDx +", "+ this.totalDy +")");
-
+    this.plot = this.svg.append("g").attr("id", "plot");
+  
+    let panning_zoom = d3.zoom()
+      .scaleExtent([1, 10]) // This control how much you can unzoom (x1) and zoom (x10)
+      .on("start", (event, d) => { this.svg.attr("cursor", "grabbing"); })
+      .on("zoom", (event) => { this.plot.attr("transform", event.transform); })
+      .on("end", (event, d) => {this.svg.attr("cursor", "default")});
+  
+    this.svg.call(panning_zoom);
+  
+    // Apply initial zoom level
+    let initial_transform = d3.zoomIdentity.translate(-this.width*2, -this.height*1.81).scale(5);
+    this.svg.call(panning_zoom.transform, initial_transform);
+  
     this.drawGridLines();
     this.drawDataPoints();
   }
+  
+  
 
   // private createAxis(){
     // let x_axis = d3.axisBottom(x_scale);
@@ -128,53 +140,27 @@ export class DagComponent implements AfterViewInit{
     this.createPlot();
   }
 
-  private drawGridLines(){
-    let expasion_factor = 2;
-
-    this.plot.selectAll('.grid').remove();
-
-    let xGridlines = d3.axisBottom(this.x_scale)
-      .ticks(20)
-      .tickSize(2*expasion_factor*(-this.height + 2))
-      .tickFormat(() => "");
-
-    let yGridlines = d3.axisLeft(this.y_scale)
-      .ticks(20)
-      .tickSize(2*expasion_factor*(-this.width + 2))
-      .tickFormat(() => "");
+  private drawGridLines() {
+    let makeXGridlines = () => { return d3.axisBottom(this.x_scale).ticks(20) }
+    let makeYGridlines = () => { return d3.axisLeft(this.y_scale).ticks(20) }
 
     // Add the X gridlines
     this.plot.append("g")			
-      .attr("class", "grid-line")
-      .attr("transform", "translate("+ -this.width +"," + expasion_factor*(this.height) + ")")
-      .call(xGridlines);
-
-      this.plot.append("g")			
-      .attr("class", "grid-line")
-      .attr("transform", "translate("+ 0 +"," + expasion_factor*(this.height) + ")")
-      .call(xGridlines);
-
-    this.plot.append("g")			
-      .attr("class", "grid-line")
-      .attr("transform", "translate("+ this.width +"," + expasion_factor*(this.height) + ")")
-      .call(xGridlines);
+      .attr("class", "grid")
+      .attr("transform", "translate(0," + this.height + ")")
+      .call(makeXGridlines()
+          .tickSize(-this.height)
+          .tickFormat(() => "")
+      )
 
     // Add the Y gridlines
-    let y_correction = -35;
     this.plot.append("g")			
-      .attr("class", "grid-line")
-      .attr("transform", "translate(" + -this.width + ","+ -this.height +")")
-      .call(yGridlines);
+      .attr("class", "grid")
+      .call(makeYGridlines()
+          .tickSize(-1 * this.width)
+          .tickFormat(() => "")
+      )
 
-    this.plot.append("g")			
-      .attr("class", "grid-line")
-      .attr("transform", "translate(" + -this.width + ","+ (0 + y_correction) + ")")
-      .call(yGridlines);
-
-    this.plot.append("g")			
-      .attr("class", "grid-line")
-      .attr("transform", "translate(" + -this.width + ","+ (this.height + 2*y_correction) +")")
-      .call(yGridlines);
   }
 
   private scaleToFitPlot(datapoints: Array<DataPoint>) {
@@ -218,52 +204,54 @@ export class DagComponent implements AfterViewInit{
     this.rescaleSvg(width, height);
   }
 
-  public mouseDownHandler(e) {
-    this.isDragging = true;
-    this.previousMousePosition = {
-      x: e.clientX,
-      y: e.clientY
-    };
-  }
+  // public mouseDownHandler(e) {
+  //   this.isDragging = true;
+  //   this.previousMousePosition = {
+  //     x: e.clientX,
+  //     y: e.clientY
+  //   };
+  // }
   
-  public mouseMoveHandler(e) {
-    if (this.isDragging == false) { return; }
+  // public mouseMoveHandler(e) {
+  //   if (this.isDragging == false) { return; }
 
-    const dx = e.clientX - this.previousMousePosition.x;
-    const dy = e.clientY - this.previousMousePosition.y;
+  //   this.plot.style("cursor", "grabbing");
 
-    // Update the total translation
-    let temp_total_dx = (this.totalDx + dx);
-    let temp_total_dy = (this.totalDy + dy);
+  //   const dx = e.clientX - this.previousMousePosition.x;
+  //   const dy = e.clientY - this.previousMousePosition.y;
 
-    // Update maximum dx and dy based on the current scale
-    this.maximum_dx = this.width * this.scale * this.maximum_dislocation_multiplier;
-    this.maximum_dy = this.height * this.scale * this.maximum_dislocation_multiplier;
+  //   // Update the total translation
+  //   let temp_total_dx = (this.totalDx + dx);
+  //   let temp_total_dy = (this.totalDy + dy);
+
+  //   // Update maximum dx and dy based on the current scale
+  //   this.maximum_dx = this.width * this.scale * this.maximum_dislocation_multiplier;
+  //   this.maximum_dy = this.height * this.scale * this.maximum_dislocation_multiplier;
     
-    // console.log(this.scale);
-    if ((temp_total_dx / this.scale) > this.maximum_dx / this.scale) {return;} // Left side block
-    if (temp_total_dx / this.scale < -this.maximum_dx) {return;} // Right side block
-    if (temp_total_dy / this.scale < -this.maximum_dy) {;return;} // Bottom side block
-    if ((temp_total_dy / this.scale) > this.maximum_dy / this.scale) {return;} // Top side block
+  //   // console.log(this.scale);
+  //   if ((temp_total_dx / this.scale) > this.maximum_dx / this.scale) {return;} // Left side block
+  //   if (temp_total_dx / this.scale < -this.maximum_dx) {return;} // Right side block
+  //   if (temp_total_dy / this.scale < -this.maximum_dy) {;return;} // Bottom side block
+  //   if ((temp_total_dy / this.scale) > this.maximum_dy / this.scale) {return;} // Top side block
 
-    this.totalDx = temp_total_dx;
-    this.totalDy = temp_total_dy;
+  //   this.totalDx = temp_total_dx;
+  //   this.totalDy = temp_total_dy;
 
-    // console.log(this.totalDx, this.totalDy);
+  //   // console.log(this.totalDx, this.totalDy);
 
-    // Update the mouse position
-    this.previousMousePosition = {
-        x: e.clientX,
-        y: e.clientY
-      };
+  //   // Update the mouse position
+  //   this.previousMousePosition = {
+  //       x: e.clientX,
+  //       y: e.clientY
+  //     };
   
-    this.plot
-      .attr("transform", "translate("+ this.totalDx +", "+ this.totalDy +")");
-  }
+  //   this.plot
+  //     .attr("transform", "translate("+ this.totalDx +", "+ this.totalDy +")");
+  // }
   
-  public mouseUpHandler() {
-    this.isDragging = false;
-  }
+  // public mouseUpHandler() {
+  //   this.isDragging = false;
+  // }
   
   // public wheelHandler(event: WheelEvent) {
   //   event.preventDefault();
