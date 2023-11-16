@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { SvgService } from './svg.service';
 
-describe('CanvaService', () => {
+describe('SvgService', () => {
   let service: SvgService;
 
   beforeEach(() => {
