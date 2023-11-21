@@ -21,6 +21,7 @@ impl DataPointService {
         let r = (density * 255.0) as u32;
         let g = (255 - r) as u32;
         let b = 0 as u32;
+
         return (r, g, b);
     }
 

@@ -7,7 +7,7 @@ export class Svg {
     private plot: any;
 
     private scaling_function: any;
-    private datapoints: Array<DataPoint>;
+    private datapoints: Array<any>;
 
     private width: number;
     private height: number;
@@ -15,17 +15,22 @@ export class Svg {
     private x_scale: any;
     private y_scale: any;
 
+    private gridlines: boolean;
+    private pannable: boolean;
+
     constructor(vizualization_div: ElementRef<HTMLDivElement>, width: number, height: number, 
-                datapoints: Array<DataPoint>, scaling_function: (arc: Array<DataPoint>) => Array<DataPoint>){
+                datapoints: Array<any>, scaling_function: (arc: Array<any>) => Array<any>, 
+                gridlines: boolean = true, pannable: boolean = true){
         this.datapoints = datapoints;
         this.scaling_function = scaling_function;
         this.width = width;
         this.height = height;
-
+        this.gridlines = gridlines;
+        this.pannable = pannable;
         this.create(vizualization_div);
     }
 
-    public setDatapoints(datapoints: Array<DataPoint>){
+    public setDatapoints(datapoints: Array<any>){
       this.datapoints = datapoints;
       this.drawDataPoints();
     }
@@ -85,25 +90,27 @@ export class Svg {
     private createPlot(){
       if(this.plot != undefined){ this.d3_svg.select("#plot").remove(); }
       this.plot = this.d3_svg.append("g").attr("id", "plot");
-    
-      let panning_zoom = d3.zoom()
+      
+      if(this.pannable){
+        let panning_zoom = d3.zoom()
         .scaleExtent([1, 10]) // This control how much you can unzoom (x1) and zoom (x10)
         .translateExtent([[0, 0], [this.width, this.height]])
         .on("start", (event, d) => { this.d3_svg.attr("cursor", "grabbing"); })
         .on("zoom", (event) => { this.plot.attr("transform", event.transform); })
         .on("end", (event, d) => {this.d3_svg.attr("cursor", "default")});
     
-      this.d3_svg.call(panning_zoom);
-    
-      // Apply initial zoom level
-      let initial_scale = 1.2;
-      let translation_factor = 0.1;
-      let initial_transform = d3.zoomIdentity
-        .translate(-this.width*(translation_factor), -this.height*(translation_factor))
-        .scale(initial_scale);
-      this.d3_svg.call(panning_zoom.transform, initial_transform);
-    
-      this.drawGridLines();
+        this.d3_svg.call(panning_zoom);
+
+        // Apply initial zoom level
+        let initial_scale = 1.2;
+        let translation_factor = 0.1;
+        let initial_transform = d3.zoomIdentity
+          .translate(-this.width*(translation_factor), -this.height*(translation_factor))
+          .scale(initial_scale);
+        this.d3_svg.call(panning_zoom.transform, initial_transform);
+      }
+      
+      if(this.gridlines){ this.drawGridLines(); }
       this.drawDataPoints();
     }
     
@@ -122,5 +129,9 @@ export class Svg {
           .attr('r', d => d.size)
           // .attr('stroke-width', d => d.stroke_width)
           .attr('fill', d => `rgb(${d.r}, ${d.g}, ${d.b})`);
+    }
+
+    public getD3Svg(){
+      return this.d3_svg;
     }
 }
