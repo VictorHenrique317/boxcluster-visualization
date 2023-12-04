@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev
     - name: Change directory to src-tauri
       run: cd src-tauri
     - name: Build
@@ -19,3 +21,4 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
       working-directory: src-tauri
+
