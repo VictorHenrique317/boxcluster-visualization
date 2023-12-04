@@ -13,12 +13,14 @@ jobs:
     - uses: actions/checkout@v3
     - name: Update package manager
       run: sudo apt-get update
-    - name: Install dependencies
+    - name: Install libgtk
       run: sudo apt-get install -y libgtk-3-dev
     - name: Install libsoup
       run: sudo apt-get install -y libsoup2.4-dev
     - name: Change directory to src-tauri
       run: cd src-tauri
+    - name: Install JavaScriptCoreGTK
+      run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.0-dev
     - name: Build
       run: cargo build --verbose
       working-directory: src-tauri
