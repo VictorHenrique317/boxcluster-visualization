@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 use std::{collections::HashMap, time::Instant};
-use crate::{services::{io_service::IoService, plot_service::PlotService}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper}, database::datapoint::DataPoint};
+use crate::{services::{io_service::IoService, plot_service::PlotService}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper}, database::datapoint::DataPoint, common::generic_error::GenericError};
 use super::application_state_service::ApplicationStateService;
 
 pub struct ApplicationService{
@@ -36,8 +36,8 @@ impl ApplicationService{
         PlotService::plot(&self.application_state_service);
     }
 
-    pub fn getFlattenedSupers(&self) -> HashMap<u32, Vec<u32>>{
-        let identifier_mapper = self.application_state_service.identifierMapper();
+    pub fn getFlattenedSupers(&self) -> Result<HashMap<u32, Vec<u32>>, GenericError>{
+        let identifier_mapper = self.application_state_service.identifierMapper()?;
         return self.application_state_service.getDagService().getFlattenedSupers(identifier_mapper);
     }
 
@@ -50,7 +50,7 @@ impl ApplicationService{
         return self.application_state_service.getMetricsService().distances.get();
     }
 
-    pub fn getIdentifierMapper(&self) -> &IdentifierMapper {
+    pub fn getIdentifierMapper(&self) -> Result<&IdentifierMapper, GenericError> {
         return self.application_state_service.identifierMapper();
     }
 

@@ -3,10 +3,8 @@
 use std::{collections::HashMap, sync::{Mutex, Arc}};
 use nalgebra::{DMatrix, DVector, SVD};
 use ndarray::{IxDynImpl, Dim, ArrayD, Array, Array2};
-use numpy::{PyArray2, IntoPyArray};
-use pyo3::{Python, types::PyDict};
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
-use crate::model::identifier_mapper::IdentifierMapper;
+use crate::{model::identifier_mapper::IdentifierMapper, common::generic_error::GenericError};
 use super::{metric::Metric, distances::DistancesTrait};
 
 pub struct Coordinates {
@@ -21,73 +19,61 @@ impl Metric<HashMap<u32, (f64, f64)>> for Coordinates{
 }
 
 impl Coordinates {
-    pub fn new<T: DistancesTrait>(identifier_mapper: &IdentifierMapper, distances: &T) -> Coordinates{
+    pub fn new<T: DistancesTrait>(identifier_mapper: &IdentifierMapper, distances: &T) -> Result<Coordinates, GenericError>{
         println!("  Coordinates...");
-        return Coordinates { 
-            value: Coordinates::calculate(identifier_mapper, distances),
-        };
+        return Ok(
+            Coordinates { 
+                value: Coordinates::calculate(identifier_mapper, distances)?,
+            }
+        );
     }
 
-    fn buildDissimilarityMatrix<T: DistancesTrait>(distances: &T, n: usize) -> DMatrix<f64> {
+    fn buildDissimilarityMatrix<T: DistancesTrait>(distances: &T, n: usize) -> Result<DMatrix<f64>, GenericError> {
         let size: Vec<usize> = vec![n, n];
         let distance_matrix: Arc<Mutex<ArrayD<f64>>> = Arc::new(Mutex::new(Array::zeros(Dim(size.clone())).into_dyn()));
 
-        distances.get().par_iter().for_each(|(pattern_1, columns)| {
+        distances.get().par_iter().try_for_each(|(pattern_1, columns)| 
+                -> Result<(), GenericError> {
+
             let pattern_1 = (pattern_1 - 1) as usize;
 
             for (pattern_2, distance) in columns{
                 let pattern_2 = (pattern_2 - 1) as usize;
 
                 let index: Dim<IxDynImpl> = Dim(vec![pattern_1, pattern_2]);
-                let mut distance_matrix_lock = distance_matrix.lock().unwrap();
-                let matrix_value = distance_matrix_lock.get_mut(index).unwrap();
+                let mut distance_matrix_lock = distance_matrix.lock()
+                    .as_mut()
+                    .map_err(|_| GenericError::new("Error while getting distance matrix thread lock"))?;
+
+                let matrix_value = distance_matrix_lock.get_mut(index)
+                    .ok_or(GenericError::new(&format!("Index {:?} does not exist on distance matrix", &index)))?;
+
                 *matrix_value = *distance;
             }
+
+            return Ok(());
         });
 
-        let dissimilarity_matrix: DMatrix<f64> = DMatrix::from_fn(n, n, |i, j| {
-            let index: Dim<IxDynImpl> = Dim(vec![i, j]);
-            let distance_matrix_lock = distance_matrix.lock().unwrap();
-            let matrix_value = distance_matrix_lock.get(index).unwrap();
-            return *matrix_value;
-        });
+        let distance_matrix = distance_matrix.lock()
+            .as_mut()
+            .map_err(|_| GenericError::new("Error while getting distance matrix thread lock"))?
+            .clone();
+        
+        let mut dissimilarity_matrix = DMatrix::zeros(n, n);
+        for i in 0..n {
+            for j in 0..n {
+                let index: Dim<IxDynImpl> = Dim(vec![i, j]);
+                let matrix_value = distance_matrix.get(index)
+                    .ok_or(GenericError::new(&format!("Index {:?} does not exist on distance matrix", &index)))?;
 
-        return dissimilarity_matrix;
+                dissimilarity_matrix[(i, j)] = *matrix_value;
+            }
+        }
+
+        return Ok(dissimilarity_matrix);
     }
 
-    // fn SklearnMDS(dissimilarity_matrix: Array2<f64>) -> HashMap<u32, (f64, f64)>{
-    //     pyo3::prepare_freethreaded_python();
-    //     let xy_matrix: Array2<f64> = Python::with_gil(|py| {
-    //         let sklearn = py.import("sklearn.manifold").unwrap();
-
-    //         let kwargs = PyDict::new(py);
-    //         kwargs.set_item("dissimilarity", "precomputed").unwrap();
-    //         kwargs.set_item("normalized_stress", false).unwrap();
-    //         kwargs.set_item("random_state", 1).unwrap();
-    //         kwargs.set_item("n_components", 2).unwrap();
-    //         // kwargs.set_item("n_jobs", -1).unwrap();
-    //         let mds = sklearn.getattr("MDS").unwrap()
-    //             .call((), Some(kwargs))
-    //             .unwrap();
-
-    //         let dissimilarities_py: &PyArray2<f64> = dissimilarity_matrix.into_pyarray(py);
-    //         let embedding: &PyArray2<f64> = mds.call_method1("fit_transform", (dissimilarities_py,)).unwrap().extract().unwrap();
-    //         embedding.readonly().as_array().to_owned()
-    //     });
-
-    //     let n_rows = xy_matrix.shape()[0];
-    //     let mut xys: HashMap<u32, (f64, f64)> = HashMap::new();
-    //     for i in 0..n_rows {
-    //         let xy_row = xy_matrix.row(i);
-    //         let identifier = (i + 1) as u32;
-    //         let x = *xy_row.get(0).unwrap() ;
-    //         let y = *xy_row.get(1).unwrap();
-    //         xys.insert(identifier, (x, y));
-    //     }
-    //     return xys;
-    // }
-
-    fn mds(distances: DMatrix<f64>, dimensions: usize) -> HashMap<u32, (f64, f64)> {
+    fn mds(distances: DMatrix<f64>, dimensions: usize) -> Result<HashMap<u32, (f64, f64)>, GenericError> {
         // square distances
         let mut m = distances.map(|x| -0.5 * x.powi(2));
 
@@ -107,7 +93,9 @@ impl Coordinates {
         let svd = SVD::new(m, true, true);
         let eigen_values = svd.singular_values.map(|x| x.sqrt());
 
-        let u = svd.u.unwrap();
+        let u = svd.u
+            .ok_or(GenericError::new("Error getting U matrix from SVD"))?;
+
         let mut result = DMatrix::zeros(u.nrows(), dimensions);
 
         for i in 0..u.nrows() {
@@ -126,13 +114,13 @@ impl Coordinates {
             xys.insert(identifier, (x, y));
         }
 
-        return xys;
+        return Ok(xys);
     }
 
-    fn calculate<T: DistancesTrait>(identifier_mapper: &IdentifierMapper, distances: &T) -> HashMap<u32, (f64, f64)> {
+    fn calculate<T: DistancesTrait>(identifier_mapper: &IdentifierMapper, distances: &T) -> Result<HashMap<u32, (f64, f64)>, GenericError> {
         println!("  Applying Multi Dimensional Scaling...");
         let n: usize = identifier_mapper.length() as usize;
-        let dissimilarity_matrix: DMatrix<f64> = Coordinates::buildDissimilarityMatrix(distances, n);
+        let dissimilarity_matrix: DMatrix<f64> = Coordinates::buildDissimilarityMatrix(distances, n)?;
         let xys = Coordinates::mds(dissimilarity_matrix, 2);
         return xys;
     }

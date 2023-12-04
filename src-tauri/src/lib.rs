@@ -6,6 +6,7 @@ pub mod services;
 pub mod model;
 pub mod database;
 use std::{collections::HashMap, hash::Hash};
+use common::generic_error::GenericError;
 use nalgebra::{DMatrix, DVector, SVD};
 
 use model::{analysis::metrics::distances::DistancesTrait, io::pattern_reader::PatternReader};
@@ -123,17 +124,9 @@ fn testDag(){
     // let tensor_path = "tests/test_data/tensors/retweets2d.txt".to_owned();
     // let patterns_path = "tests/test_data/other_patterns/retweets2d_patterns.txt".to_owned();
 
-    let mut application_manager = ApplicationService::default();
-    application_manager.init(&tensor_path, &patterns_path);
+    // let mut application_manager = ApplicationService::default();
+    // application_manager.init(&tensor_path, &patterns_path);
 
-    let distances = application_manager.getDistances();
-    printMatrix(distances);
-
-    // dbg!(rss_evolution.len());
-
-    // application_manager.truncateModel(&100);
-    // let rss_evolution = application_manager.getRssEvolution().iter().map(|(_, model_rss)| model_rss.clone()).collect::<Vec<f64>>();
-    // dbg!(rss_evolution.len());
-    // Starts at pattern 11
-    // let mut test: HashSet<Dim<IxDynImpl>> = HashSet::new(); // 2.264
+    // let distances = application_manager.getDistances();
+    // printMatrix(distances);
 }

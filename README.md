@@ -1,7 +1,7 @@
-# Tauri + Angular
-
-This template should help get you started developing with Tauri and Angular.
-
-## Recommended IDE Setup
-
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) + [Angular Language Service](https://marketplace.visualstudio.com/items?itemName=Angular.ng-template)
+# Progresso
+## Checklist 04/12/2023 - ????
+- [x] Implementar tolerância a falhas (https://doc.rust-lang.org/book/ch09-00-error-handling.html)
+- [ ] Resolver bugs visuais
+- [ ] Remodelar a UI
+- [ ] Cálculo do MDS dinâmico e ajustes na coordenadas do scatterplot
+- [ ] Scatterplot interativo

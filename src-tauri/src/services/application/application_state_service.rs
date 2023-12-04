@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+use crate::common::generic_error::GenericError;
 use crate::database::pattern::Pattern;
 use crate::database::tensor::Tensor;
 
@@ -26,7 +27,7 @@ impl ApplicationStateService{
         self.changePatterns(patterns);
     }
 
-    pub fn changePatterns(&mut self, patterns: Vec<Pattern>){
+    pub fn changePatterns(&mut self, patterns: Vec<Pattern>) -> Result<(), GenericError>{
         // Inserts the pattern representations
         let mut identifier_mapper = IdentifierMapper::new(patterns);
 
@@ -45,7 +46,7 @@ impl ApplicationStateService{
         );
 
         self.identifier_mapper = Some(identifier_mapper);
-        let dag_service = DagService::new(self.identifierMapper());
+        let dag_service = DagService::new(self.identifierMapper()?);
         self.dag_service = Some(dag_service);
 
         self.current_level_identifiers = self.dag_service.as_ref().unwrap().getFontNodes();
@@ -63,23 +64,24 @@ impl ApplicationStateService{
         self.visible_identifiers = new_current_level_identifiers;
     }
 
-    pub fn ascendDag(&mut self) {
-        if self.current_identifier == 0{ return; }
+    pub fn ascendDag(&mut self) -> Result<(), GenericError>{
+        if self.current_identifier == 0{ return Ok(()); }
 
         let previous_identifiers = self.dag_service.as_ref().unwrap()
-            .ascendDag(self.identifierMapper(), &self.current_identifier);
+            .ascendDag(self.identifierMapper()?, &self.current_identifier);
         self.update(previous_identifiers);
+
+        return Ok(());
     }
 
-    pub fn descendDag(&mut self, next_identifier: &u32) {
+    pub fn descendDag(&mut self, next_identifier: &u32) -> Result<(), GenericError>{
         let next_identifiers = self.dag_service.as_ref().unwrap()   
-            .descendDag(self.identifierMapper(), next_identifier);
+            .descendDag(self.identifierMapper()?, next_identifier);
 
-        if next_identifiers.len() == 0{
-            return;
-        }
+        if next_identifiers.len() == 0{ return Ok(()); }
 
         self.update(next_identifiers);
+        return Ok(());
     }
 
     pub fn truncateModel(&mut self, new_size: &u32){
@@ -92,8 +94,9 @@ impl ApplicationStateService{
         self.visible_identifiers = visible_identifiers;
     }
 
-    pub fn identifierMapper(&self) -> &IdentifierMapper{
-        return self.identifier_mapper.as_ref().unwrap();
+    pub fn identifierMapper(&self) -> Result<&IdentifierMapper, GenericError>{
+        return self.identifier_mapper.as_ref()
+            .ok_or(GenericError::new("Identifier mapper not initialized"));
     }
 
     pub fn getVisibleIdentifiers(&self) -> &Vec<u32>{
@@ -104,7 +107,8 @@ impl ApplicationStateService{
         return self.metrics_service.as_ref().unwrap();
     }
 
-    pub fn getDagService(&self) -> &DagService{
-        return self.dag_service.as_ref().unwrap();
+    pub fn getDagService(&self) -> Result<&DagService, GenericError>{
+        return self.dag_service.as_ref()
+            .ok_or(GenericError::new("Dag service not initialized"));
     }
 }

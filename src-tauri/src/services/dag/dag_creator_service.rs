@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 use std::collections::HashMap;
+use crate::common::generic_error::GenericError;
 use crate::database::dag_node::DagNode;
 use crate::database::pattern::{Pattern, Relation};
 use crate::model::identifier_mapper::IdentifierMapper;
@@ -230,7 +231,7 @@ impl DagCreatorService<'_>{
         }
     }
 
-    pub fn create(mut self, flat_dag_nodes: Vec<DagNode>) -> Vec<DagNode>{
+    pub fn create(mut self, flat_dag_nodes: Vec<DagNode>) -> Result<Vec<DagNode>, GenericError>{
         debug_println!("Nodes: {:?}", &flat_dag_nodes.iter().map(|node| node.identifier).collect::<Vec<u32>>());
         let bar = progress_bar::new(flat_dag_nodes.len() as u64,"Patterns inserted on DAG");
 
@@ -248,6 +249,6 @@ impl DagCreatorService<'_>{
 
         println!("\n  Nb of fonts found: {}", self.dag_arranger_service.getFontNodes().len());
 
-        return self.dag_arranger_service.finish();
+        return Ok(self.dag_arranger_service.finish());
     }
 }

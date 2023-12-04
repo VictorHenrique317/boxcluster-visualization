@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use std::collections::HashMap;
 
-use crate::database::dag_node::DagNode;
+use crate::{database::dag_node::DagNode, common::generic_error::GenericError};
 use crate::model::identifier_mapper::IdentifierMapper;
 use super::dag_creator_service::{DagCreatorService};
 
@@ -18,7 +18,7 @@ impl DagService{
         return nodes;
     }
 
-    pub fn createAndArrange(identifier_mapper: &IdentifierMapper) -> Vec<DagNode> {
+    pub fn createAndArrange(identifier_mapper: &IdentifierMapper) -> Result<Vec<DagNode>, GenericError> {
         let flat_dag_nodes = DagService::createFlatDagNodes(identifier_mapper);
         let dag_creator_service = DagCreatorService::new(identifier_mapper);
         return dag_creator_service.create(flat_dag_nodes);

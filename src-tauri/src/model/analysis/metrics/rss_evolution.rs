@@ -1,6 +1,7 @@
 use ndarray::{ArrayD, Dim, IxDynImpl};
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use std::iter::Iterator;
+use crate::common::generic_error::GenericError;
 use crate::common::progress_bar;
 use crate::database::pattern::{Pattern, self};
 use crate::model::analysis::ordered_pair::OrderedPair;
@@ -91,15 +92,17 @@ impl Metric<Vec<(u32, f64)>> for RssEvolution{
 
 impl RssEvolution{
     pub fn new(identifier_mapper: &IdentifierMapper, tensor: &Tensor, empty_model_rss: &EmptyModelRss, 
-        patterns: &Vec<&Pattern>) -> RssEvolution{
+        patterns: &Vec<&Pattern>) -> Result<RssEvolution, GenericError>{
 
         println!("  RssEvolution...");
         
-        let rss_evolution = RssEvolution::calculate(identifier_mapper, tensor, empty_model_rss, patterns);
-        return RssEvolution{
-            value: rss_evolution.clone(),
-            truncated_value: rss_evolution,
-        }
+        let rss_evolution = RssEvolution::calculate(identifier_mapper, tensor, empty_model_rss, patterns)?;
+        return Ok(
+            RssEvolution{
+                value: rss_evolution.clone(),
+                truncated_value: rss_evolution,
+            }
+        );
     }
 
     fn calculateRss(actual_value: &f64, prediction: &f64) -> f64{
@@ -107,23 +110,25 @@ impl RssEvolution{
     }
 
     fn updateRssAtIndex(tensor_matrix: &ArrayD<f64>, total_rss: &f64, index: &Dim<IxDynImpl>, old_prediction: &f64, 
-                        new_prediction: &f64, prediction_matrix: &mut PredictionMatrix) -> f64{
+                        new_prediction: &f64, prediction_matrix: &mut PredictionMatrix) -> Result<f64, GenericError>{
         
         prediction_matrix.insert(index.clone(), *new_prediction);
         drop(prediction_matrix);
 
-        let actual_value = tensor_matrix.get(index).unwrap();
+        let actual_value = tensor_matrix.get(index)
+            .ok_or(GenericError::new(&format!("Index {:?} not found", index)))?;
 
         let new_prediction_rss = RssEvolution::calculateRss(actual_value, new_prediction);
         let old_prediction_rss = RssEvolution::calculateRss(actual_value, old_prediction);
 
         let total_rss = total_rss - old_prediction_rss + new_prediction_rss;
         
-        return total_rss;
+        return Ok(total_rss);
     }
 
     fn createControlStructures(tensor: &Tensor, patterns: &Vec<&Pattern>, identifier_mapper: &IdentifierMapper) 
-            -> (PredictionMatrix, UntouchedRss, IntersectionsIndices) {
+            -> Result<(PredictionMatrix, UntouchedRss, IntersectionsIndices), GenericError> {
+                
         let prediction_matrix = PredictionMatrix::new();
         let untouched_rss_s = UntouchedRss::new();
         let intersections_indices = IntersectionsIndices::new();
@@ -151,7 +156,8 @@ impl RssEvolution{
         let untouched_rss_s: Arc<Mutex<UntouchedRss>> = Arc::new(Mutex::new(untouched_rss_s));
         let intersections_indices: Arc<Mutex<IntersectionsIndices>> = Arc::new(Mutex::new(intersections_indices));
         
-        patterns.par_iter().for_each(|pattern| {
+        patterns.par_iter().try_for_each(|pattern| -> Result<(), GenericError> {
+
             let mut pattern_intersections: HashMap<u32, Vec<Dim<IxDynImpl>>> = HashMap::new();
             let mut all_intersection_indices: HashSet<Dim<IxDynImpl>> = HashSet::new();
 
@@ -159,8 +165,12 @@ impl RssEvolution{
                 if pattern.identifier == other_pattern.identifier { continue; } // Itself
 
                 let self_overlappings = overlappings.get(&pattern.identifier);
-                if self_overlappings.is_none() { continue; } // This pattern doesnt overlap any other pattern
-                if !self_overlappings.unwrap().contains(&other_pattern.identifier) { continue; } // These two do not overlap
+                match self_overlappings {
+                    None => continue, // This pattern doesnt overlap any other pattern
+                    Some(self_overlappings) => {
+                        if !self_overlappings.contains(&other_pattern.identifier) { continue; } // These two do not overlap
+                    },
+                };
 
                 let intersection_indices: Vec<Dim<IxDynImpl>> = pattern.intersection(other_pattern)
                     .into_iter()
@@ -169,7 +179,10 @@ impl RssEvolution{
 
                 for index in intersection_indices.iter() {
                     all_intersection_indices.insert(index.clone());
-                    prediction_matrix.lock().unwrap().insert(index.clone(), tensor.density);
+                    prediction_matrix.lock()
+                        .as_mut()
+                        .map_err(|_| GenericError::new("Could not lock prediction matrix"))?
+                        .insert(index.clone(), tensor.density);
                 }
 
                 if !intersection_indices.is_empty() { // There are intersections
@@ -178,46 +191,70 @@ impl RssEvolution{
             }
 
             if !pattern_intersections.is_empty(){ // This pattern has intersections with other patterns
-                intersections_indices.lock().unwrap().insert(pattern.identifier, pattern_intersections);
+                intersections_indices.lock()
+                    .as_mut()
+                    .map_err(|_| GenericError::new("Could not lock intersections indices"))?
+                    .insert(pattern.identifier, pattern_intersections);
             }
 
             let prediction = &pattern.density;
             let mut untouched_size: u32 = 0;
             let untouched_rss: f64 = pattern.indices_as_dims.clone().into_iter()
                 .filter(|index| !all_intersection_indices.contains(index))
-                .map(|index| {
-                    let actual_value = tensor.dims_values.get(&index).unwrap();
+                .map(|index| -> Result<f64, GenericError> {
+                    let actual_value = tensor.dims_values.get(&index)
+                        .ok_or(GenericError::new(&format!("Index {:?} not found", index)))?;
 
                     let prediction_rss = RssEvolution::calculateRss(actual_value, prediction);
                     let lambda_0_rss = RssEvolution::calculateRss(actual_value, &tensor.density);
                     let delta_rss = prediction_rss - lambda_0_rss;
 
                     untouched_size += 1;
-                    delta_rss
+                    Ok(delta_rss)
                 })
+                .collect::<Result<Vec<_>, _>>()?
+                .into_iter()
                 .sum();
 
-            untouched_rss_s.lock().unwrap().insert(pattern.identifier, (untouched_size, untouched_rss));
+            untouched_rss_s.lock()
+                .as_mut()
+                .map_err(|_| GenericError::new("Could not lock untouched rss"))?
+                .insert(pattern.identifier, (untouched_size, untouched_rss));
+
+            return Ok(());
         });
 
-        let prediction_matrix = prediction_matrix.lock().unwrap().clone();
-        let untouched_rss_s = untouched_rss_s.lock().unwrap().clone();
-        let intersections_indices = intersections_indices.lock().unwrap().clone();
+        let prediction_matrix = prediction_matrix.lock()
+            .as_mut()
+            .map_err(|_| GenericError::new("Could not lock prediction matrix"))?
+            .clone();
 
-        return (prediction_matrix, untouched_rss_s, intersections_indices);
+        let untouched_rss_s = untouched_rss_s.lock()
+            .as_mut()
+            .map_err(|_| GenericError::new("Could not lock untouched rss"))?
+            .clone();
+
+        let intersections_indices = intersections_indices.lock()
+            .as_mut()
+            .map_err(|_| GenericError::new("Could not lock intersections indices"))?
+            .clone();
+
+        return Ok((prediction_matrix, untouched_rss_s, intersections_indices));
     }
 
     fn updatePredictionMatrix(prediction_matrix: &mut PredictionMatrix, intersections_indices: &IntersectionsIndices,
-                            candidate_pattern: &Pattern){
+                            candidate_pattern: &Pattern) -> Result<(), GenericError>{
         
         let all_intersections_indices = intersections_indices.get(&candidate_pattern.identifier);
-
-        if all_intersections_indices.is_none() { return; } // No intersection
-        let all_intersections_indices = all_intersections_indices.unwrap();  
+        let all_intersections_indices = match all_intersections_indices{
+            None => { return Ok(()); } // No intersection
+            Some(all_intersections_indices) => { all_intersections_indices },
+        };
             
         for (_, intersection_indices) in all_intersections_indices {
             for intersection_index in intersection_indices {
-                let previous_prediction = prediction_matrix.get_mut(intersection_index).unwrap();
+                let previous_prediction = prediction_matrix.get_mut(intersection_index)
+                    .ok_or(GenericError::new(&format!("Index {:?} not found", intersection_index)))?;
 
                 let max_prediction = f64::max(candidate_pattern.density, *previous_prediction);
 
@@ -226,6 +263,8 @@ impl RssEvolution{
                 }
             }
         }
+
+        return Ok(());
     }
 
     fn calculateCandidateModelRss(current_model_rss: &f64, candidate_pattern: &Pattern,
@@ -234,15 +273,20 @@ impl RssEvolution{
             untouched_delta_rss_s: &UntouchedRss,
             prediction_matrix: &mut PredictionMatrix,
             intersections_indices: &IntersectionsIndices,
-            seen_candidates: &Vec<u32>) -> f64{
+            seen_candidates: &Vec<u32>) -> Result<f64, GenericError>{
 
-        let mut candidate_model_rss = *current_model_rss + untouched_delta_rss_s.get(&candidate_pattern.identifier).unwrap().1;
+        let mut candidate_model_rss = *current_model_rss + untouched_delta_rss_s.get(&candidate_pattern.identifier)
+            .ok_or(GenericError::new(
+                &format!("Untouched delta rss for pattern {} not found", candidate_pattern.identifier)))?
+            .1;
             
         let candidate_intersections = intersections_indices.get(&candidate_pattern.identifier);
-        if candidate_intersections.is_none(){ return candidate_model_rss; } // No intersection
+        let candidate_intersections = match candidate_intersections {
+            None => { return Ok(candidate_model_rss); } // No intersection
+            Some(candidate_intersections) => { candidate_intersections },
+        };
         
         // Here we can also have indices with no intersection
-        let candidate_intersections = candidate_intersections.unwrap();
         let candidate_prediction = candidate_pattern.density;
 
         for (intersector, intersection_indices) in candidate_intersections {
@@ -254,7 +298,9 @@ impl RssEvolution{
                 .asPattern().density;
 
             for intersection_index in intersection_indices {
-                let previous_prediction = prediction_matrix.get(intersection_index).unwrap();
+                let previous_prediction = prediction_matrix.get(intersection_index)
+                    .ok_or(GenericError::new(&format!("Index {:?} not found", intersection_index)))?;
+
                 let previous_prediction_copy = previous_prediction.clone();
 
                 if ignore_intersector == true { // Intersector is not in the submodel, act as if the candidate is not intersected
@@ -263,7 +309,7 @@ impl RssEvolution{
                         intersection_index, 
                         &previous_prediction_copy, 
                         &candidate_prediction,
-                        prediction_matrix);
+                        prediction_matrix)?;
                     
                     continue;
                 }
@@ -276,14 +322,14 @@ impl RssEvolution{
                     intersection_index, 
                     &previous_prediction_copy, 
                     &max_prediction,
-                    prediction_matrix);
+                    prediction_matrix)?;
             }
         }
-        return candidate_model_rss;
+        return Ok(candidate_model_rss);
     }
 
     fn calculate(identifier_mapper: &IdentifierMapper, tensor:&Tensor, empty_model_rss: &EmptyModelRss, patterns: &Vec<&Pattern>) 
-        -> Vec<(u32, f64)>{
+        -> Result<Vec<(u32, f64)>, GenericError>{
         
         let pattern_nb = patterns.len();
 
@@ -291,7 +337,7 @@ impl RssEvolution{
             mut prediction_matrix, 
             untouched_delta_rss, 
             intersections_indices) = 
-                RssEvolution::createControlStructures(tensor, &patterns, identifier_mapper);
+                RssEvolution::createControlStructures(tensor, &patterns, identifier_mapper)?;
 
         let mut current_model_rss = *empty_model_rss.get();
         let mut rss_evolution: Vec<(u32, f64)> = vec![(0, current_model_rss)];
@@ -308,7 +354,7 @@ impl RssEvolution{
                 &untouched_delta_rss, 
                 &mut prediction_matrix,
                 &intersections_indices, 
-                &seen_candidates);
+                &seen_candidates)?;
 
             current_model_rss = candidate_model_rss;
             rss_evolution.push((pattern.identifier, current_model_rss));
@@ -318,7 +364,7 @@ impl RssEvolution{
         }
 
         bar.finish();
-        return rss_evolution;
+        return Ok(rss_evolution);
     }
 
     pub fn truncate(&mut self, new_size: &u32){

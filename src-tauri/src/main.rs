@@ -6,18 +6,23 @@
 
 use boxcluster_visualization::{self, controller::states::states::*, database::{pattern::Pattern, datapoint::DataPoint}};
 use tauri::State;
+use boxcluster_visualization::common::generic_error::{GenericError};
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
 //////////////////////////// Paginator ////////////////////////////
 
 #[tauri::command]
-fn getSoundingPattern(paginator_service: State<PaginatorServiceState>, application_service: State<ApplicationServiceState>) -> Pattern {
-    println!("Calling getSoundingPattern...");
-    let paginator_service = paginator_service.0.lock().unwrap();
-    let application_service = application_service.0.lock().unwrap();
+fn getSoundingPattern(paginator_service: State<PaginatorServiceState>, application_service: State<ApplicationServiceState>) 
+        -> Result<Pattern, GenericError> {
 
-    return paginator_service.getSoundingPattern(application_service.getIdentifierMapper());
+    println!("Calling getSoundingPattern...");
+    let paginator_service = paginator_service.0.lock()?;
+    let application_service = application_service.0.lock()?;
+
+    let identifier_mapper = application_service.getIdentifierMapper();
+
+    return Ok(paginator_service.getSoundingPattern(identifier_mapper));
 }
 
 #[tauri::command]

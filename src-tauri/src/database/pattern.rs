@@ -6,6 +6,8 @@ use ndarray::{IxDynImpl, Dim};
 use serde::{Deserialize, Serialize, ser::SerializeStruct};
 use std::hash::{Hash, Hasher};
 
+use crate::common::generic_error::GenericError;
+
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum Relation {
     NotRelatable,
@@ -123,13 +125,15 @@ impl Pattern {
         for element in used_vector{
             loop{
                 let base_element = used_base.get(current_index);
-            
-                if base_element.is_none(){ // Index out of boudaries
-                    stop = true;
-                    break;
-                }
 
-                let base_element = base_element.unwrap();
+                let base_element = match base_element {
+                    None => {
+                        stop = true;
+                        break;
+                    }
+
+                    Some(base_element) => { base_element },
+                };
 
                 if base_element > element { // If the vector is sorted the value will not be found anymore
                     break;
@@ -152,11 +156,11 @@ impl Pattern {
         return contained_values_sum as f64 / reference_area; // Percetange of intersection on VECTOR
     }
 
-    pub fn selfRelationTo(&self, pattern: &Pattern) -> Relation {
+    pub fn selfRelationTo(&self, pattern: &Pattern) -> Result<Relation, GenericError> {
         debug_print!("    Comparing patterns {} to {}: ", &self.identifier, &pattern.identifier);
         if self.identifier == pattern.identifier{
             debug_println!("{:?} (Identical patterns)", Relation::NotRelatable);
-            return Relation::NotRelatable;
+            return Ok(Relation::NotRelatable);
         }  
         
         // Relation of the actual pattern
@@ -165,7 +169,9 @@ impl Pattern {
         let mut full_intersection = true;
 
         for self_dims_value in self_dims_values{
-            let other_dims_value = other_dims_values.next().unwrap();
+            let other_dims_value = other_dims_values.next()
+                .ok_or(GenericError::new(
+                    &format!("Pattern {} has less dimensions than pattern {}", &self.identifier, &pattern.identifier)))?; 
 
             let intersection_percentage: f64;
 
@@ -183,7 +189,7 @@ impl Pattern {
 
             if intersection_percentage == 0.0{
                 debug_println!("{:?}", Relation::NotRelatable);
-                return Relation::NotRelatable;
+                return Ok(Relation::NotRelatable);
             }
 
             if intersection_percentage < 1.0{
@@ -193,19 +199,19 @@ impl Pattern {
 
         if full_intersection == false {
             debug_println!("{:?}", Relation::Overlaps);
-            return Relation::Overlaps;
+            return Ok(Relation::Overlaps);
         }
 
         // Here all dimensions have 100% intersection
 
         if self.size > pattern.size{
             debug_println!("{:?}", Relation::SuperPattern);
-            return Relation::SuperPattern;
+            return Ok(Relation::SuperPattern);
         }
 
         if self.size < pattern.size{
             debug_println!("{:?}", Relation::SubPattern);
-            return Relation::SubPattern;
+            return Ok(Relation::SubPattern);
         }
 
         // Its the same pattern if the execution reaches here, duplicated patterns exist in the input file

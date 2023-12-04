@@ -2,6 +2,8 @@
 
 use std::collections::{HashMap, HashSet};
 
+use crate::common::generic_error::GenericError;
+
 use super::{dag_node::DagNode, pattern::Pattern};
 
 #[derive(Default)]
@@ -25,17 +27,27 @@ impl Dag {
         return self.nodes.len() as u32;
     }
 
-    pub fn isEdge(&self, node: &u32) -> bool {
-        let node_p = self.nodes.get(node).unwrap();
-        return node_p.subs.len() == 0;
+    pub fn isEdge(&self, node: &u32) -> Result<bool, GenericError> {
+        let node_p = self.nodes.get(node)
+            .ok_or(GenericError::new(&format!("Node {} not found", node)))?;
+        
+        return Ok(node_p.subs.len() == 0);
     }
 
-    pub fn isFont(&self, node: &u32) -> bool {
-        return self.nodes.get(node).unwrap().supers.len() == 0;
+    pub fn isFont(&self, node: &u32) -> Result<bool, GenericError> {
+        return Ok(
+            self.nodes.get(node)
+            .ok_or(GenericError::new(&format!("Node {} not found", node)))?
+            .supers.len() == 0
+        );
     }
 
-    pub fn hasSubs(&self, node: &u32) -> bool {
-        return self.nodes.get(node).unwrap().subs.len() != 0;
+    pub fn hasSubs(&self, node: &u32) -> Result<bool, GenericError> {
+        return Ok(
+            self.nodes.get(node)
+            .ok_or(GenericError::new(&format!("Node {} not found", node)))?
+            .subs.len() != 0
+        );
     }
 
     pub fn getOverllapings(&self) -> HashMap<u32, HashSet<u32>>{
