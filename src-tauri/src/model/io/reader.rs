@@ -1,6 +1,8 @@
 #![allow(non_snake_case)]
-use std::{fs::{self, File}, num::{ParseFloatError, ParseIntError}, error::Error};
+use std::{fs::{self, File}, num::{ParseFloatError, ParseIntError}};
 use std::io::{prelude::*, BufReader};
+
+use crate::common::generic_error::GenericError;
 
 pub struct Reader{}
 
@@ -21,20 +23,23 @@ impl Reader{
         return lines;
     }
 
-    pub fn readRawFirstLine(file_path:&String) -> String{
-        let file = File::open(file_path).unwrap();
+    pub fn readRawFirstLine(file_path:&String) -> Result<String, GenericError>{
+        let file = File::open(file_path)
+            .map_err(|_| GenericError::new("Could not open file"))?;
+
         let reader = BufReader::new(file);
         let mut first_line = "".to_owned();
 
         for line in reader.lines() {
-            first_line = line.unwrap();
+            first_line = line
+                .map_err(|_| GenericError::new("Could not read first line"))?;
             break;
         }
         
-        return first_line;
+        return Ok(first_line);
     }
 
-    fn tryGetDensity(vector: &Vec<String>) -> Result<Option<f64>, Box<dyn Error>>{
+    fn tryGetDensity(vector: &Vec<String>) -> Result<Option<f64>, GenericError>{
         let mut density: Option<f64> = None;
         let vector_length = vector.len();
         for (i, dim_values_str) in vector.iter().enumerate() {
@@ -46,7 +51,7 @@ impl Reader{
                     
                     let density_test_2: Result<u32, ParseIntError> = dim_values_str.parse(); // Tries to parse to int
                     if density_test_2.is_err(){ // Then its the true density
-                        density = Some(density_test_1?);
+                        density = Some(density_test_1.expect("Density test 1 should be ok"));
                     }
                 }
             }
@@ -54,12 +59,16 @@ impl Reader{
         return Ok(density);
     }
 
-    pub fn fileHasDensity(file_path: &String) -> Result<bool, Box<dyn Error>> {
-        let file = File::open(file_path)?;
+    pub fn fileHasDensity(file_path: &String) -> Result<bool, GenericError> {
+        let file = File::open(file_path)
+            .map_err(|_| GenericError::new("Could not open file"))?;
+
         let reader = BufReader::new(file);
 
         for line in reader.lines() { // Line per line
-            let current_line = line?;
+            let current_line = line
+                .map_err(|_| GenericError::new("Could not read line"))?;
+            
             let dimensions: Vec<String> = current_line.split(" ")
                 .map(|i| i.to_owned())
                 .collect();

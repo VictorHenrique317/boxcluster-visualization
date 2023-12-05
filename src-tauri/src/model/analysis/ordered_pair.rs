@@ -1,5 +1,4 @@
-use std::{hash::Hash};
-
+use std::hash::Hash;
 use crate::database::pattern::Pattern;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
@@ -14,8 +13,8 @@ impl OrderedPair <'_> {
         pair.sort_by_key(|obj| obj.identifier);
 
         return OrderedPair {
-            x: *pair.get(0).unwrap(),
-            y: *pair.get(1).unwrap(),
+            x: *pair.get(0).expect("Could not get first element of ordered pair"),
+            y: *pair.get(1).expect("Could not get second element of ordered pair"),
         };
     }
 

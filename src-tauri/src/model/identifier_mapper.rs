@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use std::collections::HashMap;
 
-use crate::database::{pattern::Pattern, dag_node::DagNode, datapoint::DataPoint};
+use crate::{database::{pattern::Pattern, dag_node::DagNode, datapoint::DataPoint}, common::generic_error::GenericError};
 
 use super::identifier_representation::IdentifierRepresentation;
 
@@ -26,30 +26,39 @@ impl IdentifierMapper{
         return mapping;
     }
 
-    pub fn insertDagNodeRepresentations(&mut self, dag_nodes_representations: Vec<DagNode>) {
+    pub fn insertDagNodeRepresentations(&mut self, dag_nodes_representations: Vec<DagNode>) -> Result<(), GenericError>{
         let dag_nodes_representations: HashMap<u32, DagNode> = dag_nodes_representations.into_iter()
             .map(|dag_node| (dag_node.identifier, dag_node))
             .collect();
 
         for (identifier, dag_nodes_representation) in dag_nodes_representations {
-            let identifier_representation = self.mapping.get_mut(&identifier).unwrap();
+            let identifier_representation = self.mapping.get_mut(&identifier)
+                .ok_or(GenericError::new("Could not get identifier representation"))?;
+
             identifier_representation.insertDagNodeRepresentation(dag_nodes_representation);
         }
+
+        return Ok(());
     }
 
-    pub fn insertDataPointRepresentations(&mut self, data_point_representations: Vec<DataPoint>) {
+    pub fn insertDataPointRepresentations(&mut self, data_point_representations: Vec<DataPoint>) -> Result<(), GenericError>{
         let data_point_representations: HashMap<u32, DataPoint> = data_point_representations.into_iter()
             .map(|data_point| (data_point.identifier, data_point))
             .collect();
         
         for (identifier, data_point_representation) in data_point_representations {
-            let identifier_representation = self.mapping.get_mut(&identifier).unwrap();
+            let identifier_representation = self.mapping.get_mut(&identifier)
+                .ok_or(GenericError::new("Could not get identifier representation"))?;
+
             identifier_representation.insertDataPointRepresentation(data_point_representation);
         }
+
+        return Ok(());
     }
 
-    pub fn getRepresentation(&self, identifier: &u32) -> &IdentifierRepresentation{
-        return self.mapping.get(identifier).unwrap();
+    pub fn getRepresentation(&self, identifier: &u32) -> Result<&IdentifierRepresentation, GenericError>{
+        return self.mapping.get(identifier)
+            .ok_or(GenericError::new("Could not get identifier representation"));
     }
 
     pub fn getRepresentations(&self) -> Vec<&IdentifierRepresentation>{
@@ -58,7 +67,7 @@ impl IdentifierMapper{
 
     pub fn getRepresentationsFrom(&self, identifiers: &Vec<u32>) -> Vec<&IdentifierRepresentation>{
         return identifiers.iter()
-            .map(|identifier| self.getRepresentation(identifier))
+            .filter_map(|identifier| self.getRepresentation(identifier).ok())
             .collect();
     }
 
@@ -85,32 +94,37 @@ impl IdentifierMapper{
         let keys: Vec<u32> = self.getIdentifiers();
 
         let values: Vec<&IdentifierRepresentation> = keys.iter()
-            .map(|k| self.mapping.get(k).unwrap())
+            .map(|k| self.mapping.get(k)
+                .expect("Should have gotten identifier representation"))
             .collect();
         return values;
     }
 
     pub fn getOrderedPatterns(&self) -> Vec<&Pattern> {
         return self.getOrderedRepresentations().iter()
-            .map(|representation| representation.asPattern())
+            .map(|representation| representation.asPattern()
+                .expect("Should have gotten pattern representation"))
             .collect();
     }
 
     pub fn getOrderedPatternsFrom(&self, identifiers: &Vec<u32>) -> Vec<&Pattern> {
         return self.getOrderedRepresentationsFrom(identifiers).iter()
-            .map(|representation| representation.asPattern())
+            .map(|representation| representation.asPattern()
+                .expect("Should have gotten pattern representation"))
             .collect();
     }
 
     pub fn getOrderedDataPoints(&self) -> Vec<&DataPoint> {
         return self.getOrderedRepresentations().iter()
-            .map(|representation| representation.asDataPoint())
+            .map(|representation| representation.asDataPoint()
+                .expect("Should have gotten data point representation"))
             .collect();
     }
 
     pub fn getOrderedDataPointsFrom(&self, identifiers: &Vec<u32>) -> Vec<&DataPoint> {
         return self.getOrderedRepresentationsFrom(identifiers).iter()
-            .map(|representation| representation.asDataPoint())
+            .map(|representation| representation.asDataPoint()
+                .expect("Should have gotten data point representation"))
             .collect();
     }
 

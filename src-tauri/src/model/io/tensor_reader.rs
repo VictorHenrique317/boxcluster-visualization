@@ -5,7 +5,7 @@ use debug_print::debug_println;
 use ndarray::{ArrayD, Array, Dim, IxDynImpl};
 
 
-use crate::database::tensor::{Tensor, TensorType};
+use crate::{database::tensor::{Tensor, TensorType}, common::generic_error::GenericError};
 
 use super::{translator::Translator, reader::Reader};
 
@@ -22,13 +22,13 @@ impl TensorReader<'_>{
         };
     }
 
-    fn calculateDimension(&self) -> u32{
-        let first_line: String = Reader::readRawFirstLine(&self.file_path);
+    fn calculateDimension(&self) -> Result<u32, GenericError>{
+        let first_line: String = Reader::readRawFirstLine(&self.file_path)?;
         let first_line: Vec<&str> = first_line
             .split(" ")
             .collect();
 
-        return first_line.len() as u32 - 1;
+        return Ok(first_line.len() as u32 - 1);
     }
 
     fn getTensorSize(&self) -> Vec<usize>{
@@ -123,12 +123,14 @@ impl TensorReader<'_>{
         return dims_values.sum() as f64 / area;
     }
 
-    pub fn read(self) -> Tensor{
-        let dimension = self.calculateDimension();
+    pub fn read(self) -> Result<Tensor, GenericError>{
+        let dimension = self.calculateDimension()?;
         let tensor_size = self.getTensorSize();
         let (dims_values, tensor_type) = self.processFile(&tensor_size);
         let density = self.calculateDensity(&dims_values, &tensor_size);
-        return Tensor::new(&self.file_path, dims_values, &tensor_size, &dimension, &density, tensor_type);
+        return Ok(
+            Tensor::new(&self.file_path, dims_values, &tensor_size, &dimension, &density, tensor_type)
+        );
     }
     
 }

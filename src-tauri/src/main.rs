@@ -6,7 +6,7 @@
 
 use boxcluster_visualization::{self, controller::states::states::*, database::{pattern::Pattern, datapoint::DataPoint}};
 use tauri::State;
-use boxcluster_visualization::common::generic_error::{GenericError};
+use boxcluster_visualization::common::generic_error::GenericError;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
@@ -20,107 +20,115 @@ fn getSoundingPattern(paginator_service: State<PaginatorServiceState>, applicati
     let paginator_service = paginator_service.0.lock()?;
     let application_service = application_service.0.lock()?;
 
-    let identifier_mapper = application_service.getIdentifierMapper();
+    let identifier_mapper = application_service.getIdentifierMapper()?;
 
-    return Ok(paginator_service.getSoundingPattern(identifier_mapper));
+    return paginator_service.getSoundingPattern(identifier_mapper);
 }
 
 #[tauri::command]
 fn refreshPageSize(paginator_service: State<PaginatorServiceState>, 
-        application_service: State<ApplicationServiceState>, page_size: u32) -> (Vec<Pattern>, u32, u32) {
+        application_service: State<ApplicationServiceState>, page_size: u32) -> Result<(Vec<Pattern>, u32, u32), GenericError> {
     
     println!("Calling refreshPageSize...");
 
     let mut paginator_service = paginator_service.0.lock().unwrap();
     let application_service = application_service.0.lock().unwrap();
-    return paginator_service.refreshPageSize(application_service.getIdentifierMapper(), page_size);
+    return paginator_service.refreshPageSize(application_service.getIdentifierMapper()?, page_size);
 }
 
 #[tauri::command]
 fn goToPage(paginator_service: State<PaginatorServiceState>, 
-        application_service: State<ApplicationServiceState>, page_index: u32) -> (Vec<Pattern>, u32, u32) {
+        application_service: State<ApplicationServiceState>, page_index: u32) -> Result<(Vec<Pattern>, u32, u32), GenericError> {
 
     println!("Calling goToPage...");
 
     let mut paginator_service = paginator_service.0.lock().unwrap();
     let application_service = application_service.0.lock().unwrap();
-    return paginator_service.goToPage(application_service.getIdentifierMapper(), &page_index);
+    return paginator_service.goToPage(application_service.getIdentifierMapper()?, &page_index);
 }
 
 #[tauri::command]
 fn goToFirstPage(paginator_service: State<PaginatorServiceState>, 
-        application_service: State<ApplicationServiceState>) -> (Vec<Pattern>, u32, u32) {
+        application_service: State<ApplicationServiceState>) -> Result<(Vec<Pattern>, u32, u32), GenericError> {
 
     println!("Calling goToFirstPage...");
 
     let mut paginator_service = paginator_service.0.lock().unwrap();
     let application_service = application_service.0.lock().unwrap();
     let first_page = paginator_service.first_page.clone();
-    return paginator_service.goToPage(application_service.getIdentifierMapper(), &first_page);
+    return paginator_service.goToPage(application_service.getIdentifierMapper()?, &first_page);
 }
 
 #[tauri::command]
 fn goToLastPage(paginator_service: State<PaginatorServiceState>, 
-        application_service: State<ApplicationServiceState>) -> (Vec<Pattern>, u32, u32) {
+        application_service: State<ApplicationServiceState>) -> Result<(Vec<Pattern>, u32, u32), GenericError> {
 
     println!("Calling goToLastPage...");
 
     let mut paginator_service = paginator_service.0.lock().unwrap();
     let application_service = application_service.0.lock().unwrap();
     let last_page = paginator_service.last_page.clone();
-    return paginator_service.goToPage(application_service.getIdentifierMapper(), &last_page);
+    return paginator_service.goToPage(application_service.getIdentifierMapper()?, &last_page);
 }
 
 #[tauri::command]
 fn nextPage(paginator_service: State<PaginatorServiceState>, 
-        application_service: State<ApplicationServiceState>) -> (Vec<Pattern>, u32, u32) {
+        application_service: State<ApplicationServiceState>) -> Result<(Vec<Pattern>, u32, u32), GenericError> {
 
     println!("Calling nextPage...");
 
     let mut paginator_service = paginator_service.0.lock().unwrap();
     let application_service = application_service.0.lock().unwrap();
-    return paginator_service.nextPage(application_service.getIdentifierMapper());
+    return paginator_service.nextPage(application_service.getIdentifierMapper()?);
 }
 
 #[tauri::command]
 fn previousPage(paginator_service: State<PaginatorServiceState>, 
-        application_service: State<ApplicationServiceState>) -> (Vec<Pattern>, u32, u32) {
+        application_service: State<ApplicationServiceState>) -> Result<(Vec<Pattern>, u32, u32), GenericError> {
 
     println!("Calling previousPage...");
 
     let mut paginator_service = paginator_service.0.lock().unwrap();
     let application_service = application_service.0.lock().unwrap();
-    return paginator_service.previousPage(application_service.getIdentifierMapper());
+    return paginator_service.previousPage(application_service.getIdentifierMapper()?);
 }
 
 //////////////////////////// Application ////////////////////////////
 #[tauri::command]
-fn initApplication(application_service: State<ApplicationServiceState>, tensor_path: String, patterns_path: String) {
+fn initApplication(application_service: State<ApplicationServiceState>, tensor_path: String, patterns_path: String) 
+        -> Result<(), GenericError> {
     println!("Calling changeTensor...");
 
     let mut application_service = application_service.0.lock().unwrap();
-    application_service.init(&tensor_path, &patterns_path);
-
+    application_service.init(&tensor_path, &patterns_path)?;
+    
+    return Ok(());
 }
 
 #[tauri::command]
-fn changePatterns(application_service: State<ApplicationServiceState>, patterns_path: String) {
+fn changePatterns(application_service: State<ApplicationServiceState>, patterns_path: String) 
+        -> Result<(), GenericError> {
     println!("Calling changePatterns...");
 
     let mut application_service = application_service.0.lock().unwrap();
-    application_service.changePatterns(&patterns_path);
+    application_service.changePatterns(&patterns_path)?;
+
+    return Ok(());
 }
 
 #[tauri::command]
-fn truncateModel(application_service: State<ApplicationServiceState>, new_size: u32) {
+fn truncateModel(application_service: State<ApplicationServiceState>, new_size: u32) 
+        -> Result<(), GenericError>{
     println!("Calling truncateModel...");
 
     let mut application_service = application_service.0.lock().unwrap();
-    application_service.truncateModel(&new_size);
+    application_service.truncateModel(&new_size)?;
+
+    return Ok(());
 }
 
 #[tauri::command]
-fn getFullRssEvolution(application_service: State<ApplicationServiceState>) -> Vec<f64> {
+fn getFullRssEvolution(application_service: State<ApplicationServiceState>) -> Result<Vec<f64>, GenericError> {
     println!("Calling getFullRssEvolution...");
 
     let application_service = application_service.0.lock().unwrap();
@@ -128,7 +136,7 @@ fn getFullRssEvolution(application_service: State<ApplicationServiceState>) -> V
 }
 
 #[tauri::command]
-fn getTruncatedRssEvolution(application_service: State<ApplicationServiceState>) -> Vec<f64> {
+fn getTruncatedRssEvolution(application_service: State<ApplicationServiceState>) -> Result<Vec<f64>, GenericError> {
     println!("Calling getTruncatedRssEvolution...");
 
     let application_service = application_service.0.lock().unwrap();
@@ -136,23 +144,27 @@ fn getTruncatedRssEvolution(application_service: State<ApplicationServiceState>)
 }
 
 #[tauri::command]
-fn descendDag(application_service: State<ApplicationServiceState>, next_identifier: u32) {
+fn descendDag(application_service: State<ApplicationServiceState>, next_identifier: u32) -> Result<(), GenericError>{
     println!("Calling descendDag...");
 
     let mut application_service = application_service.0.lock().unwrap();
-    application_service.descendDag(&next_identifier);
+    application_service.descendDag(&next_identifier)?;
+
+    return Ok(());
 }
 
 #[tauri::command]
-fn ascendDag(application_service: State<ApplicationServiceState>) {
+fn ascendDag(application_service: State<ApplicationServiceState>) -> Result<(), GenericError>{
     println!("Calling ascendDag...");
 
     let mut application_service = application_service.0.lock().unwrap();
-    application_service.ascendDag();
+    application_service.ascendDag()?;
+
+    return Ok(());
 }
 
 #[tauri::command]
-fn getDataPoints(application_service: State<ApplicationServiceState>) -> Vec<DataPoint> {
+fn getDataPoints(application_service: State<ApplicationServiceState>) -> Result<Vec<DataPoint>, GenericError> {
     println!("Calling getDataPoints...");
 
     let application_service = application_service.0.lock().unwrap();

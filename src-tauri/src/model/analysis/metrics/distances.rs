@@ -198,9 +198,11 @@ impl Distances{
             -> Result<HashMap<u32, HashMap<u32, f64>>, GenericError>{
         // 58s, 30s, 46s, 39s, 37s, 19s, 16s, 5s, 3s
         let distances = Arc::new(Mutex::new(HashMap::new()));
-        let patterns: Vec<Pattern> = identifier_mapper.getRepresentations().iter()
-            .map(|r| r.asPattern().clone())
+        let patterns: Result<Vec<Pattern>, GenericError> = identifier_mapper.getRepresentations().iter()
+            .map(|r| r.asPattern().map(|p| p.clone()))
             .collect();
+
+        let patterns = patterns?;
 
         let total_distances = (identifier_mapper.length().pow(2) as u32 / 2) - identifier_mapper.length() as u32;
         let total_distances = total_distances as u64;
@@ -229,18 +231,17 @@ impl Distances{
                         let normalized_distance = Distances::normalize(x, y, &raw_distance)?;
                         
                         let mut distances = distances.lock()
-                            .as_mut()
                             .map_err(|_| GenericError::new("Error while getting distance matrix thread lock"))?;
 
-                        Distances::insertIntoDistancesMatrix(&mut distances, &x, &y, &normalized_distance);
-                        Distances::insertIntoDistancesMatrix(&mut distances, &y, &x, &normalized_distance);
+                        Distances::insertIntoDistancesMatrix(&mut distances, &x, &y, &normalized_distance)?;
+                        Distances::insertIntoDistancesMatrix(&mut distances, &y, &x, &normalized_distance)?;
                         bar.inc(1);
                     }
                 }
             }
 
             return Ok(());
-        });
+        })?;
     
         bar.finish();
         let distances = distances.lock()
@@ -258,8 +259,8 @@ impl Distances{
 
         for (i, real_identifier) in identifiers.iter().enumerate(){
             let view_identifier = (i + 1) as u32; // Because i starts at zero
-            let representation = identifier_mapper.getRepresentation(real_identifier);
-            let pattern = representation.asPattern();
+            let representation = identifier_mapper.getRepresentation(real_identifier)?;
+            let pattern = representation.asPattern()?;
             
             patterns.push(pattern);
             mapping.insert(view_identifier, *real_identifier);
@@ -275,8 +276,8 @@ impl Distances{
                             .get(&y.identifier)
                             .ok_or(GenericError::new(&format!("Distance from {} to {} not found", &x.identifier, &y.identifier)))?;
 
-                        Distances::insertIntoDistancesMatrix(&mut distances_view, &x, &y, distance);    
-                        Distances::insertIntoDistancesMatrix(&mut distances_view, &y, &x, distance);    
+                        Distances::insertIntoDistancesMatrix(&mut distances_view, &x, &y, distance)?;    
+                        Distances::insertIntoDistancesMatrix(&mut distances_view, &y, &x, distance)?;    
                     }
                 }
             }

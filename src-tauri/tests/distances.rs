@@ -35,8 +35,8 @@ mod distances {
         let patterns_path = "tests/test_data/distance_test/a_patterns.txt".to_owned();
         
         let mut model_manager = ApplicationService::default();
-        model_manager.init(&tensor_path, &patterns_path);
-        let actual = model_manager.getDistances().clone();
+        model_manager.init(&tensor_path, &patterns_path).expect("Test should not fail");
+        let actual = model_manager.getDistances().expect("Test should not fail").clone();
 
         let mut expected: HashMap<u32, HashMap<u32, f64>> = HashMap::new();
         expected.insert(1, HashMap::from_iter(vec![(2, 0.0039)].into_iter()));
@@ -51,8 +51,8 @@ mod distances {
         let patterns_path = "tests/test_data/distance_test/b_patterns.txt".to_owned();
         
         let mut model_manager = ApplicationService::default();
-        model_manager.init(&tensor_path, &patterns_path);
-        let actual = model_manager.getDistances().clone();
+        model_manager.init(&tensor_path, &patterns_path).expect("Test should not fail");
+        let actual = model_manager.getDistances().expect("Test should not fail").clone();
 
         let mut expected: HashMap<u32, HashMap<u32, f64>> = HashMap::new();
         expected.insert(1, HashMap::from_iter(vec![(2, 0.7665)].into_iter()));
@@ -67,8 +67,8 @@ mod distances {
         let patterns_path = "tests/test_data/distance_test/c_patterns.txt".to_owned();
         
         let mut model_manager = ApplicationService::default();
-        model_manager.init(&tensor_path, &patterns_path);
-        let actual = model_manager.getDistances().clone();
+        model_manager.init(&tensor_path, &patterns_path).expect("Test should not fail");
+        let actual = model_manager.getDistances().expect("Test should not fail").clone();
 
         let mut expected: HashMap<u32, HashMap<u32, f64>> = HashMap::new();
         expected.insert(1, HashMap::from_iter(vec![(2, 0.0474)].into_iter()));

@@ -1,4 +1,4 @@
-use crate::database::{pattern::Pattern, dag_node::DagNode, datapoint::DataPoint};
+use crate::{database::{pattern::Pattern, dag_node::DagNode, datapoint::DataPoint}, common::generic_error::GenericError};
 
 
 pub struct IdentifierRepresentation {
@@ -24,15 +24,18 @@ impl IdentifierRepresentation {
         self.data_point_representation = Some(data_point_representation);
     }
 
-    pub fn asPattern(&self) -> &Pattern {
-        return self.pattern_representation.as_ref().unwrap();
+    pub fn asPattern(&self) -> Result<&Pattern, GenericError> {
+        return self.pattern_representation.as_ref()
+            .ok_or(GenericError::new("Could not get pattern representation"));
     }
 
-    pub fn asDagNode(&self) -> &DagNode {
-        return self.dag_node_representation.as_ref().unwrap();
+    pub fn asDagNode(&self) -> Result<&DagNode, GenericError> {
+        return self.dag_node_representation.as_ref()
+            .ok_or(GenericError::new("Could not get dag node representation"));
     }
 
-    pub fn asDataPoint(&self) -> &DataPoint {
-        return self.data_point_representation.as_ref().unwrap();
+    pub fn asDataPoint(&self) -> Result<&DataPoint, GenericError> {
+        return self.data_point_representation.as_ref()
+            .ok_or(GenericError::new("Could not get data point representation"));
     }
 }

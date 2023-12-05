@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use debug_print::{debug_println, debug_print};
 use itertools::Itertools;
 use ndarray::{IxDynImpl, Dim};
-use serde::{Deserialize, Serialize, ser::SerializeStruct};
+use serde::{Serialize, ser::SerializeStruct};
 use std::hash::{Hash, Hasher};
 
 use crate::common::generic_error::GenericError;

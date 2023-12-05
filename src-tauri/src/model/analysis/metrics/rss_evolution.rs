@@ -3,8 +3,7 @@ use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use std::iter::Iterator;
 use crate::common::generic_error::GenericError;
 use crate::common::progress_bar;
-use crate::database::pattern::{Pattern, self};
-use crate::model::analysis::ordered_pair::OrderedPair;
+use crate::database::pattern::Pattern;
 use crate::{model::identifier_mapper::IdentifierMapper, database::tensor::Tensor};
 use super::empty_model_rss::EmptyModelRss;
 use super::metric::Metric;
@@ -135,10 +134,10 @@ impl RssEvolution{
         let mut overlappings: HashMap<u32, HashSet<u32>> = HashMap::new();
 
         for pattern in patterns {
-            let node = identifier_mapper.getRepresentation(&pattern.identifier).asDagNode();
+            let node = identifier_mapper.getRepresentation(&pattern.identifier)?.asDagNode()?;
 
             for other_pattern in patterns {
-                let other_node = identifier_mapper.getRepresentation(&other_pattern.identifier).asDagNode();
+                let other_node = identifier_mapper.getRepresentation(&other_pattern.identifier)?.asDagNode()?;
                 
                 if node.overlappings.contains(&other_node.identifier) || other_node.overlappings.contains(&node.identifier) {
                     overlappings.entry(pattern.identifier)
@@ -222,7 +221,7 @@ impl RssEvolution{
                 .insert(pattern.identifier, (untouched_size, untouched_rss));
 
             return Ok(());
-        });
+        })?;
 
         let prediction_matrix = prediction_matrix.lock()
             .as_mut()
@@ -294,8 +293,8 @@ impl RssEvolution{
             let ignore_intersector = !seen_candidates.contains(intersector);
             
             let intersector_prediction = identifier_mapper
-                .getRepresentation(intersector)
-                .asPattern().density;
+                .getRepresentation(intersector)?
+                .asPattern()?.density;
 
             for intersection_index in intersection_indices {
                 let previous_prediction = prediction_matrix.get(intersection_index)
@@ -359,7 +358,7 @@ impl RssEvolution{
             current_model_rss = candidate_model_rss;
             rss_evolution.push((pattern.identifier, current_model_rss));
             seen_candidates.push(pattern.identifier);
-            RssEvolution::updatePredictionMatrix(&mut prediction_matrix, &intersections_indices, pattern);
+            RssEvolution::updatePredictionMatrix(&mut prediction_matrix, &intersections_indices, pattern)?;
             bar.inc(1);
         }
 

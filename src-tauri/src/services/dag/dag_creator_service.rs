@@ -47,17 +47,17 @@ impl DagCreatorService<'_>{
         return self.dag_arranger_service.traverse(&self.actual_node);
     }
 
-    fn firstRelationToSecond(&self, first_node: &u32, second_node: &u32) -> Relation {
-        let first_patern: &Pattern = self.identifier_mapper.getRepresentation(first_node).asPattern();
-        let second_patern: &Pattern = self.identifier_mapper.getRepresentation(second_node).asPattern();
+    fn firstRelationToSecond(&self, first_node: &u32, second_node: &u32) -> Result<Relation, GenericError> {
+        let first_patern: &Pattern = self.identifier_mapper.getRepresentation(first_node)?.asPattern()?;
+        let second_patern: &Pattern = self.identifier_mapper.getRepresentation(second_node)?.asPattern()?;
         return first_patern.selfRelationTo(second_patern);
     }
 
-    fn refreshOverlappingRelations(&mut self, first_node: &u32, second_node: &u32, relation: Relation){
-        if relation == Relation::NotRelatable{ return; }
+    fn refreshOverlappingRelations(&mut self, first_node: &u32, second_node: &u32, relation: Relation) -> Result<(), GenericError>{
+        if relation == Relation::NotRelatable{ return Ok(()); }
 
-        let first_pattern_density = self.identifier_mapper.getRepresentation(first_node).asPattern().density;
-        let second_pattern_density = self.identifier_mapper.getRepresentation(second_node).asPattern().density;
+        let first_pattern_density = self.identifier_mapper.getRepresentation(first_node)?.asPattern()?.density;
+        let second_pattern_density = self.identifier_mapper.getRepresentation(second_node)?.asPattern()?.density;
 
         if first_pattern_density >= second_pattern_density{
             self.dag_arranger_service.addOverlappingNode(second_node, first_node);
@@ -66,18 +66,20 @@ impl DagCreatorService<'_>{
         if first_pattern_density <= second_pattern_density {
             self.dag_arranger_service.addOverlappingNode(first_node, second_node);
         } 
+
+        return Ok(());
     }
 
-    fn traverseTree(&mut self, subtree_font: &u32, node_to_compare: &u32, current_branch: u32, current_level: u32){
+    fn traverseTree(&mut self, subtree_font: &u32, node_to_compare: &u32, current_branch: u32, current_level: u32) -> Result<(), GenericError>{
         debug_print!("\n    => Traversing subtree of {}, ", subtree_font);
         let current_level_nodes: Vec<u32> = self.changePosition(*subtree_font).clone();
         let mut next_level_fonts: Vec<u32> = Vec::new();
         debug_println!("level: {}, level size: {}, branch: {}, belonging_branch: {}, belonging_level: {}", &current_level, current_level_nodes.len(), &current_branch, &self.belonging_branch, &self.belonging_level);
 
         let mut belongs_to_this_level: bool = false;
-        let relation = self.firstRelationToSecond(node_to_compare, &subtree_font);
+        let relation = self.firstRelationToSecond(node_to_compare, &subtree_font)?;
         if relation == Relation::SubPattern{ belongs_to_this_level = true; }
-        self.refreshOverlappingRelations(node_to_compare, subtree_font, relation);
+        self.refreshOverlappingRelations(node_to_compare, subtree_font, relation)?;
         
         for current_level_node in current_level_nodes.iter(){
             if relation == Relation::SuperPattern{ // Node to compare is super of subtree_font, does not need to traverse this branch
@@ -92,7 +94,7 @@ impl DagCreatorService<'_>{
 
         for (i, next_level_font) in next_level_fonts.iter().enumerate(){ // RECURSIVE
             let next_branch = current_branch + i as u32;
-            self.traverseTree(&next_level_font, node_to_compare, next_branch, current_level + 1);
+            self.traverseTree(&next_level_font, node_to_compare, next_branch, current_level + 1)?;
         }
         // Recursion returnal bellow
 
@@ -121,39 +123,41 @@ impl DagCreatorService<'_>{
             // Sets the sub relation on the recursion returnal
 
             if current_level < self.belonging_level{ // Avoids the connection of patterns that are above the insertion point
-                return;
+                return Ok(());
             }
 
             debug_println!("    {} {} {}{}", format!("{}", node_to_compare).yellow(), "located in a different below branch is sub of".yellow(), format!("{}", &subtree_font).yellow(), ", CONNECTING them".yellow());
             self.dag_arranger_service.addBellow(node_to_compare, subtree_font);
         }
 
+        return Ok(());
+
     }
 
-    fn getRelationedFonts(&mut self,node: &u32) -> HashMap<u32, Relation> {
+    fn getRelationedFonts(&mut self,node: &u32) -> Result<HashMap<u32, Relation>, GenericError> {
         let fonts: Vec<u32> = self.dag_arranger_service.getFontNodesIdentifiers();
         debug_println!("    Current fonts {:?}", fonts);
         let mut relationed_fonts: HashMap<u32, Relation> = HashMap::new();
 
         for font in fonts{
-            let relation = self.firstRelationToSecond(node, &font);
+            let relation = self.firstRelationToSecond(node, &font)?;
             if relation == Relation::NotRelatable{ continue; }
-            self.refreshOverlappingRelations(node, &font, relation);
+            self.refreshOverlappingRelations(node, &font, relation)?;
 
             relationed_fonts.insert(font, relation);
         }
-        return relationed_fonts;
+        return Ok(relationed_fonts);
     }
 
-    fn setInsertionPoints(&mut self, node: &u32){
+    fn setInsertionPoints(&mut self, node: &u32) -> Result<(), GenericError>{
         debug_println!("{} {}", "\n=> SETTING insertion points for node".green(), format!("{}", node).green());
         self.insertion_points.clear();
-        let relationed_fonts: HashMap<u32, Relation> = self.getRelationedFonts(node);
+        let relationed_fonts: HashMap<u32, Relation> = self.getRelationedFonts(node)?;
 
         if relationed_fonts.len() == 0{
             // This node is a new font
             debug_println!("    Node does not have any relationed font, setting it to be a new font");
-            return;
+            return Ok(());
         }
 
         debug_println!("    Found relationed fonts: {:?}", &relationed_fonts);
@@ -170,8 +174,10 @@ impl DagCreatorService<'_>{
             self.assigned_belonging_level = false;
             self.belonging_branch = 0;
             self.belonging_level = 0;
-            self.traverseTree(&relationed_font.0, node, 1, 2);
+            self.traverseTree(&relationed_font.0, node, 1, 2)?;
         }
+
+        return Ok(());
     }
 
     fn insertNodeAbove(&mut self, node: &u32, insertion_point: &u32){
@@ -179,20 +185,20 @@ impl DagCreatorService<'_>{
         self.dag_arranger_service.moveSubtreeBellow(insertion_point, node);
     }
 
-    fn insertNodeBellow(&mut self, node: &u32, insertion_point: &u32){
+    fn insertNodeBellow(&mut self, node: &u32, insertion_point: &u32) -> Result<(), GenericError>{
         let subs = self.dag_arranger_service.traverse(insertion_point).clone();
 
         debug_println!("    Inserting {} bellow {}", node, insertion_point);
         self.dag_arranger_service.addBellow(node, insertion_point);
 
         if subs.is_empty(){
-            return;
+            return Ok(());
         }
 
         debug_println!("    Insertion point has subs {:?}", &subs);
         for sub in subs{
-            let relation = self.firstRelationToSecond(node, &sub);
-            self.refreshOverlappingRelations(node, &sub, relation);
+            let relation = self.firstRelationToSecond(node, &sub)?;
+            self.refreshOverlappingRelations(node, &sub, relation)?;
 
             if relation == Relation::SuperPattern{
                 // If the node is super of someone rearrange dag
@@ -200,9 +206,11 @@ impl DagCreatorService<'_>{
                 self.dag_arranger_service.moveSubtreeBellow(&sub, node);
             }
         }
+
+        return Ok(());
     }
 
-    fn insertNodeOnDag(&mut self, node: &u32){
+    fn insertNodeOnDag(&mut self, node: &u32) -> Result<(), GenericError>{
         debug_println!("{} {} {}", "\n==> INSERTING node".yellow(), format!("{}", node).yellow(), "on DAG".yellow());
         debug_println!("    Insertion points: {:?} (empty if is new font)", &self.insertion_points);
 
@@ -225,10 +233,12 @@ impl DagCreatorService<'_>{
             }
 
             if *insertion_place == InsertionPlace::Bellow{
-                self.insertNodeBellow(node, insertion_point);
+                self.insertNodeBellow(node, insertion_point)?;
                 continue;
             }
         }
+
+        return Ok(());
     }
 
     pub fn create(mut self, flat_dag_nodes: Vec<DagNode>) -> Result<Vec<DagNode>, GenericError>{
@@ -238,8 +248,8 @@ impl DagCreatorService<'_>{
         self.dag_arranger_service.init(flat_dag_nodes);
         
         for id in self.dag_arranger_service.getNodesIdentifiers(){
-            self.setInsertionPoints(&id);
-            self.insertNodeOnDag(&id);
+            self.setInsertionPoints(&id)?;
+            self.insertNodeOnDag(&id)?;
             bar.inc(1);
         }
         bar.finish();

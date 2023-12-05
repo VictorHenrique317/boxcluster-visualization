@@ -1,9 +1,6 @@
 #![allow(non_snake_case)]
-use std::error::Error;
 
-use serde::de;
-
-use crate::database::pattern::Pattern;
+use crate::{database::pattern::Pattern, common::generic_error::GenericError};
 use super::{translator::Translator, reader::Reader};
 
 pub struct PatternReader<'a> {
@@ -13,7 +10,7 @@ pub struct PatternReader<'a> {
 }
 
 impl PatternReader<'_>{
-    pub fn new<'a>(file_path: &String, translator: &'a Translator) -> Result<PatternReader<'a>, Box<dyn Error>> {
+    pub fn new<'a>(file_path: &String, translator: &'a Translator) -> Result<PatternReader<'a>, GenericError> {
         let density = Reader::fileHasDensity(&file_path)?;
 
         let instance = PatternReader {
@@ -25,7 +22,7 @@ impl PatternReader<'_>{
         return Ok(instance);
     }
 
-    pub fn read<'a>(self) -> Vec<Pattern>{
+    pub fn read<'a>(self) -> Result<Vec<Pattern>, GenericError>{
         let mut patterns: Vec<Pattern> = Vec::new();        
         let lines: Vec<String> = Reader::readRawLines(&self.file_path);
         
@@ -36,7 +33,10 @@ impl PatternReader<'_>{
                 .collect();
 
             if self.file_has_densities{
-                density = line_dims.pop().unwrap().parse::<f64>().unwrap();
+                density = line_dims.pop()
+                    .ok_or(GenericError::new("Could not get density"))?
+                    .parse::<f64>()
+                    .map_err(|_| GenericError::new("Could not parse density to f64"))?
             }
 
             patterns.push(Pattern::new(
@@ -46,7 +46,7 @@ impl PatternReader<'_>{
             ));
         }
 
-        return patterns;
+        return Ok(patterns);
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::{model::io::{translator::Translator, tensor_reader::TensorReader, pattern_reader::PatternReader}, database::{tensor::Tensor, pattern::Pattern}};
+use crate::{model::io::{translator::Translator, tensor_reader::TensorReader, pattern_reader::PatternReader}, database::{tensor::Tensor, pattern::Pattern}, common::generic_error::GenericError};
 
 pub struct IoService {
     tensor_path: String,
@@ -31,7 +31,7 @@ impl IoService {
         self.patterns_path = patterns_path.to_owned();
     }
 
-    pub fn readTensor(&self) -> Tensor {
+    pub fn readTensor(&self) -> Result<Tensor, GenericError> {
         println!("Reading tensor ...");
         let tensor_reader = TensorReader::new(
             &self.tensor_path,
@@ -39,12 +39,12 @@ impl IoService {
         return tensor_reader.read();
     }
 
-    pub fn readPatterns(&self) -> Result<Vec<Pattern>, Box<dyn std::error::Error>> {
+    pub fn readPatterns(&self) -> Result<Vec<Pattern>, GenericError> {
         println!("Reading patterns ...");
         let pattern_reader = PatternReader::new(
                 &self.patterns_path,
                 &self.translator)?;
 
-        return Ok(pattern_reader.read());
+        return pattern_reader.read();
     }
 }

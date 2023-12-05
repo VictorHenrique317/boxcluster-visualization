@@ -1,6 +1,4 @@
-use plotters::style::RGBColor;
-
-use crate::{model::{identifier_mapper::IdentifierMapper, analysis::metrics::{coordinates::Coordinates, metric::Metric}}, database::{datapoint::DataPoint, pattern::Pattern}};
+use crate::{model::{identifier_mapper::IdentifierMapper, analysis::metrics::{coordinates::Coordinates, metric::Metric}}, database::{datapoint::DataPoint, pattern::Pattern}, common::generic_error::GenericError};
 
 pub struct DataPointService {}
 
@@ -25,24 +23,24 @@ impl DataPointService {
         return (r, g, b);
     }
 
-    pub fn createDataPoints(identifier_mapper: &IdentifierMapper, coordinates: &Coordinates) -> Vec<DataPoint> {
+    pub fn createDataPoints(identifier_mapper: &IdentifierMapper, coordinates: &Coordinates) -> Result<Vec<DataPoint>, GenericError> {
         let coordinates = coordinates.get();
-        let pattern_representations: Vec<&Pattern> = identifier_mapper.getRepresentations().iter()
-            .map(|r| r.asPattern())
-            .collect();
-
-        // let mut descending_sizes: Vec<&Pattern> = pattern_representations.iter().cloned().collect();
-        // descending_sizes.sort_by_key(|p| p.identifier);
-        // let min_size = descending_sizes.get(descending_sizes.len() - 1).unwrap().size;
-
-        // let max_size = descending_sizes.get(0).unwrap().size;
-        // let max_size = DataPointService::normalizeSize(&max_size, &min_size);
-
+        let mut pattern_representations: Vec<&Pattern> = Vec::new();
+        for r in identifier_mapper.getRepresentations().iter() {
+            match r.asPattern() {
+                Ok(pattern) => pattern_representations.push(pattern),
+                Err(e) => return Err(e),
+            }
+        }
 
         let mut datapoints: Vec<DataPoint> = Vec::new();
-        let dimension = pattern_representations.get(0).unwrap().dims_values.len() as u32;
+        let dimension = pattern_representations.get(0)
+            .ok_or(GenericError::new("Could not get dimension"))?
+            .dims_values.len() as u32;
+
         for pattern in pattern_representations {
-            let coord = coordinates.get(&pattern.identifier).unwrap();
+            let coord = coordinates.get(&pattern.identifier)
+                .ok_or(GenericError::new("Could not get coordinates"))?;
             
             let size = DataPointService::normalizeSize(&pattern.size, &dimension);
             // let stroke_width = DataPointService::calculateStrokeWidth(&max_size, &size);
@@ -62,6 +60,6 @@ impl DataPointService {
             datapoints.push(datapoint);
         }
 
-        return datapoints;
+        return Ok(datapoints);
     }
 }

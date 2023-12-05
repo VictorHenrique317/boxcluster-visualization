@@ -18,36 +18,43 @@ impl Default for ApplicationService{
 }
 
 impl ApplicationService{
-    pub fn init(&mut self, tensor_path: &String, patterns_path: &String){
+    pub fn init(&mut self, tensor_path: &String, patterns_path: &String) -> Result<(), GenericError>{
         let start_time = Instant::now();
         println!("Initializing model...");
 
         self.io_service = IoService::new(tensor_path, patterns_path);
-        let tensor = self.io_service.readTensor();
-        let patterns = self.io_service.readPatterns().unwrap();
+        let tensor = self.io_service.readTensor()?;
+        let patterns = self.io_service.readPatterns()?;
 
         self.application_state_service = ApplicationStateService::default();
-        self.application_state_service.init(tensor, patterns);
+        self.application_state_service.init(tensor, patterns)?;
 
         let end_time = Instant::now();
         let duration = end_time - start_time;
         println!("Total time taken: {:?}", duration);
 
         PlotService::plot(&self.application_state_service);
+        return Ok(());
     }
 
     pub fn getFlattenedSupers(&self) -> Result<HashMap<u32, Vec<u32>>, GenericError>{
         let identifier_mapper = self.application_state_service.identifierMapper()?;
-        return self.application_state_service.getDagService().getFlattenedSupers(identifier_mapper);
+        return Ok(
+            self.application_state_service.getDagService()?.getFlattenedSupers(identifier_mapper)?
+        );
     }
 
-    pub fn getFlattenedSubs(&self) -> HashMap<u32, Vec<u32>>{
-        let identifier_mapper = self.application_state_service.identifierMapper();
-        return self.application_state_service.getDagService().getFlattenedSubs(identifier_mapper);
+    pub fn getFlattenedSubs(&self) -> Result<HashMap<u32, Vec<u32>>, GenericError>{
+        let identifier_mapper = self.application_state_service.identifierMapper()?;
+        return Ok(
+            self.application_state_service.getDagService()?.getFlattenedSubs(identifier_mapper)?
+        );
     }
 
-    pub fn getDistances(&self) -> &HashMap<u32, HashMap<u32, f64>>{
-        return self.application_state_service.getMetricsService().distances.get();
+    pub fn getDistances(&self) -> Result<&HashMap<u32, HashMap<u32, f64>>, GenericError>{
+        return Ok(
+            self.application_state_service.getMetricsService()?.distances.get()
+        );
     }
 
     pub fn getIdentifierMapper(&self) -> Result<&IdentifierMapper, GenericError> {
@@ -56,53 +63,67 @@ impl ApplicationService{
 
     // ================ External API ================
 
-    pub fn changePatterns(&mut self, patterns_path: &String){
+    pub fn changePatterns(&mut self, patterns_path: &String) -> Result<(), GenericError>{
         println!("\nChanging patterns to: {}", patterns_path);
         self.io_service.setPatternsPath(patterns_path);
-        let patterns = self.io_service.readPatterns().unwrap();
+        let patterns = self.io_service.readPatterns()?;
 
-        self.application_state_service.changePatterns(patterns);
+        self.application_state_service.changePatterns(patterns)?;
         PlotService::plot(&self.application_state_service);
+
+        return Ok(());
     }
 
-    pub fn ascendDag(&mut self){
+    pub fn ascendDag(&mut self) -> Result<(), GenericError>{
         println!("\nAscending dag");
-        self.application_state_service.ascendDag();
+        self.application_state_service.ascendDag()?;
         PlotService::plot(&self.application_state_service);
+
+        return Ok(());
     }
 
-    pub fn descendDag(&mut self, next_identifier: &u32){
+    pub fn descendDag(&mut self, next_identifier: &u32) -> Result<(), GenericError> {
         println!("\nDescending dag to: {}", next_identifier);
-        self.application_state_service.descendDag(next_identifier);
+        self.application_state_service.descendDag(next_identifier)?;
         PlotService::plot(&self.application_state_service);
+
+        return Ok(());
     }
 
-    pub fn truncateModel(&mut self, new_size: &u32){
+    pub fn truncateModel(&mut self, new_size: &u32) -> Result<(), GenericError> {
         println!("\nTruncating model to {} patterns", new_size);
-        self.application_state_service.truncateModel(&new_size);
+        self.application_state_service.truncateModel(&new_size)?;
         PlotService::plot(&self.application_state_service);
+
+        return Ok(());
     }
 
-    pub fn getDataPoints(&self) -> Vec<DataPoint>{
+    pub fn getDataPoints(&self) -> Result<Vec<DataPoint>, GenericError>{
         let visible_identifiers = self.application_state_service.getVisibleIdentifiers();
-        return self.application_state_service.identifierMapper()
+        return Ok(
+            self.application_state_service.identifierMapper()?
             .getOrderedDataPointsFrom(visible_identifiers).into_iter()
             .map(|datapoint| datapoint.clone())
-            .collect();
+            .collect()
+        );
     }
 
-    pub fn getFullRssEvolution(&self) -> Vec<f64>{
-        return self.application_state_service.getMetricsService().rss_evolution.get().clone()
+    pub fn getFullRssEvolution(&self) -> Result<Vec<f64>, GenericError>{
+        return Ok(
+            self.application_state_service.getMetricsService()?.rss_evolution.get().clone()
             .into_iter()
             .map(|size_rss| size_rss.1)
-            .collect();
+            .collect()
+        );
     }
 
-    pub fn getTruncatedRssEvolution(&self) -> Vec<f64>{
-        return self.application_state_service.getMetricsService().rss_evolution.getTruncated().clone()
+    pub fn getTruncatedRssEvolution(&self) -> Result<Vec<f64>, GenericError>{
+        return Ok(
+            self.application_state_service.getMetricsService()?.rss_evolution.getTruncated().clone()
             .into_iter()
             .map(|size_rss| size_rss.1)
-            .collect();
+            .collect()
+        );
     }
 
 }

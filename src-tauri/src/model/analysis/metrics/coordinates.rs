@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 
 use std::{collections::HashMap, sync::{Mutex, Arc}};
-use nalgebra::{DMatrix, DVector, SVD};
-use ndarray::{IxDynImpl, Dim, ArrayD, Array, Array2};
+use nalgebra::{DMatrix, SVD};
+use ndarray::{IxDynImpl, Dim, ArrayD, Array};
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use crate::{model::identifier_mapper::IdentifierMapper, common::generic_error::GenericError};
 use super::{metric::Metric, distances::DistancesTrait};
@@ -41,18 +41,18 @@ impl Coordinates {
                 let pattern_2 = (pattern_2 - 1) as usize;
 
                 let index: Dim<IxDynImpl> = Dim(vec![pattern_1, pattern_2]);
+                
                 let mut distance_matrix_lock = distance_matrix.lock()
-                    .as_mut()
                     .map_err(|_| GenericError::new("Error while getting distance matrix thread lock"))?;
 
-                let matrix_value = distance_matrix_lock.get_mut(index)
+                let matrix_value = distance_matrix_lock.get_mut(&index)
                     .ok_or(GenericError::new(&format!("Index {:?} does not exist on distance matrix", &index)))?;
 
                 *matrix_value = *distance;
             }
 
             return Ok(());
-        });
+        })?;
 
         let distance_matrix = distance_matrix.lock()
             .as_mut()
@@ -63,7 +63,7 @@ impl Coordinates {
         for i in 0..n {
             for j in 0..n {
                 let index: Dim<IxDynImpl> = Dim(vec![i, j]);
-                let matrix_value = distance_matrix.get(index)
+                let matrix_value = distance_matrix.get(&index)
                     .ok_or(GenericError::new(&format!("Index {:?} does not exist on distance matrix", &index)))?;
 
                 dissimilarity_matrix[(i, j)] = *matrix_value;
