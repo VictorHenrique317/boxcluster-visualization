@@ -22,7 +22,7 @@ impl ApplicationService{
         let start_time = Instant::now();
         println!("Initializing model...");
 
-        self.io_service = IoService::new(tensor_path, patterns_path);
+        self.io_service = IoService::new(tensor_path, patterns_path)?;
         let tensor = self.io_service.readTensor()?;
         let patterns = self.io_service.readPatterns()?;
 

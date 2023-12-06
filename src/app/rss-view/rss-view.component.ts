@@ -47,6 +47,9 @@ export class RssViewComponent {
         this.rss_evolution = result;
         this.svg = new Svg(this.canvas, width, height, this.rss_evolution, this.scalingFunction, true, false);
         this.svg.resize(width, height, 0);
+        
+      }).catch((error: any) => {
+        console.log(error);
       });
 
     // this.rss_evolution = [

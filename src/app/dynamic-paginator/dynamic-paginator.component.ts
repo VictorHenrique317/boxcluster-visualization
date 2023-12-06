@@ -47,6 +47,9 @@ export class DynamicPaginatorComponent implements AfterViewInit {
     invoke("getSoundingPattern").then((sounding_pattern: Pattern) =>{
       this.page_items = [sounding_pattern];
       console.log("Sounding pattern: %o", sounding_pattern);
+
+    }).catch((error: any) => {
+      console.log(error);
     });
   }
 
@@ -61,6 +64,9 @@ export class DynamicPaginatorComponent implements AfterViewInit {
       this.page_items = result[0];
       this.current_page = result[1];
       this.total_pages = result[2] + 1;
+
+    }).catch((error: any) => {
+      console.log(error);
     });
   }
 
@@ -69,6 +75,9 @@ export class DynamicPaginatorComponent implements AfterViewInit {
       this.page_items = result[0];
       this.current_page = result[1];
       this.total_pages = result[2] + 1;
+
+    }).catch((error: any) => {
+      console.log(error);
     });
   }
 
@@ -77,6 +86,9 @@ export class DynamicPaginatorComponent implements AfterViewInit {
       this.page_items = result[0];
       this.current_page = result[1];
       this.total_pages = result[2] + 1;
+
+    }).catch((error: any) => {
+      console.log(error);
     });
   }
 
@@ -85,6 +97,9 @@ export class DynamicPaginatorComponent implements AfterViewInit {
       this.page_items = result[0];
       this.current_page = result[1];
       this.total_pages = result[2] + 1;
+
+    }).catch((error: any) => {
+      console.log(error);
     });
   }
 
@@ -93,6 +108,9 @@ export class DynamicPaginatorComponent implements AfterViewInit {
       this.page_items = result[0];
       this.current_page = result[1];
       this.total_pages = result[2] + 1;
+
+    }).catch((error: any) => {
+      console.log(error);
     });
   }
 
@@ -101,6 +119,9 @@ export class DynamicPaginatorComponent implements AfterViewInit {
       this.page_items = result[0];
       this.current_page = result[1];
       this.total_pages = result[2] + 1;
+
+    }).catch((error: any) => {
+      console.log(error);
     });
   }
 }

@@ -7,9 +7,9 @@ use crate::common::generic_error::GenericError;
 pub struct Reader{}
 
 impl Reader{
-    pub fn readRawLines(file_path:&String) -> Vec<String>{
+    pub fn readRawLines(file_path:&String) -> Result<Vec<String>, GenericError>{
         let lines: Vec<String> = fs::read_to_string(file_path)
-            .expect(&format!("File not found: {}", &file_path))
+            .map_err(|_| GenericError::new("Could not open file", file!(), &line!()))?
             .split("\n")
             .map(|i| i.to_owned().trim().to_lowercase())
             .filter(|i| !i.trim().is_empty())
@@ -17,22 +17,22 @@ impl Reader{
             
         match lines.get(0){ // Checks if file is empty
             Some(i) => i,
-            None => panic!("File is empty"),
+            None => return Err(GenericError::new("File is empty", file!(), &line!())),
         };
         
-        return lines;
+        return Ok(lines);
     }
 
     pub fn readRawFirstLine(file_path:&String) -> Result<String, GenericError>{
         let file = File::open(file_path)
-            .map_err(|_| GenericError::new("Could not open file"))?;
+            .map_err(|_| GenericError::new("Could not open file", file!(), &line!()))?;
 
         let reader = BufReader::new(file);
         let mut first_line = "".to_owned();
 
         for line in reader.lines() {
             first_line = line
-                .map_err(|_| GenericError::new("Could not read first line"))?;
+                .map_err(|_| GenericError::new("Could not read first line", file!(), &line!()))?;
             break;
         }
         
@@ -61,13 +61,13 @@ impl Reader{
 
     pub fn fileHasDensity(file_path: &String) -> Result<bool, GenericError> {
         let file = File::open(file_path)
-            .map_err(|_| GenericError::new("Could not open file"))?;
+            .map_err(|_| GenericError::new("Could not open file", file!(), &line!()))?;
 
         let reader = BufReader::new(file);
 
         for line in reader.lines() { // Line per line
             let current_line = line
-                .map_err(|_| GenericError::new("Could not read line"))?;
+                .map_err(|_| GenericError::new("Could not read line", file!(), &line!()))?;
             
             let dimensions: Vec<String> = current_line.split(" ")
                 .map(|i| i.to_owned())

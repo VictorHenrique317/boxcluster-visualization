@@ -4,7 +4,7 @@
     windows_subsystem = "windows"
 )]
 
-use boxcluster_visualization::{self, controller::states::states::*, database::{pattern::Pattern, datapoint::DataPoint}};
+use boxcluster_visualization::{self, controller::states::states::*, database::{pattern::Pattern, datapoint::DataPoint}, model::identifier_mapper};
 use tauri::State;
 use boxcluster_visualization::common::generic_error::GenericError;
 
@@ -17,12 +17,37 @@ fn getSoundingPattern(paginator_service: State<PaginatorServiceState>, applicati
         -> Result<Pattern, GenericError> {
 
     println!("Calling getSoundingPattern...");
-    let paginator_service = paginator_service.0.lock()?;
-    let application_service = application_service.0.lock()?;
 
-    let identifier_mapper = application_service.getIdentifierMapper()?;
+    let paginator_service = match paginator_service.0.lock() {
+        Ok(paginator_service) => paginator_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock paginator service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
 
-    return paginator_service.getSoundingPattern(identifier_mapper);
+    let application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    let identifier_mapper = match application_service.getIdentifierMapper() {
+        Ok(identifier_mapper) => identifier_mapper,
+        Err(error) => {
+            error.print();
+            return Err(error);
+        }
+    };
+
+    match paginator_service.getSoundingPattern(identifier_mapper) {
+        Ok(pattern) => return Ok(pattern),
+        Err(error) => return Err(error),
+    }
 }
 
 #[tauri::command]
@@ -31,9 +56,39 @@ fn refreshPageSize(paginator_service: State<PaginatorServiceState>,
     
     println!("Calling refreshPageSize...");
 
-    let mut paginator_service = paginator_service.0.lock().unwrap();
-    let application_service = application_service.0.lock().unwrap();
-    return paginator_service.refreshPageSize(application_service.getIdentifierMapper()?, page_size);
+    let mut paginator_service = match paginator_service.0.lock() {
+        Ok(paginator_service) => paginator_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock paginator service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    let application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    let identifier_mapper = match application_service.getIdentifierMapper() {
+        Ok(identifier_mapper) => identifier_mapper,
+        Err(error) => {
+            error.print();
+            return Err(error);
+        }
+    };
+
+    match paginator_service.refreshPageSize(identifier_mapper, page_size) {
+        Ok(patterns) => return Ok(patterns),
+        Err(error) => {
+            error.print();
+            return Err(error)
+        }
+    }
 }
 
 #[tauri::command]
@@ -42,9 +97,39 @@ fn goToPage(paginator_service: State<PaginatorServiceState>,
 
     println!("Calling goToPage...");
 
-    let mut paginator_service = paginator_service.0.lock().unwrap();
-    let application_service = application_service.0.lock().unwrap();
-    return paginator_service.goToPage(application_service.getIdentifierMapper()?, &page_index);
+    let mut paginator_service = match paginator_service.0.lock() {
+        Ok(paginator_service) => paginator_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock paginator service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    let application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    let identifier_mapper = match application_service.getIdentifierMapper() {
+        Ok(identifier_mapper) => identifier_mapper,
+        Err(error) => {
+            error.print();
+            return Err(error);
+        }
+    };
+
+    match paginator_service.goToPage(identifier_mapper, &page_index) {
+        Ok(patterns) => return Ok(patterns),
+        Err(error) => {
+            error.print();
+            return Err(error)
+        }
+    }
 }
 
 #[tauri::command]
@@ -53,10 +138,40 @@ fn goToFirstPage(paginator_service: State<PaginatorServiceState>,
 
     println!("Calling goToFirstPage...");
 
-    let mut paginator_service = paginator_service.0.lock().unwrap();
-    let application_service = application_service.0.lock().unwrap();
+    let mut paginator_service = match paginator_service.0.lock() {
+        Ok(paginator_service) => paginator_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock paginator service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    let application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    let identifier_mapper = match application_service.getIdentifierMapper() {
+        Ok(identifier_mapper) => identifier_mapper,
+        Err(error) => {
+            error.print();
+            return Err(error);
+        }
+    };
+
     let first_page = paginator_service.first_page.clone();
-    return paginator_service.goToPage(application_service.getIdentifierMapper()?, &first_page);
+    match paginator_service.goToPage(identifier_mapper, &first_page) {
+        Ok(patterns) => return Ok(patterns),
+        Err(error) => {
+            error.print();
+            return Err(error)
+        }
+    }
 }
 
 #[tauri::command]
@@ -65,10 +180,40 @@ fn goToLastPage(paginator_service: State<PaginatorServiceState>,
 
     println!("Calling goToLastPage...");
 
-    let mut paginator_service = paginator_service.0.lock().unwrap();
-    let application_service = application_service.0.lock().unwrap();
+    let mut paginator_service = match paginator_service.0.lock() {
+        Ok(paginator_service) => paginator_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock paginator service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    let application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
     let last_page = paginator_service.last_page.clone();
-    return paginator_service.goToPage(application_service.getIdentifierMapper()?, &last_page);
+    let identifier_mapper = match application_service.getIdentifierMapper() {
+        Ok(identifier_mapper) => identifier_mapper,
+        Err(error) => {
+            error.print();
+            return Err(error);
+        }
+    };
+
+    match paginator_service.goToPage(identifier_mapper, &last_page) {
+        Ok(patterns) => return Ok(patterns),
+        Err(error) => {
+            error.print();
+            return Err(error)
+        }
+    }
 }
 
 #[tauri::command]
@@ -77,9 +222,39 @@ fn nextPage(paginator_service: State<PaginatorServiceState>,
 
     println!("Calling nextPage...");
 
-    let mut paginator_service = paginator_service.0.lock().unwrap();
-    let application_service = application_service.0.lock().unwrap();
-    return paginator_service.nextPage(application_service.getIdentifierMapper()?);
+    let mut paginator_service = match paginator_service.0.lock() {
+        Ok(paginator_service) => paginator_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock paginator service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    let application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    let identifier_mapper = match application_service.getIdentifierMapper() {
+        Ok(identifier_mapper) => identifier_mapper,
+        Err(error) => {
+            error.print();
+            return Err(error);
+        }
+    };
+
+    match paginator_service.nextPage(identifier_mapper) {
+        Ok(patterns) => return Ok(patterns),
+        Err(error) => {
+            error.print();
+            return Err(error)
+        }
+    }
 }
 
 #[tauri::command]
@@ -88,9 +263,39 @@ fn previousPage(paginator_service: State<PaginatorServiceState>,
 
     println!("Calling previousPage...");
 
-    let mut paginator_service = paginator_service.0.lock().unwrap();
-    let application_service = application_service.0.lock().unwrap();
-    return paginator_service.previousPage(application_service.getIdentifierMapper()?);
+    let mut paginator_service = match paginator_service.0.lock() {
+        Ok(paginator_service) => paginator_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock paginator service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    let application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    let identifier_mapper = match application_service.getIdentifierMapper() {
+        Ok(identifier_mapper) => identifier_mapper,
+        Err(error) => {
+            error.print();
+            return Err(error);
+        }
+    };
+
+    match paginator_service.previousPage(identifier_mapper) {
+        Ok(patterns) => return Ok(patterns),
+        Err(error) => {
+            error.print();
+            return Err(error)
+        }
+    }
 }
 
 //////////////////////////// Application ////////////////////////////
@@ -99,10 +304,22 @@ fn initApplication(application_service: State<ApplicationServiceState>, tensor_p
         -> Result<(), GenericError> {
     println!("Calling changeTensor...");
 
-    let mut application_service = application_service.0.lock().unwrap();
-    application_service.init(&tensor_path, &patterns_path)?;
-    
-    return Ok(());
+    let mut application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    match application_service.init(&tensor_path, &patterns_path) {
+        Ok(_) => return Ok(()),
+        Err(error) => {
+            error.print();
+            return Err(error)
+        }
+    }
 }
 
 #[tauri::command]
@@ -110,10 +327,22 @@ fn changePatterns(application_service: State<ApplicationServiceState>, patterns_
         -> Result<(), GenericError> {
     println!("Calling changePatterns...");
 
-    let mut application_service = application_service.0.lock().unwrap();
-    application_service.changePatterns(&patterns_path)?;
+    let mut application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
 
-    return Ok(());
+    match application_service.changePatterns(&patterns_path) {
+        Ok(_) => return Ok(()),
+        Err(error) => {
+            error.print();
+            return Err(error)
+        }
+    }
 }
 
 #[tauri::command]
@@ -121,54 +350,132 @@ fn truncateModel(application_service: State<ApplicationServiceState>, new_size: 
         -> Result<(), GenericError>{
     println!("Calling truncateModel...");
 
-    let mut application_service = application_service.0.lock().unwrap();
-    application_service.truncateModel(&new_size)?;
+    let mut application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
 
-    return Ok(());
+    match application_service.truncateModel(&new_size) {
+        Ok(_) => return Ok(()),
+        Err(error) => {
+            error.print();
+            return Err(error)
+        }
+    }
 }
 
 #[tauri::command]
 fn getFullRssEvolution(application_service: State<ApplicationServiceState>) -> Result<Vec<f64>, GenericError> {
     println!("Calling getFullRssEvolution...");
 
-    let application_service = application_service.0.lock().unwrap();
-    return application_service.getFullRssEvolution();
+    let application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    match application_service.getFullRssEvolution() {
+        Ok(rss_evolution) => return Ok(rss_evolution),
+        Err(error) => {
+            error.print();
+            return Err(error)
+        }
+    }
 }
 
 #[tauri::command]
 fn getTruncatedRssEvolution(application_service: State<ApplicationServiceState>) -> Result<Vec<f64>, GenericError> {
     println!("Calling getTruncatedRssEvolution...");
 
-    let application_service = application_service.0.lock().unwrap();
-    return application_service.getTruncatedRssEvolution();
+    let application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    match application_service.getTruncatedRssEvolution() {
+        Ok(rss_evolution) => return Ok(rss_evolution),
+        Err(error) => {
+            error.print();
+            return Err(error)
+        }
+    }
 }
 
 #[tauri::command]
 fn descendDag(application_service: State<ApplicationServiceState>, next_identifier: u32) -> Result<(), GenericError>{
     println!("Calling descendDag...");
 
-    let mut application_service = application_service.0.lock().unwrap();
-    application_service.descendDag(&next_identifier)?;
+    let mut application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
 
-    return Ok(());
+    match application_service.descendDag(&next_identifier) {
+        Ok(_) => return Ok(()),
+        Err(error) => {
+            error.print();
+            return Err(error)
+        }
+    }
 }
 
 #[tauri::command]
 fn ascendDag(application_service: State<ApplicationServiceState>) -> Result<(), GenericError>{
     println!("Calling ascendDag...");
 
-    let mut application_service = application_service.0.lock().unwrap();
-    application_service.ascendDag()?;
-
-    return Ok(());
+    let mut application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+    
+    match application_service.ascendDag() {
+        Ok(_) => return Ok(()),
+        Err(error) => {
+            error.print();
+            return Err(error)
+        }
+    }
 }
 
 #[tauri::command]
 fn getDataPoints(application_service: State<ApplicationServiceState>) -> Result<Vec<DataPoint>, GenericError> {
     println!("Calling getDataPoints...");
 
-    let application_service = application_service.0.lock().unwrap();
-    return application_service.getDataPoints();
+    let application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    match application_service.getDataPoints() {
+        Ok(data_points) => return Ok(data_points),
+        Err(error) => {
+            error.print();
+            return Err(error)
+        }
+    }
 }
 
 fn main() {

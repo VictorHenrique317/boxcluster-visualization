@@ -26,16 +26,16 @@ impl IdentifierRepresentation {
 
     pub fn asPattern(&self) -> Result<&Pattern, GenericError> {
         return self.pattern_representation.as_ref()
-            .ok_or(GenericError::new("Could not get pattern representation"));
+            .ok_or(GenericError::new("Could not get pattern representation", file!(), &line!()));
     }
 
     pub fn asDagNode(&self) -> Result<&DagNode, GenericError> {
         return self.dag_node_representation.as_ref()
-            .ok_or(GenericError::new("Could not get dag node representation"));
+            .ok_or(GenericError::new("Could not get dag node representation", file!(), &line!()));
     }
 
     pub fn asDataPoint(&self) -> Result<&DataPoint, GenericError> {
         return self.data_point_representation.as_ref()
-            .ok_or(GenericError::new("Could not get data point representation"));
+            .ok_or(GenericError::new("Could not get data point representation", file!(), &line!()));
     }
 }

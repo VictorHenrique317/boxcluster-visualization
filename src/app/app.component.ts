@@ -114,6 +114,8 @@ export class AppComponent implements AfterViewInit{
         this.router.navigateByUrl('', {skipLocationChange: true}).then(()=>
         this.router.navigate(["dagview"]));
 
+      }).catch((error: any) => {
+        console.log(error);
       });
     }
   }

@@ -44,7 +44,7 @@ impl IntersectionsPredictions<'_>{
                 for intersection_index in intersection_indices {
                     let mut intersections_predictions_lock = intersections_predictions
                         .lock()
-                        .map_err(|_| GenericError::new("Could not lock intersections predictions"))?;
+                        .map_err(|_| GenericError::new("Could not lock intersections predictions", file!(), &line!()))?;
 
                     let possible_previous_prediction = intersections_predictions_lock.get_mut(&intersection_index); // EXPENSIVE
                     match possible_previous_prediction{
@@ -69,7 +69,7 @@ impl IntersectionsPredictions<'_>{
         return Ok(
             intersections_predictions.lock()
             .as_mut()
-            .map_err(|_| GenericError::new("Could not lock intersections predictions"))?
+            .map_err(|_| GenericError::new("Could not lock intersections predictions", file!(), &line!()))?
             .clone()
         );
     }

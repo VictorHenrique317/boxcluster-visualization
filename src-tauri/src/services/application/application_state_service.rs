@@ -42,7 +42,7 @@ impl ApplicationStateService{
         let metrics_service = MetricsService::new(
                 &identifier_mapper,
                 self.tensor.as_ref()
-                    .ok_or(GenericError::new("Tensor not initialized"))?,
+                    .ok_or(GenericError::new("Tensor not initialized", file!(), &line!()))?,
         )?;
 
         identifier_mapper.insertDataPointRepresentations(
@@ -54,7 +54,7 @@ impl ApplicationStateService{
         self.dag_service = Some(dag_service);
 
         self.current_level_identifiers = self.dag_service.as_ref()
-            .ok_or(GenericError::new("Dag service not initialized"))?
+            .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()))?
             .getFontNodes();
 
         self.visible_identifiers = self.current_level_identifiers.clone();
@@ -65,11 +65,11 @@ impl ApplicationStateService{
 
     fn update(&mut self, new_current_level_identifiers: Vec<u32>) -> Result<(), GenericError>{
         let tensor = self.tensor.as_ref()
-            .ok_or(GenericError::new("Tensor not initialized"))?;
+            .ok_or(GenericError::new("Tensor not initialized", file!(), &line!()))?;
 
-        self.metrics_service.as_mut().ok_or(GenericError::new("Metrics service not initialized"))?
+        self.metrics_service.as_mut().ok_or(GenericError::new("Metrics service not initialized", file!(), &line!()))?
             .update(tensor, self.identifier_mapper.as_ref()
-                .ok_or(GenericError::new("Identifier mapper not initialized"))?,
+                .ok_or(GenericError::new("Identifier mapper not initialized", file!(), &line!()))?,
             &new_current_level_identifiers)?;
 
         self.current_level_identifiers = new_current_level_identifiers.clone();
@@ -82,7 +82,7 @@ impl ApplicationStateService{
         if self.current_identifier == 0{ return Ok(()); }
 
         let previous_identifiers = self.dag_service.as_ref()
-            .ok_or(GenericError::new("Dag service not initialized"))?
+            .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()))?
             .ascendDag(self.identifierMapper()?, &self.current_identifier)?;
 
         self.update(previous_identifiers)?;
@@ -92,7 +92,7 @@ impl ApplicationStateService{
 
     pub fn descendDag(&mut self, next_identifier: &u32) -> Result<(), GenericError>{
         let next_identifiers = self.dag_service.as_ref()
-            .ok_or(GenericError::new("Dag service not initialized"))?
+            .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()))?
             .descendDag(self.identifierMapper()?, next_identifier)?;
 
         if next_identifiers.len() == 0{ return Ok(()); }
@@ -107,7 +107,7 @@ impl ApplicationStateService{
         visible_identifiers.truncate(*new_size as usize);
         
         self.metrics_service.as_mut()
-            .ok_or(GenericError::new("Metrics service not initialized"))?
+            .ok_or(GenericError::new("Metrics service not initialized", file!(), &line!()))?
             .rss_evolution.truncate(new_size);
 
         self.visible_identifiers = visible_identifiers;
@@ -117,7 +117,7 @@ impl ApplicationStateService{
 
     pub fn identifierMapper(&self) -> Result<&IdentifierMapper, GenericError>{
         return self.identifier_mapper.as_ref()
-            .ok_or(GenericError::new("Identifier mapper not initialized"));
+            .ok_or(GenericError::new("Identifier mapper not initialized", file!(), &line!()));
     }
 
     pub fn getVisibleIdentifiers(&self) -> &Vec<u32>{
@@ -127,12 +127,12 @@ impl ApplicationStateService{
     pub fn getMetricsService(&self) -> Result<&MetricsService, GenericError>{
         return Ok(
             self.metrics_service.as_ref()
-            .ok_or(GenericError::new("Metrics service not initialized"))?
+            .ok_or(GenericError::new("Metrics service not initialized", file!(), &line!()))?
         );
     }
 
     pub fn getDagService(&self) -> Result<&DagService, GenericError>{
         return self.dag_service.as_ref()
-            .ok_or(GenericError::new("Dag service not initialized"));
+            .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()));
     }
 }

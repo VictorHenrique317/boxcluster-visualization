@@ -1,6 +1,8 @@
 
 #![allow(non_snake_case)]
-use std::{collections::HashMap};
+use std::collections::HashMap;
+use crate::common::generic_error::GenericError;
+
 use super::reader::Reader;
 
 #[derive(Default)]
@@ -13,15 +15,17 @@ pub struct Translator{
 
 impl Translator {    
 
-    pub fn new(translation_source_path: &String) -> Translator{
+    pub fn new(translation_source_path: &String) -> Result<Translator, GenericError>{
         println!("Creating translator...");
-        let translator = Translator::createTranslator(&translation_source_path);
+        let translator = Translator::createTranslator(&translation_source_path)?;
         let reversed_translator = Translator::reverseTranslator(&translator);
 
-        return Translator { 
-            translator: translator,
-            reversed_translator: reversed_translator,
-        }
+        return Ok(
+            Translator { 
+                translator: translator,
+                reversed_translator: reversed_translator,
+            }
+        );
     }
     
     fn createEmptyTranslator(sample_line:&String) -> Vec<HashMap<String, u32>>{
@@ -38,8 +42,8 @@ impl Translator {
         return empty_translator;
     }
 
-    fn createTranslator(translation_source_path: &String) -> Vec<HashMap<String, u32>> {
-        let lines = Reader::readRawLines(&translation_source_path);
+    fn createTranslator(translation_source_path: &String) -> Result<Vec<HashMap<String, u32>>, GenericError> {
+        let lines = Reader::readRawLines(&translation_source_path)?;
         let mut translator: Vec<HashMap<String, u32>> = Translator::createEmptyTranslator(lines.get(0).unwrap());
         // let file_has_density: bool = AmbientReader::fileHasDensity(&lines);
 
@@ -71,7 +75,7 @@ impl Translator {
             }
         }
     
-        return translator;
+        return Ok(translator);
     }
 
     fn reverseTranslator(translator: &Vec<HashMap<String, u32>>) -> Vec<HashMap<u32, String>> {

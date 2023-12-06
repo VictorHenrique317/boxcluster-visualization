@@ -33,7 +33,7 @@ impl IdentifierMapper{
 
         for (identifier, dag_nodes_representation) in dag_nodes_representations {
             let identifier_representation = self.mapping.get_mut(&identifier)
-                .ok_or(GenericError::new("Could not get identifier representation"))?;
+                .ok_or(GenericError::new("Could not get identifier representation", file!(), &line!()))?;
 
             identifier_representation.insertDagNodeRepresentation(dag_nodes_representation);
         }
@@ -48,7 +48,7 @@ impl IdentifierMapper{
         
         for (identifier, data_point_representation) in data_point_representations {
             let identifier_representation = self.mapping.get_mut(&identifier)
-                .ok_or(GenericError::new("Could not get identifier representation"))?;
+                .ok_or(GenericError::new("Could not get identifier representation", file!(), &line!()))?;
 
             identifier_representation.insertDataPointRepresentation(data_point_representation);
         }
@@ -58,7 +58,7 @@ impl IdentifierMapper{
 
     pub fn getRepresentation(&self, identifier: &u32) -> Result<&IdentifierRepresentation, GenericError>{
         return self.mapping.get(identifier)
-            .ok_or(GenericError::new("Could not get identifier representation"));
+            .ok_or(GenericError::new("Could not get identifier representation", file!(), &line!()));
     }
 
     pub fn getRepresentations(&self) -> Vec<&IdentifierRepresentation>{

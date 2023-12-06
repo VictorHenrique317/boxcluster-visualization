@@ -171,7 +171,8 @@ impl Pattern {
         for self_dims_value in self_dims_values{
             let other_dims_value = other_dims_values.next()
                 .ok_or(GenericError::new(
-                    &format!("Pattern {} has less dimensions than pattern {}", &self.identifier, &pattern.identifier)))?; 
+                    &format!("Pattern {} has less dimensions than pattern {}", &self.identifier, &pattern.identifier),
+                    file!(), &line!()))?; 
 
             let intersection_percentage: f64;
 
@@ -215,8 +216,9 @@ impl Pattern {
         }
 
         // Its the same pattern if the execution reaches here, duplicated patterns exist in the input file
-        panic!("Duplicated patterns detected in input file: {} and {}", &self.identifier, &pattern.identifier);
-        
+        return Err(GenericError::new(
+            &format!("Duplicated patterns detected in input file: {} and {}", &self.identifier, &pattern.identifier),
+            file!(), &line!()));
     }
 
     pub fn intersection(&self, pattern: &Pattern) -> Vec<Vec<usize>> {

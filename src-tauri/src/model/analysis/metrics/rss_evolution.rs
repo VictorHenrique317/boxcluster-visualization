@@ -115,7 +115,7 @@ impl RssEvolution{
         drop(prediction_matrix);
 
         let actual_value = tensor_matrix.get(index)
-            .ok_or(GenericError::new(&format!("Index {:?} not found", index)))?;
+            .ok_or(GenericError::new(&format!("Index {:?} not found", index), file!(), &line!()))?;
 
         let new_prediction_rss = RssEvolution::calculateRss(actual_value, new_prediction);
         let old_prediction_rss = RssEvolution::calculateRss(actual_value, old_prediction);
@@ -180,7 +180,7 @@ impl RssEvolution{
                     all_intersection_indices.insert(index.clone());
                     prediction_matrix.lock()
                         .as_mut()
-                        .map_err(|_| GenericError::new("Could not lock prediction matrix"))?
+                        .map_err(|_| GenericError::new("Could not lock prediction matrix", file!(), &line!()))?
                         .insert(index.clone(), tensor.density);
                 }
 
@@ -192,7 +192,7 @@ impl RssEvolution{
             if !pattern_intersections.is_empty(){ // This pattern has intersections with other patterns
                 intersections_indices.lock()
                     .as_mut()
-                    .map_err(|_| GenericError::new("Could not lock intersections indices"))?
+                    .map_err(|_| GenericError::new("Could not lock intersections indices", file!(), &line!()))?
                     .insert(pattern.identifier, pattern_intersections);
             }
 
@@ -202,7 +202,7 @@ impl RssEvolution{
                 .filter(|index| !all_intersection_indices.contains(index))
                 .map(|index| -> Result<f64, GenericError> {
                     let actual_value = tensor.dims_values.get(&index)
-                        .ok_or(GenericError::new(&format!("Index {:?} not found", index)))?;
+                        .ok_or(GenericError::new(&format!("Index {:?} not found", index), file!(), &line!()))?;
 
                     let prediction_rss = RssEvolution::calculateRss(actual_value, prediction);
                     let lambda_0_rss = RssEvolution::calculateRss(actual_value, &tensor.density);
@@ -217,7 +217,7 @@ impl RssEvolution{
 
             untouched_rss_s.lock()
                 .as_mut()
-                .map_err(|_| GenericError::new("Could not lock untouched rss"))?
+                .map_err(|_| GenericError::new("Could not lock untouched rss", file!(), &line!()))?
                 .insert(pattern.identifier, (untouched_size, untouched_rss));
 
             return Ok(());
@@ -225,17 +225,17 @@ impl RssEvolution{
 
         let prediction_matrix = prediction_matrix.lock()
             .as_mut()
-            .map_err(|_| GenericError::new("Could not lock prediction matrix"))?
+            .map_err(|_| GenericError::new("Could not lock prediction matrix", file!(), &line!()))?
             .clone();
 
         let untouched_rss_s = untouched_rss_s.lock()
             .as_mut()
-            .map_err(|_| GenericError::new("Could not lock untouched rss"))?
+            .map_err(|_| GenericError::new("Could not lock untouched rss", file!(), &line!()))?
             .clone();
 
         let intersections_indices = intersections_indices.lock()
             .as_mut()
-            .map_err(|_| GenericError::new("Could not lock intersections indices"))?
+            .map_err(|_| GenericError::new("Could not lock intersections indices", file!(), &line!()))?
             .clone();
 
         return Ok((prediction_matrix, untouched_rss_s, intersections_indices));
@@ -253,7 +253,7 @@ impl RssEvolution{
         for (_, intersection_indices) in all_intersections_indices {
             for intersection_index in intersection_indices {
                 let previous_prediction = prediction_matrix.get_mut(intersection_index)
-                    .ok_or(GenericError::new(&format!("Index {:?} not found", intersection_index)))?;
+                    .ok_or(GenericError::new(&format!("Index {:?} not found", intersection_index), file!(), &line!()))?;
 
                 let max_prediction = f64::max(candidate_pattern.density, *previous_prediction);
 
@@ -276,7 +276,7 @@ impl RssEvolution{
 
         let mut candidate_model_rss = *current_model_rss + untouched_delta_rss_s.get(&candidate_pattern.identifier)
             .ok_or(GenericError::new(
-                &format!("Untouched delta rss for pattern {} not found", candidate_pattern.identifier)))?
+                &format!("Untouched delta rss for pattern {} not found", candidate_pattern.identifier), file!(), &line!()))?
             .1;
             
         let candidate_intersections = intersections_indices.get(&candidate_pattern.identifier);
@@ -298,7 +298,7 @@ impl RssEvolution{
 
             for intersection_index in intersection_indices {
                 let previous_prediction = prediction_matrix.get(intersection_index)
-                    .ok_or(GenericError::new(&format!("Index {:?} not found", intersection_index)))?;
+                    .ok_or(GenericError::new(&format!("Index {:?} not found", intersection_index), file!(), &line!()))?;
 
                 let previous_prediction_copy = previous_prediction.clone();
 

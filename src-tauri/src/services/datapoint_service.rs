@@ -35,12 +35,12 @@ impl DataPointService {
 
         let mut datapoints: Vec<DataPoint> = Vec::new();
         let dimension = pattern_representations.get(0)
-            .ok_or(GenericError::new("Could not get dimension"))?
+            .ok_or(GenericError::new("Could not get dimension", file!(), &line!()))?
             .dims_values.len() as u32;
 
         for pattern in pattern_representations {
             let coord = coordinates.get(&pattern.identifier)
-                .ok_or(GenericError::new("Could not get coordinates"))?;
+                .ok_or(GenericError::new("Could not get coordinates", file!(), &line!()))?;
             
             let size = DataPointService::normalizeSize(&pattern.size, &dimension);
             // let stroke_width = DataPointService::calculateStrokeWidth(&max_size, &size);

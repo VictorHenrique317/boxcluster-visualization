@@ -29,7 +29,7 @@ impl Dag {
 
     pub fn isEdge(&self, node: &u32) -> Result<bool, GenericError> {
         let node_p = self.nodes.get(node)
-            .ok_or(GenericError::new(&format!("Node {} not found", node)))?;
+            .ok_or(GenericError::new(&format!("Node {} not found", node), file!(), &line!()))?;
         
         return Ok(node_p.subs.len() == 0);
     }
@@ -37,7 +37,7 @@ impl Dag {
     pub fn isFont(&self, node: &u32) -> Result<bool, GenericError> {
         return Ok(
             self.nodes.get(node)
-            .ok_or(GenericError::new(&format!("Node {} not found", node)))?
+            .ok_or(GenericError::new(&format!("Node {} not found", node), file!(), &line!()))?
             .supers.len() == 0
         );
     }
@@ -45,7 +45,7 @@ impl Dag {
     pub fn hasSubs(&self, node: &u32) -> Result<bool, GenericError> {
         return Ok(
             self.nodes.get(node)
-            .ok_or(GenericError::new(&format!("Node {} not found", node)))?
+            .ok_or(GenericError::new(&format!("Node {} not found", node), file!(), &line!()))?
             .subs.len() != 0
         );
     }

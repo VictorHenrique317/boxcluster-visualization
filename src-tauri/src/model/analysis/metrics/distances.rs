@@ -81,7 +81,7 @@ impl Distances{
 
             for index in pattern.indices.iter(){
                 let actual_value = *tensor.dims_values.get(index.as_slice())
-                    .ok_or(GenericError::new("Index not found"))? as f64;
+                    .ok_or(GenericError::new("Index not found", file!(), &line!()))? as f64;
     
                 let possible_overlapper = match saw_pair_overlapping {
                     false => intersections_predictions.get(index),
@@ -115,7 +115,7 @@ impl Distances{
 
         for (i, dim_values) in x.dims_values.iter().enumerate(){
             let xuy_dim_values = xuy_dims_values.get_mut(i)
-                .ok_or(GenericError::new(&format!("Index {} not found", i)))?;
+                .ok_or(GenericError::new(&format!("Index {} not found", i), file!(), &line!()))?;
 
             for value in dim_values{
                 // if xuy_dim_values.contains(value){ continue; }
@@ -125,7 +125,7 @@ impl Distances{
 
         for (i, dim_values) in y.dims_values.iter().enumerate(){
             let xuy_dim_values = xuy_dims_values.get_mut(i)
-                .ok_or(GenericError::new(&format!("Index {} not found", i)))?;
+                .ok_or(GenericError::new(&format!("Index {} not found", i), file!(), &line!()))?;
 
             for value in dim_values{
                 if xuy_dim_values.contains(value){ continue; }
@@ -148,7 +148,7 @@ impl Distances{
         let interested_indices: Vec<Vec<usize>> = x.union(y);
         for index in interested_indices.iter(){
             let actual_value = *tensor.dims_values.get(index.as_slice())
-                .ok_or(GenericError::new("Index not found"))? as f64;
+                .ok_or(GenericError::new("Index not found", file!(), &line!()))? as f64;
 
             xuy_rss += (actual_value - xuy.density).powi(2);
         }   
@@ -160,11 +160,11 @@ impl Distances{
         let mut dimensions_sum_area = 1.0;
         for i in 0..x.dims_values.len() {
             let ith_x_dimension_size = x.dims_values.get(i)
-            .ok_or(GenericError::new(&format!("Index {} not found", i)))?
+            .ok_or(GenericError::new(&format!("Index {} not found", i), file!(), &line!()))?
             .len() as f64;
 
             let ith_y_dimension_size = y.dims_values.get(i)
-            .ok_or(GenericError::new(&format!("Index {} not found", i)))?
+            .ok_or(GenericError::new(&format!("Index {} not found", i), file!(), &line!()))?
             .len() as f64;
 
             dimensions_sum_area *= ith_x_dimension_size + ith_y_dimension_size;
@@ -187,7 +187,7 @@ impl Distances{
         }
 
         let distances_from_x = distances.get_mut(&x.identifier)
-            .ok_or(GenericError::new(&format!("Distances from {} not found", &x.identifier)))?;
+            .ok_or(GenericError::new(&format!("Distances from {} not found", &x.identifier), file!(), &line!()))?;
 
         distances_from_x.insert(y.identifier, *distance);
 
@@ -222,16 +222,16 @@ impl Distances{
                             calculatePairRss(tensor, intersections_predictions, &pair)?;
                         
                         let untouched_rss_x = *untouched_rss.get(&x.identifier)
-                            .ok_or(GenericError::new(&format!("Untouched RSS for pattern {} not found", &x.identifier)))?;
+                            .ok_or(GenericError::new(&format!("Untouched RSS for pattern {} not found", &x.identifier), file!(), &line!()))?;
 
                         let untouched_rss_y = *untouched_rss.get(&y.identifier)
-                            .ok_or(GenericError::new(&format!("Untouched RSS for pattern {} not found", &y.identifier)))?;
+                            .ok_or(GenericError::new(&format!("Untouched RSS for pattern {} not found", &y.identifier), file!(), &line!()))?;
         
                         let raw_distance = covered_xuy_rss - untouched_rss_x - untouched_rss_y - x_y_intersection_rss;
                         let normalized_distance = Distances::normalize(x, y, &raw_distance)?;
                         
                         let mut distances = distances.lock()
-                            .map_err(|_| GenericError::new("Error while getting distance matrix thread lock"))?;
+                            .map_err(|_| GenericError::new("Error while getting distance matrix thread lock", file!(), &line!()))?;
 
                         Distances::insertIntoDistancesMatrix(&mut distances, &x, &y, &normalized_distance)?;
                         Distances::insertIntoDistancesMatrix(&mut distances, &y, &x, &normalized_distance)?;
@@ -246,7 +246,7 @@ impl Distances{
         bar.finish();
         let distances = distances.lock()
             .as_mut()
-            .map_err(|_| GenericError::new("Error while getting distance matrix thread lock"))?
+            .map_err(|_| GenericError::new("Error while getting distance matrix thread lock", file!(), &line!()))?
             .clone();
 
         return Ok(distances);
@@ -272,9 +272,9 @@ impl Distances{
                 for (col, y) in patterns.iter().enumerate() { 
                     if col < row { // Iterate triangularly
                         let distance = self.value.get(&x.identifier)
-                            .ok_or(GenericError::new(&format!("Distance from {} not found", &x.identifier)))?
+                            .ok_or(GenericError::new(&format!("Distance from {} not found", &x.identifier), file!(), &line!()))?
                             .get(&y.identifier)
-                            .ok_or(GenericError::new(&format!("Distance from {} to {} not found", &x.identifier, &y.identifier)))?;
+                            .ok_or(GenericError::new(&format!("Distance from {} to {} not found", &x.identifier, &y.identifier), file!(), &line!()))?;
 
                         Distances::insertIntoDistancesMatrix(&mut distances_view, &x, &y, distance)?;    
                         Distances::insertIntoDistancesMatrix(&mut distances_view, &y, &x, distance)?;    

@@ -24,7 +24,7 @@ impl PatternReader<'_>{
 
     pub fn read<'a>(self) -> Result<Vec<Pattern>, GenericError>{
         let mut patterns: Vec<Pattern> = Vec::new();        
-        let lines: Vec<String> = Reader::readRawLines(&self.file_path);
+        let lines: Vec<String> = Reader::readRawLines(&self.file_path)?;
         
         for (i, line) in lines.iter().enumerate() {
             let mut density: f64 = 1.0;
@@ -34,9 +34,9 @@ impl PatternReader<'_>{
 
             if self.file_has_densities{
                 density = line_dims.pop()
-                    .ok_or(GenericError::new("Could not get density"))?
+                    .ok_or(GenericError::new("Could not get density", file!(), &line!()))?
                     .parse::<f64>()
-                    .map_err(|_| GenericError::new("Could not parse density to f64"))?
+                    .map_err(|_| GenericError::new("Could not parse density to f64", file!(), &line!()))?
             }
 
             patterns.push(Pattern::new(

@@ -13,8 +13,8 @@ impl OrderedPair <'_> {
         pair.sort_by_key(|obj| obj.identifier);
 
         return OrderedPair {
-            x: *pair.get(0).expect("Could not get first element of ordered pair"),
-            y: *pair.get(1).expect("Could not get second element of ordered pair"),
+            x: *pair.get(0).expect("Should have gotten first element of ordered pair"),
+            y: *pair.get(1).expect("Should have gotten second element of ordered pair"),
         };
     }
 

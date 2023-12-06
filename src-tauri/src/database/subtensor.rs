@@ -45,7 +45,7 @@ impl Subtensor {
         
         for index in dims_values.iter().cloned().multi_cartesian_product(){
             sum += *tensor.dims_values.get(index.as_slice())
-                .ok_or(GenericError::new(&format!("Tensor index {:?} not found", index)))? 
+                .ok_or(GenericError::new(&format!("Tensor index {:?} not found", index), file!(), &line!()))? 
                 as f64;
 
             indices.push(index);

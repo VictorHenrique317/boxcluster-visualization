@@ -43,10 +43,10 @@ impl Coordinates {
                 let index: Dim<IxDynImpl> = Dim(vec![pattern_1, pattern_2]);
                 
                 let mut distance_matrix_lock = distance_matrix.lock()
-                    .map_err(|_| GenericError::new("Error while getting distance matrix thread lock"))?;
+                    .map_err(|_| GenericError::new("Error while getting distance matrix thread lock", file!(), &line!()))?;
 
                 let matrix_value = distance_matrix_lock.get_mut(&index)
-                    .ok_or(GenericError::new(&format!("Index {:?} does not exist on distance matrix", &index)))?;
+                    .ok_or(GenericError::new(&format!("Index {:?} does not exist on distance matrix", &index), file!(), &line!()))?;
 
                 *matrix_value = *distance;
             }
@@ -56,7 +56,7 @@ impl Coordinates {
 
         let distance_matrix = distance_matrix.lock()
             .as_mut()
-            .map_err(|_| GenericError::new("Error while getting distance matrix thread lock"))?
+            .map_err(|_| GenericError::new("Error while getting distance matrix thread lock", file!(), &line!()))?
             .clone();
         
         let mut dissimilarity_matrix = DMatrix::zeros(n, n);
@@ -64,7 +64,7 @@ impl Coordinates {
             for j in 0..n {
                 let index: Dim<IxDynImpl> = Dim(vec![i, j]);
                 let matrix_value = distance_matrix.get(&index)
-                    .ok_or(GenericError::new(&format!("Index {:?} does not exist on distance matrix", &index)))?;
+                    .ok_or(GenericError::new(&format!("Index {:?} does not exist on distance matrix", &index), file!(), &line!()))?;
 
                 dissimilarity_matrix[(i, j)] = *matrix_value;
             }
@@ -94,7 +94,7 @@ impl Coordinates {
         let eigen_values = svd.singular_values.map(|x| x.sqrt());
 
         let u = svd.u
-            .ok_or(GenericError::new("Error getting U matrix from SVD"))?;
+            .ok_or(GenericError::new("Error getting U matrix from SVD", file!(), &line!()))?;
 
         let mut result = DMatrix::zeros(u.nrows(), dimensions);
 

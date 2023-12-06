@@ -82,9 +82,9 @@ impl TensorReader<'_>{
         return TensorType::PartialExplicit;
     }
 
-    fn processFile(&self, tensor_size: &Vec<usize>) -> (ArrayD<f64>, TensorType){
+    fn processFile(&self, tensor_size: &Vec<usize>) -> Result<(ArrayD<f64>, TensorType), GenericError>{
         debug_println!("    Processing tensor file ...");
-        let lines = Reader::readRawLines(&self.file_path);
+        let lines = Reader::readRawLines(&self.file_path)?;
         let lines_dims: Vec<Vec<String>> = lines.into_iter()
             .map(|line| line.split(" ").map(|i| i.to_owned()).collect())
             .collect();
@@ -110,7 +110,7 @@ impl TensorReader<'_>{
             *matrix_value = density;
         }
         debug_println!("    Done");
-        return (dims_values_matrix, tensor_type);
+        return Ok((dims_values_matrix, tensor_type));
     }
 
     fn calculateDensity(&self, dims_values: &ArrayD<f64>, size: &Vec<usize>) -> f64{
@@ -126,7 +126,7 @@ impl TensorReader<'_>{
     pub fn read(self) -> Result<Tensor, GenericError>{
         let dimension = self.calculateDimension()?;
         let tensor_size = self.getTensorSize();
-        let (dims_values, tensor_type) = self.processFile(&tensor_size);
+        let (dims_values, tensor_type) = self.processFile(&tensor_size)?;
         let density = self.calculateDensity(&dims_values, &tensor_size);
         return Ok(
             Tensor::new(&self.file_path, dims_values, &tensor_size, &dimension, &density, tensor_type)

@@ -19,6 +19,9 @@ export class DagViewService {
   public updateDataPoints(){
     invoke("getDataPoints").then((result: Array<DataPoint>) =>{
       this.changeDataPoints(result);
+      
+    }).catch((error: any) => {
+      console.log(error);
     });
 
     // let datapoints: DataPoint[] = [
@@ -56,6 +59,9 @@ export class DagViewService {
   public truncateDataPoints(new_size: number) {
     invoke("truncateModel", {newSize: new_size}).then((result: any) => {
       this.updateDataPoints();
+      
+    }).catch((error: any) => {
+      console.log(error);
     });
   }
 }

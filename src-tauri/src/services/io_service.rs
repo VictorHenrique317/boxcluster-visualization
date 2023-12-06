@@ -17,14 +17,16 @@ impl Default for IoService{
 }
 
 impl IoService {
-    pub fn new(tensor_path: &String, patterns_path: &String) -> IoService {
-        let translator = Translator::new(&tensor_path);
+    pub fn new(tensor_path: &String, patterns_path: &String) -> Result<IoService, GenericError> {
+        let translator = Translator::new(&tensor_path)?;
 
-        IoService {
-            tensor_path: tensor_path.to_owned(),
-            patterns_path: patterns_path.to_owned(),
-            translator: translator,
-        }
+        return Ok(
+            IoService {
+                tensor_path: tensor_path.to_owned(),
+                patterns_path: patterns_path.to_owned(),
+                translator: translator,
+            }
+        );
     }
 
     pub fn setPatternsPath(&mut self, patterns_path: &String) {
