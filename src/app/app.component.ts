@@ -62,6 +62,7 @@ export class AppComponent implements AfterViewInit{
   protected dag_view: DagComponent;
   private rss_view: RssViewComponent;
 
+  public selected_directory: string = "";
   public tensor_path: string = "";
   public tensor_name: string = "";
   public patterns_path: string = "";
@@ -86,12 +87,14 @@ export class AppComponent implements AfterViewInit{
       multiple: false
     };
     const selected = await open(options);
+    
     if (selected === null) { return; } // No tensor selected
     
     this.tensor_path = selected.toString();
     this.tensor_name = this.tensor_path.split('\\').pop().split('/').pop();
     if (this.tensor_path == ""){ return; } // No tensor selected
 
+    this.selected_directory = this.tensor_path.substring(0, this.tensor_path.lastIndexOf('/'));
     this.upload_file_mode = "patterns";
   }
 
@@ -100,6 +103,7 @@ export class AppComponent implements AfterViewInit{
       multiple: false
     };
     const selected = await open(options);
+
     if (selected === null) { return; } // No tensor selected
     
     this.patterns_path = selected.toString();
@@ -134,12 +138,6 @@ export class AppComponent implements AfterViewInit{
     }
   }
 
-  // public svgWheelHandler(event: WheelEvent){
-  //   if (this.router.url == '/dagview'){
-  //     // this.dag.wheelHandler(event);
-  //   }
-  // }
-
   public openDagView(){
     this.router.navigate(['/dagview']);
   }
@@ -147,30 +145,4 @@ export class AppComponent implements AfterViewInit{
   public openFullSizeRss(){
     this.router.navigate(['/rssview']);
   }
-
-//   private classicMds(distances: number[][], dimensions: number = 2) {
-//     // square distances
-//     let M = distances.map(row => row.map(value => numeric.mul(-0.5, numeric.pow(value, 2))));
-
-//     // double centre the rows/columns
-//     function mean(A: number[]) { return numeric.div(numeric.add.apply(null, A), A.length); }
-//     let rowMeans = M.map(row => mean(row)),
-//         colMeans = numeric.transpose(M).map(col => mean(col)),
-//         totalMean = mean(rowMeans);
-
-//     for (let i = 0; i < M.length; ++i) {
-//         for (let j =0; j < M[0].length; ++j) {
-//             M[i][j] += totalMean - rowMeans[i] - colMeans[j];
-//         }
-//     }
-
-//     // take the SVD of the double centred matrix, and return the
-//     // points from it
-//     let ret = numeric.svd(M),
-//         eigenValues = numeric.sqrt(ret.S);
-//     return ret.U.map(function(row: number[]) {
-//         return numeric.mul(row, eigenValues).splice(0, dimensions);
-//     });
-// }
-
 }

@@ -44,7 +44,10 @@ impl Translator {
 
     fn createTranslator(translation_source_path: &String) -> Result<Vec<HashMap<String, u32>>, GenericError> {
         let lines = Reader::readRawLines(&translation_source_path)?;
-        let mut translator: Vec<HashMap<String, u32>> = Translator::createEmptyTranslator(lines.get(0).unwrap());
+        let sample_line = lines.get(0)
+            .ok_or(GenericError::new("Error parsing tensor file", file!(), &line!()))?;
+
+        let mut translator: Vec<HashMap<String, u32>> = Translator::createEmptyTranslator(sample_line);
         // let file_has_density: bool = AmbientReader::fileHasDensity(&lines);
 
         for line in lines{
@@ -57,7 +60,8 @@ impl Translator {
                     break;
                 }
                 
-                let dim_translator: &mut HashMap<String, u32> = translator.get_mut(i).unwrap();
+                let dim_translator: &mut HashMap<String, u32> = translator.get_mut(i)
+                    .ok_or(GenericError::new("Error parsing tensor file", file!(), &line!()))?;
     
                 let values: Vec<String> = dimension.split(",")
                     .map(|i| i.to_owned())
@@ -93,8 +97,8 @@ impl Translator {
         return reversed_translator;
     }
 
-    pub fn translateLineDims(&self, line_dims: &Vec<String>) -> Vec<Vec<usize>>{
-        let mut translated_line: Vec<Vec<usize>> = Vec::new();
+    pub fn translateLineDims(&self, line_dims: &Vec<String>) -> Result<Vec<Vec<usize>>, GenericError>{
+        let mut translated_lines: Vec<Vec<usize>> = Vec::new();
         // dbg!(&line_dims);
     
         for (i, dim) in line_dims.iter().enumerate(){
@@ -102,23 +106,29 @@ impl Translator {
             
             // dbg!(self.translator.len());
             
-            let dim_translator = self.translator.get(i).unwrap();
+            let dim_translator = self.translator.get(i)
+                .ok_or(GenericError::new("Error parsing tensor file", file!(), &line!()))?;
+
             let values: Vec<String> = dim.split(",").map(|i| i.to_owned()).collect();
             let mut translated_dim: Vec<usize> = Vec::new();
     
             for value in values{
-                let translated_value = dim_translator.get(&value).unwrap(); 
-                let translated_value = usize::try_from(*translated_value).unwrap();
+                let translated_value = dim_translator.get(&value)
+                    .ok_or(GenericError::new("Error parsing tensor file", file!(), &line!()))?;
+
+                let translated_value = usize::try_from(*translated_value)
+                    .map_err(|_| GenericError::new("Error parsing tensor file", file!(), &line!()))?;
+
                 translated_dim.push(translated_value);
             }
             
-            translated_line.push(translated_dim);
+            translated_lines.push(translated_dim);
         }
     
-        return translated_line;
+        return Ok(translated_lines);
     }
     
-    pub fn untranslateLineDims(&self, dims_values: &Vec<Vec<usize>>) -> Vec<String>{
+    pub fn untranslateLineDims(&self, dims_values: &Vec<Vec<usize>>) -> Result<Vec<String>, GenericError>{
         let mut original_dims: Vec<String> = Vec::new();
         for (i, dim) in dims_values.iter().enumerate(){
             let mut original_dim: Vec<String> = Vec::new();
@@ -126,9 +136,9 @@ impl Translator {
             for value in dim{
                 let value = *value as u32;
                 let original_value =  self.reversed_translator.get(i)
-                    .unwrap()
+                    .ok_or(GenericError::new("Error parsing tensor file", file!(), &line!()))?
                     .get(&value)
-                    .unwrap()
+                    .ok_or(GenericError::new("Error parsing tensor file", file!(), &line!()))?
                     .to_owned();
     
                 original_dim.push(original_value);
@@ -137,7 +147,7 @@ impl Translator {
             original_dims.push(original_dim.join(","));
         }
 
-        return original_dims;
+        return Ok(original_dims);
     }
 
     pub fn getSize(&self) -> Vec<usize>{

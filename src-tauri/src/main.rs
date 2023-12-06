@@ -4,7 +4,7 @@
     windows_subsystem = "windows"
 )]
 
-use boxcluster_visualization::{self, controller::states::states::*, database::{pattern::Pattern, datapoint::DataPoint}, model::identifier_mapper};
+use boxcluster_visualization::{self, controller::states::states::*, database::{pattern::Pattern, datapoint::DataPoint}};
 use tauri::State;
 use boxcluster_visualization::common::generic_error::GenericError;
 

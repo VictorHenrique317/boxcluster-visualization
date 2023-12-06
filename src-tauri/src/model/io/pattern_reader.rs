@@ -41,7 +41,7 @@ impl PatternReader<'_>{
 
             patterns.push(Pattern::new(
                 i as u32 + 1, 
-                self.translator.translateLineDims(&line_dims),
+                self.translator.translateLineDims(&line_dims)?,
                 density
             ));
         }

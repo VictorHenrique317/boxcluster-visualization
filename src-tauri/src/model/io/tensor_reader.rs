@@ -40,10 +40,11 @@ impl TensorReader<'_>{
         return matrix;
     }
 
-    fn defineTensorType(&self, lines_dims: &Vec<Vec<String>>) -> TensorType {
+    fn defineTensorType(&self, lines_dims: &Vec<Vec<String>>) -> Result<TensorType, GenericError> {
         let mut last_values: HashSet<u32> = HashSet::new();
         for line_dims in lines_dims {
-            let last_value = line_dims.last().unwrap();
+            let last_value = line_dims.last()
+                .ok_or(GenericError::new("Error parsing tensor file", file!(), &line!()))?;
             
             let float_parse_test: Result<f64, ParseFloatError> = last_value.parse::<f64>(); // Tries to parse to float
             if float_parse_test.is_ok() { // Can be int or float
@@ -51,21 +52,22 @@ impl TensorReader<'_>{
                 let int_parse_test: Result<u32, ParseIntError> = last_value.parse::<u32>(); // Tries to parse to int
                 if int_parse_test.is_err(){ // Then its number with floating points
                     // 100% of full fuzzy tensors will be identified here, but the others will be identified later (exaustively)
-                    return TensorType::FullFuzzy;
+                    return Ok(TensorType::FullFuzzy);
                 }
             }
 
             if float_parse_test.is_err() { // Then its a string (dimension)
-                return TensorType::PartialImplicit; // There can be partial implicits where the last dimension IS NOT a string
+                return Ok(TensorType::PartialImplicit); // There can be partial implicits where the last dimension IS NOT a string
             }
 
             // Here the tensor can be PartialImplicit, PartialExplicit or FullBoolean
             // Last value is for sure an integer
 
-            let last_value = last_value.parse::<u32>().unwrap();
+            let last_value = last_value.parse::<u32>()
+                .map_err(|_| GenericError::new("Error parsing tensor file", file!(), &line!()))?;
             if last_value != 0 && last_value != 1 {
                 // 100% of partial implicits will be identified here, even if they pass the previous test
-                return TensorType::PartialImplicit;
+                return Ok(TensorType::PartialImplicit);
             }
 
             // Here the tensor can be PartialExplicit or FullBoolean
@@ -76,10 +78,10 @@ impl TensorReader<'_>{
         // Here the tensor can be PartialExplicit or FullBoolean
         if last_values.contains(&0) {
             // Then its full boolean
-            return TensorType::FullBoolean;
+            return Ok(TensorType::FullBoolean);
         }
 
-        return TensorType::PartialExplicit;
+        return Ok(TensorType::PartialExplicit);
     }
 
     fn processFile(&self, tensor_size: &Vec<usize>) -> Result<(ArrayD<f64>, TensorType), GenericError>{
@@ -89,24 +91,34 @@ impl TensorReader<'_>{
             .map(|line| line.split(" ").map(|i| i.to_owned()).collect())
             .collect();
 
+        // lines_dims[0] = {"a", "d", "g", "density"}
+
         let mut dims_values_matrix: ArrayD<f64> = self.createEmptySizedMatrix(tensor_size);
-        let tensor_type = self.defineTensorType(&lines_dims);
+        let tensor_type = self.defineTensorType(&lines_dims)?;
 
         for line_dims in lines_dims{
             let mut line_dims =  line_dims;
             let mut density = 1.0;
             if tensor_type.hasDensity() {
-                density = line_dims.pop().unwrap().parse::<f64>().unwrap();
+                density = line_dims.pop()
+                    .ok_or(GenericError::new("Error parsing tensor file", file!(), &line!()))?
+                    .parse::<f64>()
+                    .map_err(|_| GenericError::new("Error parsing tensor file", file!(), &line!()))?;
             }
             
-            let translated_line = self.translator.translateLineDims(&line_dims);
-            let dims_values: Vec<usize> = translated_line
+            let translated_line = self.translator.translateLineDims(&line_dims)?;
+            let dims_values: Result<Vec<usize>, _> = translated_line
                 .iter()
-                .map(|v| *v.get(0).unwrap() as usize)
+                .map(|v| v.get(0)
+                    .ok_or_else(||
+                        GenericError::new("Error parsing tensor file", file!(), &line!())))
+                    .map(|res| res.map(|&v| v as usize))
                 .collect();
+                        
+            let index: Dim<IxDynImpl> = Dim(dims_values?);
+            let matrix_value = dims_values_matrix.get_mut(index)
+                .ok_or(GenericError::new("Error parsing tensor file", file!(), &line!()))?;
 
-            let index: Dim<IxDynImpl> = Dim(dims_values);
-            let matrix_value = dims_values_matrix.get_mut(index).unwrap();
             *matrix_value = density;
         }
         debug_println!("    Done");

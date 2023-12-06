@@ -42,9 +42,11 @@ impl DagCreatorService<'_>{
         };
     }
 
-    fn changePosition(&mut self, new_position: u32) -> &Vec<u32> {
+    fn changePosition(&mut self, new_position: u32) -> Result<&Vec<u32>, GenericError> {
         self.actual_node = new_position;
-        return self.dag_arranger_service.traverse(&self.actual_node);
+        return Ok(
+            self.dag_arranger_service.traverse(&self.actual_node)?
+        );
     }
 
     fn firstRelationToSecond(&self, first_node: &u32, second_node: &u32) -> Result<Relation, GenericError> {
@@ -60,11 +62,11 @@ impl DagCreatorService<'_>{
         let second_pattern_density = self.identifier_mapper.getRepresentation(second_node)?.asPattern()?.density;
 
         if first_pattern_density >= second_pattern_density{
-            self.dag_arranger_service.addOverlappingNode(second_node, first_node);
+            self.dag_arranger_service.addOverlappingNode(second_node, first_node)?;
         }
 
         if first_pattern_density <= second_pattern_density {
-            self.dag_arranger_service.addOverlappingNode(first_node, second_node);
+            self.dag_arranger_service.addOverlappingNode(first_node, second_node)?;
         } 
 
         return Ok(());
@@ -72,7 +74,7 @@ impl DagCreatorService<'_>{
 
     fn traverseTree(&mut self, subtree_font: &u32, node_to_compare: &u32, current_branch: u32, current_level: u32) -> Result<(), GenericError>{
         debug_print!("\n    => Traversing subtree of {}, ", subtree_font);
-        let current_level_nodes: Vec<u32> = self.changePosition(*subtree_font).clone();
+        let current_level_nodes: Vec<u32> = self.changePosition(*subtree_font)?.clone();
         let mut next_level_fonts: Vec<u32> = Vec::new();
         debug_println!("level: {}, level size: {}, branch: {}, belonging_branch: {}, belonging_level: {}", &current_level, current_level_nodes.len(), &current_branch, &self.belonging_branch, &self.belonging_level);
 
@@ -114,7 +116,7 @@ impl DagCreatorService<'_>{
             // A pattern (node_to_compare) from an upper branch is super of the font of this branch
             // Sets the super relation on the recursion returnal
             debug_println!("    {} {} {}{}", format!("{}", &node_to_compare).yellow(), "located in a different upper branch is super of".yellow(), format!("{}", &subtree_font).yellow(), ", CONNECTING them".yellow());
-            self.dag_arranger_service.addBellow(subtree_font, node_to_compare);
+            self.dag_arranger_service.addBellow(subtree_font, node_to_compare)?;
         }
     
         // Connects node_to_compare as sub of different branches
@@ -127,7 +129,7 @@ impl DagCreatorService<'_>{
             }
 
             debug_println!("    {} {} {}{}", format!("{}", node_to_compare).yellow(), "located in a different below branch is sub of".yellow(), format!("{}", &subtree_font).yellow(), ", CONNECTING them".yellow());
-            self.dag_arranger_service.addBellow(node_to_compare, subtree_font);
+            self.dag_arranger_service.addBellow(node_to_compare, subtree_font)?;
         }
 
         return Ok(());
@@ -180,16 +182,18 @@ impl DagCreatorService<'_>{
         return Ok(());
     }
 
-    fn insertNodeAbove(&mut self, node: &u32, insertion_point: &u32){
+    fn insertNodeAbove(&mut self, node: &u32, insertion_point: &u32) -> Result<(), GenericError>{
         debug_println!("    Inserting {} above {}", node, insertion_point);
-        self.dag_arranger_service.moveSubtreeBellow(insertion_point, node);
+        self.dag_arranger_service.moveSubtreeBellow(insertion_point, node)?;
+
+        return Ok(());
     }
 
     fn insertNodeBellow(&mut self, node: &u32, insertion_point: &u32) -> Result<(), GenericError>{
-        let subs = self.dag_arranger_service.traverse(insertion_point).clone();
+        let subs = self.dag_arranger_service.traverse(insertion_point)?.clone();
 
         debug_println!("    Inserting {} bellow {}", node, insertion_point);
-        self.dag_arranger_service.addBellow(node, insertion_point);
+        self.dag_arranger_service.addBellow(node, insertion_point)?;
 
         if subs.is_empty(){
             return Ok(());
@@ -203,7 +207,7 @@ impl DagCreatorService<'_>{
             if relation == Relation::SuperPattern{
                 // If the node is super of someone rearrange dag
                 debug_println!("    {} is super of {}, putting {} subtree bellow {}", node, &sub, &sub, node);
-                self.dag_arranger_service.moveSubtreeBellow(&sub, node);
+                self.dag_arranger_service.moveSubtreeBellow(&sub, node)?;
             }
         }
 
@@ -228,7 +232,7 @@ impl DagCreatorService<'_>{
                 self.dag_arranger_service.removeFont(insertion_point);
                 self.dag_arranger_service.addFont(node);
                 
-                self.insertNodeAbove(node, insertion_point);
+                self.insertNodeAbove(node, insertion_point)?;
                 continue;
             }
 
