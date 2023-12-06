@@ -56,6 +56,8 @@ import { provideRouter, Router, RouterOutlet} from "@angular/router";
 })
 
 export class AppComponent implements AfterViewInit{
+  private DEV_MODE: boolean = true;
+
   @ViewChild("aside") aside: ElementRef<HTMLElement>;
   @ViewChild("header") header: ElementRef<HTMLElement>;
   
@@ -79,7 +81,9 @@ export class AppComponent implements AfterViewInit{
 
   ngAfterViewInit(){
     this.matList_height = this.aside.nativeElement.clientHeight - this.header.nativeElement.clientHeight;
-    // this.router.navigate(['dagview']);
+
+    if(this.DEV_MODE){ this.openDagView(); }
+    
   }
 
   public async openTensorDialog(){
@@ -134,15 +138,15 @@ export class AppComponent implements AfterViewInit{
     }
 
     if(this.rss_view != undefined){
-      console.log(this.rss_view.getPatternNumber());
+      console.log("Pattern number: " + this.rss_view.getPatternNumber());
     }
   }
 
   public openDagView(){
-    this.router.navigate(['/dagview']);
+    this.router.navigate(['/dagview'], {queryParams: {dev_mode: this.DEV_MODE}});
   }
 
   public openFullSizeRss(){
-    this.router.navigate(['/rssview']);
+    this.router.navigate(['/rssview'], {queryParams: {dev_mode: this.DEV_MODE}});
   }
 }

@@ -13,6 +13,7 @@ import { Subscription } from 'rxjs';
 import { Color } from 'src/models/color';
 import * as d3 from 'd3';
 import { Svg } from 'src/models/svg';
+import { ActivatedRoute } from '@angular/router';
 
 // https://angular.io/guide/template-syntax
 
@@ -24,8 +25,12 @@ import { Svg } from 'src/models/svg';
   styleUrls: ['./dag.component.scss']
 })
 export class DagComponent implements AfterViewInit{
-  @ViewChild('dagWindow') dagWindow: ElementRef<HTMLBodyElement>;
+  private DEV_MODE: boolean;
+
   private datapoints_subscription: Subscription;
+  private dev_mode_subscription: Subscription;
+
+  @ViewChild('dagWindow') dagWindow: ElementRef<HTMLBodyElement>;
   private subscribed_datapoints: Array<DataPoint>;
   
   @ViewChild('vizualization_div') vizualization_div: ElementRef<HTMLDivElement>;
@@ -55,7 +60,7 @@ export class DagComponent implements AfterViewInit{
     y: 0
   };
 
-  constructor(private svg_service: SvgService, private dagview_service: DagViewService){
+  constructor(private route: ActivatedRoute, private svg_service: SvgService, private dagview_service: DagViewService){
     this.datapoints_subscription = this.dagview_service.datapoints$.subscribe(value => {
       this.subscribed_datapoints = value;
       
@@ -64,16 +69,28 @@ export class DagComponent implements AfterViewInit{
   }
   
   ngAfterViewInit(){
-    this.dagview_service.updateDataPoints();
+    console.log("Initializing dag view component");
+    this.dev_mode_subscription =  this.route.queryParams.subscribe(params => {
+      this.DEV_MODE = params['dev_mode'] === 'true' ? true : false;
+    });
+
+    this.dagview_service.updateDataPoints(this.DEV_MODE);
     
-    let width = 1024;
-    let height = 720;
+    // let width = 1024;
+    // let height = 720;
+    // if(this.dagWindow.nativeElement.clientWidth > width){ width = this.dagWindow.nativeElement.clientWidth; }
+    // if(this.dagWindow.nativeElement.clientHeight > height){ height = this.dagWindow.nativeElement.clientHeight; }
+
+    let width = this.dagWindow.nativeElement.clientWidth;
+    let height = this.dagWindow.nativeElement.clientHeight;
+
     this.svg = new Svg(this.vizualization_div, width, height, this.subscribed_datapoints, this.scalingFunction);
     this.svg.resize(width, height, this.y_correction);
   }
 
   ngOnDestroy(){
     this.datapoints_subscription.unsubscribe();
+    this.dev_mode_subscription.unsubscribe();
   }
 
   private scalingFunction(datapoints: Array<DataPoint>) {

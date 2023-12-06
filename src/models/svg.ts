@@ -7,7 +7,7 @@ export class Svg {
     private plot: any;
 
     private scaling_function: any;
-    private datapoints: Array<any>;
+    private datapoints: Array<DataPoint>;
 
     private width: number;
     private height: number;
@@ -19,7 +19,7 @@ export class Svg {
     private pannable: boolean;
 
     constructor(vizualization_div: ElementRef<HTMLDivElement>, width: number, height: number, 
-                datapoints: Array<any>, scaling_function: (arc: Array<any>) => Array<any>, 
+                datapoints: Array<DataPoint>, scaling_function: (arc: Array<any>) => Array<any>, 
                 gridlines: boolean = true, pannable: boolean = true){
         this.datapoints = datapoints;
         this.scaling_function = scaling_function;
@@ -30,7 +30,7 @@ export class Svg {
         this.create(vizualization_div);
     }
 
-    public setDatapoints(datapoints: Array<any>){
+    public setDatapoints(datapoints: Array<DataPoint>){
       this.datapoints = datapoints;
       this.drawDataPoints();
     }
@@ -130,6 +130,21 @@ export class Svg {
           // .attr('stroke-width', d => d.stroke_width)
           .attr('fill', d => `rgb(${d.r}, ${d.g}, ${d.b})`);
     }
+
+    public drawVerticalLine(x: number) {
+      // Remove any existing line
+      this.plot.selectAll('#vertical-line').remove();
+  
+      // Draw a new line
+      this.plot.append('line')
+          .attr('id', 'vertical-line')
+          .attr('x1', this.x_scale(x))
+          .attr('y1', 0)
+          .attr('x2', this.x_scale(x))
+          .attr('y2', this.height)
+          .attr('stroke', 'red')
+          .attr('stroke-width', 2);
+  }
 
     public getD3Svg(){
       return this.d3_svg;
