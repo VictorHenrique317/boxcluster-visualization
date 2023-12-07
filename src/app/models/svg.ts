@@ -128,7 +128,7 @@ export class Svg {
           .attr('cy', d => this.y_scale(d.y))
           .attr('r', d => d.size)
           // .attr('stroke-width', d => d.stroke_width)
-          .attr('fill', d => `rgb(${d.r}, ${d.g}, ${d.b})`);
+          .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`);
     }
 
     public drawVerticalLine(x: number) {

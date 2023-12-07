@@ -1,6 +1,6 @@
 import { Route } from '@angular/router';
-import { DagComponent } from './app/dag/dag.component';
-import { RssViewComponent } from './app/rss-view/rss-view.component';
+import { VisualizationComponent } from './app/components/visualization/visualization.component';
+import { RssViewComponent } from './app/components/visualization/rss-view/rss-view.component';
 
 export const routes: Route[] = [
   // {
@@ -8,11 +8,11 @@ export const routes: Route[] = [
   //   component: DagComponent,
   // },
   {
-    path: 'dagview',
-    component: DagComponent,
+    path: 'visualizationView',
+    component: VisualizationComponent,
   },
   {
-    path: 'rssview',
+    path: 'rssView',
     component: RssViewComponent,
   },
   {

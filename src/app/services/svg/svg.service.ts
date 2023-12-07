@@ -1,5 +1,5 @@
 import { ElementRef, Injectable } from '@angular/core';
-import { Color } from 'src/models/color';
+import { Color } from 'src/app/models/color';
 import * as d3 from 'd3';
 
 @Injectable({

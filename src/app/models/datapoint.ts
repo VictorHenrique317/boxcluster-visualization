@@ -10,8 +10,9 @@ export class DataPoint{
     r: number;
     g: number;
     b: number;
+    a: number;
 
-    constructor(identifier: number, value:number, size: number, stroke_width: number, x: number, y: number, r: number, g: number, b: number){
+    constructor(identifier: number, value:number, size: number, stroke_width: number, x: number, y: number, r: number, g: number, b: number, a:number){
         this.identifier = identifier;
         this.value = value;
         this.size = size;
@@ -21,5 +22,6 @@ export class DataPoint{
         this.r = r;
         this.g = g;
         this.b = b;
+        this.a = a;
     }
 }

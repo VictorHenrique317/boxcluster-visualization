@@ -1,5 +1,5 @@
 @use '@angular/material' as mat;
-@import '../../theme.scss';
+@import 'src/theme.scss';
 
 span{
     color: mat.get-color-from-palette($primary-palette, '900-contrast');

@@ -6,7 +6,7 @@
 
 import { AfterViewInit, Component, ElementRef, ViewChild } from "@angular/core";
 import { invoke } from "@tauri-apps/api/tauri";
-import { DagComponent } from "./dag/dag.component";
+import { VisualizationComponent } from "./components/visualization/visualization.component";
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
@@ -20,11 +20,12 @@ import {MatRippleModule} from '@angular/material/core';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatIconModule} from '@angular/material/icon';
 import { CommonModule } from "@angular/common";
-import { PatternSummaryComponent } from "./pattern-summary/pattern-summary.component";
-import { DynamicPaginatorComponent } from "./dynamic-paginator/dynamic-paginator.component";
+import { PatternSummaryComponent } from "./components/dynamic-paginator/pattern-summary/pattern-summary.component";
+import { DynamicPaginatorComponent } from "./components/dynamic-paginator/dynamic-paginator.component";
 import { open } from '@tauri-apps/api/dialog';
-import { RssViewComponent } from "./rss-view/rss-view.component";
+import { RssViewComponent } from "./components/visualization/rss-view/rss-view.component";
 import { provideRouter, Router, RouterOutlet} from "@angular/router";
+import { environment } from "src/environments/environment";
 
 
 
@@ -36,7 +37,7 @@ import { provideRouter, Router, RouterOutlet} from "@angular/router";
   imports: [
     RouterOutlet,
     CommonModule,
-    DagComponent,
+    VisualizationComponent,
     RssViewComponent,
     PatternSummaryComponent, 
     DynamicPaginatorComponent,
@@ -61,7 +62,7 @@ export class AppComponent implements AfterViewInit{
   @ViewChild("aside") aside: ElementRef<HTMLElement>;
   @ViewChild("header") header: ElementRef<HTMLElement>;
   
-  protected dag_view: DagComponent;
+  protected dag_view: VisualizationComponent;
   private rss_view: RssViewComponent;
 
   public selected_directory: string = "";
@@ -82,7 +83,7 @@ export class AppComponent implements AfterViewInit{
   ngAfterViewInit(){
     this.matList_height = this.aside.nativeElement.clientHeight - this.header.nativeElement.clientHeight;
 
-    if(this.DEV_MODE){ this.openDagView(); }
+    if(environment.dev_mode){ this.openDagView(); }
     
   }
 
@@ -129,7 +130,7 @@ export class AppComponent implements AfterViewInit{
   }
 
   public onActivate(componentInstance: any) {
-    if (componentInstance instanceof DagComponent) {
+    if (componentInstance instanceof VisualizationComponent) {
       this.dag_view = componentInstance;
     }
 
@@ -143,10 +144,10 @@ export class AppComponent implements AfterViewInit{
   }
 
   public openDagView(){
-    this.router.navigate(['/dagview'], {queryParams: {dev_mode: this.DEV_MODE}});
+    this.router.navigate(['/visualizationView']);
   }
 
   public openFullSizeRss(){
-    this.router.navigate(['/rssview'], {queryParams: {dev_mode: this.DEV_MODE}});
+    this.router.navigate(['/rssView']);
   }
 }

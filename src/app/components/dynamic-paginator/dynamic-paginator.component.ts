@@ -2,8 +2,8 @@ import { AfterViewInit, Component, ElementRef, Input, ViewChild } from '@angular
 import { CommonModule } from '@angular/common';
 import { MatListModule } from '@angular/material/list';
 import { MatRippleModule } from '@angular/material/core';
-import { PatternSummaryComponent } from '../pattern-summary/pattern-summary.component';
-import { Pattern } from 'src/models/pattern';
+import { PatternSummaryComponent } from './pattern-summary/pattern-summary.component';
+import { Pattern } from 'src/app/models/pattern';
 import { MatIconModule } from '@angular/material/icon';
 import { invoke } from '@tauri-apps/api/tauri'
 import { MatDividerModule } from '@angular/material/divider';

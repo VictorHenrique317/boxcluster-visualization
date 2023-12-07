@@ -1,20 +1,20 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {MatSliderModule} from '@angular/material/slider';
-import { SvgService } from '../services/svg.service';
+import { SvgService } from 'src/app/services/svg/svg.service';
 import { FormsModule } from '@angular/forms';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatCardModule} from '@angular/material/card';
-import { DataPoint } from 'src/models/datapoint';
+import { DataPoint } from 'src/app/models/datapoint';
 import { invoke } from '@tauri-apps/api';
 import { ChangeDetectorRef } from '@angular/core';
-import { DagViewService } from '../services/dag-view.service';
-import { Color } from 'src/models/color';
-import { Svg } from 'src/models/svg';
+import { Color } from 'src/app/models/color';
+import { Svg } from 'src/app/models/svg';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-rss-view',
@@ -28,15 +28,13 @@ import { Subscription } from 'rxjs';
   styleUrls: ['./rss-view.component.scss']
 })
 export class RssViewComponent {
-  private DEV_MODE: boolean;
-
-  private dev_mode_subscription: Subscription;
+  @ViewChild('body') body: ElementRef<HTMLBodyElement>;
 
   @ViewChild('visualization_div') visualization_div: ElementRef<HTMLDivElement>;
   private svg: Svg;
-  pattern_number = 1;
+  pattern_number;
 
-  @ViewChild('rssWindow') rssWindow: ElementRef<HTMLBodyElement>;
+  @Output() onTruncation: EventEmitter<any> = new EventEmitter();
 
   private max_y: number;
   private y_range: number;
@@ -44,52 +42,39 @@ export class RssViewComponent {
   public rss_evolution: Array<number> = [];
   private datapoints: Array<DataPoint>;
 
-  constructor(private route: ActivatedRoute, private canvas_service: SvgService, private dagview_service: DagViewService, private cdr: ChangeDetectorRef){}
+  constructor(private route: ActivatedRoute, private canvas_service: SvgService, private cdr: ChangeDetectorRef){}
 
-  ngAfterViewInit() {
+  ngOnInit(){
     console.log("Initializing rss view component");
-    this.dev_mode_subscription =  this.route.queryParams.subscribe(params => {
-      this.DEV_MODE = params['dev_mode'] === 'true' ? true : false;
-    });
-
-    // let width = 922;
-    // let height = 456;
-
-    let width = this.visualization_div.nativeElement.clientWidth;
-    let height = this.visualization_div.nativeElement.clientHeight;
     
-    if(!this.DEV_MODE){
+    if(!environment.dev_mode){
       invoke("getFullRssEvolution").then((result: Array<number>) =>{
         this.rss_evolution = result;
         this.datapoints = this.wrapIntoDatapoints(this.rss_evolution);
-        this.cdr.detectChanges();
-
-        this.svg = new Svg(this.visualization_div, width, height, this.datapoints, this.scalingFunction, true, false);
-        this.svg.resize(width, height, 0);
-
-        this.onSliderChange(null);
+        this.pattern_number = this.rss_evolution.length;
         
       }).catch((error: any) => {
         console.log(error);
       });
     }
 
-    if(this.DEV_MODE){
+    if(environment.dev_mode){
       this.rss_evolution = [55563.5, 55548.7, 55534.2, 55519.6, 55505.7, 55492.6, 55479.7, 55467,
         55454.9, 55443.1, 55432.9, 55423, 55413.4, 55403.8, 55394.2, 55384.9, 55375.5, 55366.3, 55357, 55347.8]
         
       this.datapoints = this.wrapIntoDatapoints(this.rss_evolution);
-      this.cdr.detectChanges();
-        
-      this.svg = new Svg(this.visualization_div, width, height, this.datapoints, this.scalingFunction, true, false);
-      this.svg.resize(width, height, 0);
-
-      this.onSliderChange(null);
+      this.pattern_number = this.rss_evolution.length;
     }
   }
 
-  ngOnDestroy(){
-    this.dev_mode_subscription.unsubscribe();
+  ngAfterViewInit() {
+    let width = this.visualization_div.nativeElement.clientWidth;
+    let height = this.visualization_div.nativeElement.clientHeight;
+
+    this.svg = new Svg(this.visualization_div, width, height, this.datapoints, this.scalingFunction, true, false);
+    this.svg.resize(width, height, 0);
+
+    this.onSliderChange(null);
   }
 
   private wrapIntoDatapoints(rss_evolution: Array<number>): Array<DataPoint>{
@@ -98,7 +83,7 @@ export class RssViewComponent {
     for (let i = 0; i < rss_evolution.length; i++){
       let x = undefined;
       let y = undefined;
-      let datapoint = new DataPoint(i, rss_evolution[i], 10, 0, x, y, 0, 0, 0);
+      let datapoint = new DataPoint(i, rss_evolution[i], 10, 0, x, y, 0, 0, 0, 0);
       datapoints[i] = datapoint;
     }
 
@@ -127,7 +112,7 @@ export class RssViewComponent {
       y /= ((1-vertical_screen_coverage) + 1)
       
       let radius = 10;
-      let datapoint = new DataPoint(i, rss, radius, 0, x, y, 0, 0, 0);
+      let datapoint = new DataPoint(i, rss, radius, 0, x, y, 0, 0, 0, 0);
       scaled_datapoints[i] = datapoint;
     }
 
@@ -138,7 +123,7 @@ export class RssViewComponent {
     let x = this.datapoints[this.pattern_number - 1].x;
     this.svg.drawVerticalLine(x);
 
-    this.dagview_service.truncateDataPoints(this.pattern_number);
+    this.onTruncation.emit(this.pattern_number);
   }
 
   public onResize(event) {

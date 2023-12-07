@@ -15,12 +15,13 @@ impl DataPointService {
         
     }
 
-    fn densityToColor(density: &f64) -> (u32, u32, u32) {
-        let r = (density * 255.0) as u32;
-        let g = (255 - r) as u32;
+    fn densityToColor(density: &f64) -> (u32, u32, u32, u32) {
+        let r = 255 as u32;
+        let g = 0;
         let b = 0 as u32;
+        let a = (255 as f64 * density) as u32;
 
-        return (r, g, b);
+        return (r, g, b, a);
     }
 
     pub fn createDataPoints(identifier_mapper: &IdentifierMapper, coordinates: &Coordinates) -> Result<Vec<DataPoint>, GenericError> {
@@ -56,6 +57,7 @@ impl DataPointService {
                 &color.0,
                 &color.1,
                 &color.2,
+                &color.3
                 );
             datapoints.push(datapoint);
         }

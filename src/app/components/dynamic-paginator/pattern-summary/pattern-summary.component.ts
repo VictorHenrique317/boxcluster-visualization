@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ComponentRef, ElementRef, EventEmitter, Input
 import { CommonModule } from '@angular/common';
 import { MatListModule } from '@angular/material/list';
 import { MatRippleModule } from '@angular/material/core';
-import { Pattern } from 'src/models/pattern';
+import { Pattern } from 'src/app/models/pattern';
 
 @Component({
   selector: 'app-pattern-summary',

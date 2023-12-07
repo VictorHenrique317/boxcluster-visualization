@@ -12,6 +12,7 @@ pub struct DataPoint {
     pub r: u32,
     pub g: u32,
     pub b: u32,
+    pub a: u32,
 }
 
 impl Serialize for DataPoint {
@@ -27,12 +28,13 @@ impl Serialize for DataPoint {
         state.serialize_field("r", &self.r)?;
         state.serialize_field("g", &self.g)?;
         state.serialize_field("b", &self.b)?;
+        state.serialize_field("a", &self.a)?;
         state.end()
     }
 }
 
 impl DataPoint {
-    pub fn new(identifier: &u32, size: &f32, stroke_width: &u32, x: &f32, y: &f32, r: &u32, g: &u32, b: &u32) -> DataPoint { 
+    pub fn new(identifier: &u32, size: &f32, stroke_width: &u32, x: &f32, y: &f32, r: &u32, g: &u32, b: &u32, a: &u32) -> DataPoint { 
         return DataPoint { identifier: *identifier, 
             x: *x, 
             y: *y , 
@@ -41,6 +43,7 @@ impl DataPoint {
             r: *r,  
             g: *g,
             b: *b,
+            a: *a,
             };
     }
 }

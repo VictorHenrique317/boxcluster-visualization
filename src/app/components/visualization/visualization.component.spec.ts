@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { DagComponent } from './dag.component';
+import { VisualizationComponent } from './visualization.component';
 
-describe('DagComponent', () => {
-  let component: DagComponent;
-  let fixture: ComponentFixture<DagComponent>;
+describe('VisualizationComponent', () => {
+  let component: VisualizationComponent;
+  let fixture: ComponentFixture<VisualizationComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ DagComponent ]
+      imports: [ VisualizationComponent ]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(DagComponent);
+    fixture = TestBed.createComponent(VisualizationComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

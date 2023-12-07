@@ -6,11 +6,15 @@ html, body{
     // background-color: yellow;
     height: 100vh;
 
+    position: relative;
+
     section{
         display: flex;
         flex-grow: 4;
 
         justify-content: center;
+
+        position: relative;
 
         #vizualization_div{
             z-index: 0;
@@ -23,5 +27,18 @@ html, body{
             object-fit:contain;
         }
         
+        #rss_view {
+            z-index: 1;
+            position: absolute;
+            top: 1em;
+            right: 1em;
+
+            // height: 35%;
+            height: 35%;
+            width: 40%;
+
+            // background-color: red;
+        }
+          
     }
 }

@@ -39,31 +39,13 @@
             <button mat-raised-button>Go back</button>
             <button mat-raised-button>Pin/ unpin</button>
             
-            <!-- <div id="draw-buttons">
-                <button mat-raised-button>+</button>
-                <button mat-raised-button>-</button>
-            </div> -->
             <button mat-raised-button (click)="openDagView()" >MDS-DAG</button>
             <button mat-raised-button (click)="openFullSizeRss()" >RSS</button>
         </nav>
         
-        <!-- <app-dag #dag *ngIf="dag_view"
-            (mousedown)="canvasMouseDownHandler($event)" 
-            (mousemove)="canvasMouseMoveHandler($event)" 
-            (mouseup)="canvasMouseUpHandler()"
-            (wheel)="canvasWheelHandler($event)">
-        </app-dag> -->
-
-        <!-- <app-rss-view *ngIf="rss_view" #rssViewer></app-rss-view> -->
-        
         <div id="router">
             <router-outlet (activate)="onActivate($event)"></router-outlet>
         </div>
-
-<!--     
-        <footer>
-            <p>footer</p>
-        </footer> -->
 
     </div>
 </body>
