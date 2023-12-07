@@ -69,23 +69,20 @@ export class DagComponent implements AfterViewInit{
   }
   
   ngAfterViewInit(){
-    console.log("Initializing dag view component");
     this.dev_mode_subscription =  this.route.queryParams.subscribe(params => {
       this.DEV_MODE = params['dev_mode'] === 'true' ? true : false;
     });
 
     this.dagview_service.updateDataPoints(this.DEV_MODE);
-    
-    // let width = 1024;
-    // let height = 720;
-    // if(this.dagWindow.nativeElement.clientWidth > width){ width = this.dagWindow.nativeElement.clientWidth; }
-    // if(this.dagWindow.nativeElement.clientHeight > height){ height = this.dagWindow.nativeElement.clientHeight; }
+
+    console.log("Initializing dag view component with: " + this.subscribed_datapoints.length + " datapoints");
 
     let width = this.dagWindow.nativeElement.clientWidth;
     let height = this.dagWindow.nativeElement.clientHeight;
-
     this.svg = new Svg(this.vizualization_div, width, height, this.subscribed_datapoints, this.scalingFunction);
     this.svg.resize(width, height, this.y_correction);
+
+    
   }
 
   ngOnDestroy(){
