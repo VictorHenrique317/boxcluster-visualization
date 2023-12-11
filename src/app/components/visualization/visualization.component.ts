@@ -53,7 +53,7 @@ export class VisualizationComponent implements AfterViewInit{
     let width = this.body.nativeElement.clientWidth;
     let height = this.body.nativeElement.clientHeight;
     
-    this.svg = new Svg(this.vizualization_div, width, height, this.datapoints.slice(), this.scalingFunction);
+    this.svg = new Svg(this.vizualization_div, width, height, this.datapoints.slice(), this.scalingFunction, 40);
     this.svg.resize(width, height, this.y_correction);
     
     // this.cdr.detectChanges();

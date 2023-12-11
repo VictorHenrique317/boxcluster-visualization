@@ -16,15 +16,18 @@ export class Svg {
     private y_scale: any;
 
     private gridlines: boolean;
+    private number_of_gridlines: number;
+
     private pannable: boolean;
 
     constructor(vizualization_div: ElementRef<HTMLDivElement>, width: number, height: number, 
                 datapoints: Array<DataPoint>, scaling_function: (arc: Array<any>) => Array<any>, 
-                gridlines: boolean = true, pannable: boolean = true){
+                number_of_gridlines: number = 40, gridlines: boolean = true, pannable: boolean = true){
         this.datapoints = datapoints;
         this.scaling_function = scaling_function;
         this.width = width;
         this.height = height;
+        this.number_of_gridlines = number_of_gridlines;
         this.gridlines = gridlines;
         this.pannable = pannable;
         this.create(vizualization_div);
@@ -64,8 +67,8 @@ export class Svg {
     }
 
     private drawGridLines() {
-      let makeXGridlines = () => { return d3.axisBottom(this.x_scale).ticks(40) }
-      let makeYGridlines = () => { return d3.axisLeft(this.y_scale).ticks(40) }
+      let makeXGridlines = () => { return d3.axisBottom(this.x_scale).ticks(this.number_of_gridlines) }
+      let makeYGridlines = () => { return d3.axisLeft(this.y_scale).ticks(this.number_of_gridlines) }
   
       // Add the X gridlines
       this.plot.append("g")			

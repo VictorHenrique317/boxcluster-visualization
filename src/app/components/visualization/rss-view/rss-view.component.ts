@@ -36,6 +36,8 @@ export class RssViewComponent {
 
   @Output() onTruncation: EventEmitter<any> = new EventEmitter();
 
+  protected enabled: boolean = false;
+
   private max_y: number;
   private y_range: number;
 
@@ -67,14 +69,19 @@ export class RssViewComponent {
     }
   }
 
-  ngAfterViewInit() {
+  ngAfterViewInit() { }
+
+  protected toggleVisualization(){
+    console.log("tottle");
     let width = this.visualization_div.nativeElement.clientWidth;
     let height = this.visualization_div.nativeElement.clientHeight;
 
-    this.svg = new Svg(this.visualization_div, width, height, this.datapoints, this.scalingFunction, true, false);
+    this.svg = new Svg(this.visualization_div, width, height, this.datapoints, this.scalingFunction, 10, true, false);
     this.svg.resize(width, height, 0);
 
     this.onSliderChange(null);
+
+    this.enabled = !this.enabled;
   }
 
   private wrapIntoDatapoints(rss_evolution: Array<number>): Array<DataPoint>{

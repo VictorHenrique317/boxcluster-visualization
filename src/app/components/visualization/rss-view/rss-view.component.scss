@@ -8,17 +8,28 @@ html,body{
     margin : 0 0 0 0;
 
     
-    // background-color: blue;
+    background-color: mat.get-color-from-palette($primary-palette, 50);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 
+    #drawer{
+        z-index: 0;
+        background-color: red;
+        width: 10%;
+        height: 10%;
+    }
+
+    #drawer:hover{
+        cursor: pointer;
+    }
+
     #visualization_div{
         z-index: 0;
         position: relative;
         object-fit:contain;
-        width: 95%;
+        width: 90%;
         height: 60%; // Of available space
 
         border: 4px solid mat.get-color-from-palette($primary-palette, 700);
@@ -31,10 +42,11 @@ html,body{
         justify-content: center;
         align-items: center;
 
-        width: 89%;
+        width: 87%;
         height: 30%;
 
         padding-right: 1%;
+        padding-left: 1%;
         padding-top: 0%;
         // padding-bottom: 1%;
 
@@ -44,8 +56,10 @@ html,body{
             
         }
 
-        p{
+        
 
+        p{
+            // color: white;
         }
 
         // background-color: yellow;
