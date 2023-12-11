@@ -17,6 +17,7 @@ import { ActivatedRoute } from '@angular/router';
 import { PortalDirective } from '../../directives/portal-directive.directive';
 import { RssViewComponent } from 'src/app/components/visualization/rss-view/rss-view.component';
 import { environment } from '../../../environments/environment';
+import { RssViewDrawerComponent } from "./rss-view-drawer/rss-view-drawer.component";
 
 // https://angular.io/guide/template-syntax
 
@@ -25,19 +26,20 @@ import { environment } from '../../../environments/environment';
     standalone: true,
     templateUrl: './visualization.component.html',
     styleUrls: ['./visualization.component.scss'],
-    imports: [CommonModule, MatCardModule, PortalModule, RssViewComponent]
+    imports: [CommonModule, MatCardModule, PortalModule, RssViewComponent, RssViewDrawerComponent]
 })
 export class VisualizationComponent implements AfterViewInit{
   @ViewChild('body') body: ElementRef<HTMLBodyElement>;
   
   @ViewChild('vizualization_div') vizualization_div: ElementRef<HTMLDivElement>;
   private svg: Svg;
+
   @ViewChild('rss_view') rss_view: RssViewComponent;
+  protected rss_view_enabled: boolean = true;
   
   private y_correction = 70;
 
   private datapoints: Array<DataPoint>;
-  rss_view_enabled: boolean = false;
 
   constructor(private route: ActivatedRoute, private svg_service: SvgService, private cdr: ChangeDetectorRef){ }
 
@@ -46,7 +48,7 @@ export class VisualizationComponent implements AfterViewInit{
     console.log("Initializing dag view component with: " + this.datapoints.length + " datapoints");
     console.log(this.datapoints);
 
-    this.rss_view_enabled = true;
+    // this.rss_view_enabled = true;
   }
   
   ngAfterViewInit(){
@@ -55,6 +57,7 @@ export class VisualizationComponent implements AfterViewInit{
     
     this.svg = new Svg(this.vizualization_div, width, height, this.datapoints.slice(), this.scalingFunction, 40);
     this.svg.resize(width, height, this.y_correction);
+    
     
     // this.cdr.detectChanges();
   }
@@ -124,6 +127,14 @@ export class VisualizationComponent implements AfterViewInit{
     let height = this.body.nativeElement.clientHeight;
 
     this.svg.resize(width, height, this.y_correction);
+  }
+
+  protected enableRssView(){
+    this.rss_view_enabled = true;
+  }
+
+  protected disableRssView(){
+    this.rss_view_enabled = false;
   }
 
   public onTruncation(event){

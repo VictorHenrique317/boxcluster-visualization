@@ -35,8 +35,7 @@ export class RssViewComponent {
   pattern_number;
 
   @Output() onTruncation: EventEmitter<any> = new EventEmitter();
-
-  protected enabled: boolean = false;
+  @Output() initialized: EventEmitter<any> = new EventEmitter();
 
   private max_y: number;
   private y_range: number;
@@ -69,10 +68,7 @@ export class RssViewComponent {
     }
   }
 
-  ngAfterViewInit() { }
-
-  protected toggleVisualization(){
-    console.log("tottle");
+  ngAfterViewInit() {
     let width = this.visualization_div.nativeElement.clientWidth;
     let height = this.visualization_div.nativeElement.clientHeight;
 
@@ -81,8 +77,8 @@ export class RssViewComponent {
 
     this.onSliderChange(null);
 
-    this.enabled = !this.enabled;
-  }
+    this.initialized.emit();
+   }
 
   private wrapIntoDatapoints(rss_evolution: Array<number>): Array<DataPoint>{
     let datapoints: DataPoint[] = [];

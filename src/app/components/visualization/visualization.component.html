@@ -1,7 +1,21 @@
 <body #body (window:resize)="onResize($event)">
     <section>
         <div #vizualization_div id="vizualization_div"></div>
-        <!-- <ng-template  id="portal_outlet" [cdkPortalOutlet]="rss_view_portal"></ng-template> -->
-        <app-rss-view id="rss_view" *ngIf="rss_view_enabled" (onTruncation)="onTruncation($event)" ></app-rss-view>
+        
+        <div id="rss-view-placeholder" class="floatable"
+            (mouseleave)="disableRssView()">
+
+            <app-rss-view-drawer id="rss_view_drawer" class="floatable"
+            (mouseenter)="enableRssView()">
+            </app-rss-view-drawer>
+
+            <app-rss-view id="rss_view" class="floatable" 
+                [hidden]="!rss_view_enabled" 
+                (onTruncation)="onTruncation($event)"
+                (initialized)="disableRssView()">
+            </app-rss-view>
+        </div>
+        
+    
     </section>
 </body>

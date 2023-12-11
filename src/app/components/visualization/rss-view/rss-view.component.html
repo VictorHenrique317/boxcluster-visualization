@@ -1,9 +1,5 @@
 <body #rssWindow (window:resize)="onResize($event)">
-    <div id="drawer" *ngIf="!enabled"
-        (click)="toggleVisualization()">
-    </div>
-
-    <div id="visualization_div" #visualization_div *ngIf="enabled"></div>
+    <div id="visualization_div" #visualization_div></div>
     <div id="slider-div">
         <mat-slider 
             class="example-margin"
