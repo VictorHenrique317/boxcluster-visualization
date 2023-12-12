@@ -122,11 +122,13 @@ export class RssViewComponent {
     return scaled_datapoints;
   }
   
-  onSliderChange(event: any) {
+  protected onSliderChange(event: any) {
+    this.onTruncation.emit(this.pattern_number);
+  }
+
+  protected onSliderDrag(event: any) {
     let x = this.datapoints[this.pattern_number - 1].x;
     this.svg.drawVerticalLine(x);
-
-    this.onTruncation.emit(this.pattern_number);
   }
 
   public onResize(event) {

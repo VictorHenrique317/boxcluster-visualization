@@ -6,16 +6,15 @@
             (mouseleave)="disableRssView()">
 
             <app-rss-view-drawer id="rss_view_drawer" class="floatable"
-            (mouseenter)="enableRssView()">
+                [hidden]="!rss_view_drawer_enabled"
+                (mouseenter)="enableRssView()">
             </app-rss-view-drawer>
 
             <app-rss-view id="rss_view" class="floatable" 
-                [hidden]="!rss_view_enabled" 
                 (onTruncation)="onTruncation($event)"
-                (initialized)="disableRssView()">
+                (initialized)="disableRssView()"
+                [@slideInOut]="rss_view_enabled ? 'in' : 'out'">
             </app-rss-view>
         </div>
-        
-    
     </section>
 </body>

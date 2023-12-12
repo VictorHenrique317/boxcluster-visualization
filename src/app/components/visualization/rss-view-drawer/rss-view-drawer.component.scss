@@ -1,6 +1,26 @@
+@use '@angular/material' as mat;
+@import 'src/theme.scss';
 body{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 0 0 0;
+    margin : 0 0 0 0;
     width: 100%;
     height: 100%;
+
+    button{ 
+        width: 100%;
+        height: 100%;
+        margin-top: 1em;
+
+        padding: 0 0 0 0;
+
+        cursor: pointer;
+        background-color: mat.get-color-from-palette($primary-palette, 500);
+        color: mat.get-color-from-palette($primary-palette, '900-contrast');
+    }
     
-    background-color: red;
+    
 }

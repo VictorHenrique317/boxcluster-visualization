@@ -28,8 +28,8 @@ html, body{
         }
 
         #rss-view-placeholder{
-            top: 1em;
-            right: 1em;
+            top: 0em;
+            right: 0em;
 
             height: 40%;
             width: 40%;
@@ -37,13 +37,15 @@ html, body{
             // background-color: brown;
 
             #rss_view_drawer {
-                top: 2em;
-                right: 2em;
+                top: 0.5em;
+                right: 1em;
     
-                width: 10%;
-                height: 10%;
-    
-                cursor: pointer;
+                width: 30%;
+                height: 20%;
+
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
             
             #rss_view {

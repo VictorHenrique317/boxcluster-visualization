@@ -18,15 +18,44 @@ import { PortalDirective } from '../../directives/portal-directive.directive';
 import { RssViewComponent } from 'src/app/components/visualization/rss-view/rss-view.component';
 import { environment } from '../../../environments/environment';
 import { RssViewDrawerComponent } from "./rss-view-drawer/rss-view-drawer.component";
-
-// https://angular.io/guide/template-syntax
+import { animate, state, style, transition, trigger } from '@angular/animations';
 
 @Component({
     selector: 'app-visualization',
     standalone: true,
     templateUrl: './visualization.component.html',
     styleUrls: ['./visualization.component.scss'],
-    imports: [CommonModule, MatCardModule, PortalModule, RssViewComponent, RssViewDrawerComponent]
+    imports: [
+      CommonModule,
+      MatCardModule, 
+      PortalModule, 
+      RssViewComponent, 
+      RssViewDrawerComponent],
+      animations: [
+        trigger('slideInOut', [
+          state('void', style({
+            transform: 'translateX(100%)',
+            opacity: 0
+          })),
+          state('in', style({
+            transform: 'translateX(0)',
+            opacity: 1
+          })),
+          state('out', style({
+            transform: 'translateX(100%)',
+            opacity: 0
+          })),
+          transition('void => in', [
+            animate('0.5s ease-in-out')
+          ]),
+          transition('in => out', [
+            animate('0.5s ease-in-out')
+          ]),
+          transition('out => in', [
+            animate('0.5s ease-in-out')
+          ])
+        ])
+      ]
 })
 export class VisualizationComponent implements AfterViewInit{
   @ViewChild('body') body: ElementRef<HTMLBodyElement>;
@@ -35,7 +64,8 @@ export class VisualizationComponent implements AfterViewInit{
   private svg: Svg;
 
   @ViewChild('rss_view') rss_view: RssViewComponent;
-  protected rss_view_enabled: boolean = true;
+  protected rss_view_enabled: boolean = null;
+  protected rss_view_drawer_enabled: boolean = false;
   
   private y_correction = 70;
 
@@ -131,10 +161,22 @@ export class VisualizationComponent implements AfterViewInit{
 
   protected enableRssView(){
     this.rss_view_enabled = true;
+    this.cdr.detectChanges();
+
+    setTimeout(() => {
+      this.rss_view_drawer_enabled = false;
+      this.cdr.detectChanges();
+    }, 200);
   }
 
   protected disableRssView(){
     this.rss_view_enabled = false;
+    this.cdr.detectChanges();
+
+    setTimeout(() => {
+      this.rss_view_drawer_enabled = true;
+      this.cdr.detectChanges();
+    }, 400);
   }
 
   public onTruncation(event){
