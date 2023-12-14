@@ -1,3 +1,4 @@
+import * as d3 from 'd3';
 import { Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {MatSliderModule} from '@angular/material/slider';
@@ -74,6 +75,7 @@ export class RssViewComponent {
 
     this.svg = new Svg(this.visualization_div, width, height, this.datapoints, this.scalingFunction, 10, true, false);
     this.svg.resize(width, height, 0);
+    this.connectDatapoints();
 
     this.onSliderChange(null);
 
@@ -114,12 +116,33 @@ export class RssViewComponent {
       y = y * 2 - 1; // Scale y to be between -1 and 1
       y /= ((1-vertical_screen_coverage) + 1)
       
-      let radius = 10;
-      let datapoint = new DataPoint(i, rss, radius, 0, x, y, 0, 0, 0, 0);
+      let radius = 3;
+      let datapoint = new DataPoint(i, rss, radius, 0, x, y, 0, 0, 0, 1);
       scaled_datapoints[i] = datapoint;
     }
 
     return scaled_datapoints;
+  }
+
+  private connectDatapoints(){
+    console.log("Connecting datapoints");
+    let scaled_datapoints = this.svg.getScaledDatapoints();
+    if(scaled_datapoints.length < 2){ return; }
+
+    let line = d3.line<DataPoint>()
+      .x(d => this.svg.getXScale()(d.x))
+      .y(d => this.svg.getYScale()(d.y));
+
+    for(let i = 0; i < scaled_datapoints.length - 1; i++) {
+      let point1 = scaled_datapoints[i];
+      let point2 = scaled_datapoints[i+1];
+
+      this.svg.getPlot().append('path')
+        .attr('d', line([point1, point2]))
+        .attr('stroke', 'black')
+        .attr('stroke-width', 2)
+        .attr('fill', 'none');
+    }
   }
   
   protected onSliderChange(event: any) {
@@ -136,6 +159,7 @@ export class RssViewComponent {
     let height = this.visualization_div.nativeElement.clientHeight;
 
     this.svg.resize(width, height, 0);
+    this.connectDatapoints();
   }
   
   public getPatternNumber(): number{  

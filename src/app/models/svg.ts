@@ -8,6 +8,7 @@ export class Svg {
 
     private scaling_function: any;
     private datapoints: Array<DataPoint>;
+    private scaled_datapoints: Array<DataPoint>;
 
     private width: number;
     private height: number;
@@ -117,14 +118,14 @@ export class Svg {
       this.drawDataPoints();
     }
     
-    public drawDataPoints() {
+    private drawDataPoints() {
       if(this.plot == undefined){ return; }
 
       this.plot.selectAll('circle').remove();
       
-      let scaled_datapoints = this.scaling_function(this.datapoints);
+      this.scaled_datapoints = this.scaling_function(this.datapoints);
       this.plot.selectAll('circle')
-        .data(scaled_datapoints)
+        .data(this.scaled_datapoints)
         .enter()
         .append('circle')
           .attr('cx', d => this.x_scale(d.x))
@@ -151,5 +152,21 @@ export class Svg {
 
     public getD3Svg(){
       return this.d3_svg;
+    }
+
+    public getPlot(){
+      return this.plot;
+    }
+
+    public getScaledDatapoints(){
+      return this.scaled_datapoints;
+    }
+
+    public getXScale(){
+      return this.x_scale;
+    }
+
+    public getYScale(){
+      return this.y_scale;
     }
 }

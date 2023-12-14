@@ -119,9 +119,11 @@ export class AppComponent implements AfterViewInit{
       invoke("initApplication", {tensorPath: this.tensor_path, patternsPath: this.patterns_path}).then((result: any) =>{
         this.upload_file_mode = "tensor";
         this.model_loaded = true;
+
         // Forcing a reload
-        this.router.navigateByUrl('', {skipLocationChange: true}).then(()=>
-        this.router.navigate(["dagview"]));
+        this.router.navigateByUrl('', {skipLocationChange: true}).then(()=>{
+          this.openDagView();
+        });
 
       }).catch((error: any) => {
         console.log(error);
@@ -143,11 +145,7 @@ export class AppComponent implements AfterViewInit{
     }
   }
 
-  public openDagView(){
+  private openDagView(){
     this.router.navigate(['/visualizationView']);
-  }
-
-  public openFullSizeRss(){
-    this.router.navigate(['/rssView']);
   }
 }
