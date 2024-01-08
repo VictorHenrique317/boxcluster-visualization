@@ -1,27 +1,31 @@
 <body>
     <aside #aside>
         <div id="main-options">
-            <header *ngIf="upload_file_mode=='tensor'" #header matRipple [matRippleCentered]="true" (click)="openTensorDialog()">
+            <header class="main-option" *ngIf="upload_file_mode=='tensor'" #header matRipple [matRippleCentered]="true" 
+                (click)="openTensorDialog()"
+            matTooltip="Change model">
                 <mat-icon aria-hidden="false" aria-label="open_file" fontIcon="upload_file"></mat-icon>
                 <!-- <h1>Change model</h1> -->
             </header>
     
-            <header *ngIf="upload_file_mode=='patterns'" #header matRipple [matRippleCentered]="true" (click)="openPatternsDialog()">
+            <header class="main-option" *ngIf="upload_file_mode=='patterns'" #header matRipple [matRippleCentered]="true" 
+                (click)="openPatternsDialog()"
+            matTooltip="Change model">
                 <mat-icon aria-hidden="false" aria-label="open_file" fontIcon="upload_file"></mat-icon>
                 <!-- <h1>Change model</h1> -->
             </header>
 
-            <header id="drawer-button" matRipple [matRippleCentered]="true" (click)="sidenav.toggle()">
+            <header class="main-option" id="drawer-button" matRipple [matRippleCentered]="true" 
+                (click)="sidenav.toggle()"
+                matTooltip="Settings">
                 <mat-icon aria-hidden="false" aria-label="settings" fontIcon="settings"></mat-icon>
-                <!-- <h1>Settings</h1> -->
             </header>
-<!-- 
-            <header id="rss-truncation-button">
-                <app-rss-view-drawer id="rss_view_drawer" class="floatable"
-                    [hidden]="!rss_view_drawer_enabled"
-                    (mouseenter)="enableRssView()">
-                </app-rss-view-drawer>
-            </header> -->
+            
+            <header class="main-option" id="rss-truncation-button" 
+                (click)="toggleRssView()"
+                matTooltip="Truncate Model">
+                <mat-icon aria-hidden="false" aria-label="settings" fontIcon="show_chart"></mat-icon>
+            </header>
         </div>
         
         <mat-sidenav-container id="content" autosize>
@@ -32,34 +36,37 @@
         
             <mat-sidenav #sidenav id="settings-wrapper-upper-content" mode="over" fixedInViewport="false">
                 <nav>
-                    <button mat-raised-button [matMenuTriggerFor]="scaleMenu">Scale</button>
-                    <mat-menu #scaleMenu="matMenu">
+                    <button class="setting" mat-raised-button [matMenuTriggerFor]="scaleMenu">Scale</button>
+                    <mat-menu class="setting" #scaleMenu="matMenu">
                         <button mat-menu-item>Linear</button>
                         <button mat-menu-item>Logarithmic</button>
                     </mat-menu>
         
-                    <button mat-raised-button [matMenuTriggerFor]="areaMenu">Area attribute</button>
-                    <mat-menu #areaMenu="matMenu">
+                    <button class="setting" mat-raised-button [matMenuTriggerFor]="areaMenu">Area attribute</button>
+                    <mat-menu class="setting" #areaMenu="matMenu">
                         <button mat-menu-item>Pattern size</button>
                         <button mat-menu-item>Density</button>
                         <button mat-menu-item>G</button>
                     </mat-menu>
         
-                    <button mat-raised-button [matMenuTriggerFor]="groupMenu">Grouping Type</button>
-                    <mat-menu #groupMenu="matMenu">
+                    <mat-menu class="setting" #groupMenu="matMenu">
                         <button mat-menu-item>Flat</button>
                         <button mat-menu-item>Group by fonts</button>
                     </mat-menu>
         
-                    <button mat-raised-button>Show hierarchy</button>
-                    <button mat-raised-button>Go back</button>
-                    <button mat-raised-button>Pin/ unpin</button>
+                    <button class="setting" mat-raised-button>Pin/ unpin</button>
                 </nav>
             </mat-sidenav>
         </mat-sidenav-container>
     </aside>
 
     <div id="main-app">
+        <app-rss-view id="rss_view" class="floatable" 
+                (onTruncation)="onTruncation($event)"
+                (initialized)="disableRssView()"
+                [@slideInOut]="rss_view_enabled ? 'in' : 'out'">
+        </app-rss-view>
+
         <div id="router">
             <router-outlet (activate)="onActivate($event)"></router-outlet>
         </div>

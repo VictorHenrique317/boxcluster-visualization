@@ -26,43 +26,5 @@ html, body{
             // background-color: red;
             object-fit:contain;
         }
-
-        #rss-view-placeholder{
-            top: 0em;
-            right: 0em;
-
-            height: 40%;
-            width: 40%;
-
-            // background-color: brown;
-
-            #rss_view_drawer {
-                top: 0.5em;
-                right: 1em;
-    
-                width: 30%;
-                height: 20%;
-
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            #rss_view {
-                // top: 1em;
-                padding-top: 1em;
-    
-                // height: 35%;
-                height: 100%;
-                width: 100%;
-    
-                // background-color: red;
-            }
-        }
     }
-}
-
-.floatable {
-    z-index: 1;
-    position: absolute;
 }

@@ -75,7 +75,7 @@ export class Svg {
       this.plot.append("g")			
         .attr("class", "grid")
         .attr("transform", "translate(0," + this.height + ")")
-        .attr("color", "grey")
+        .attr("color", "lightgrey")
         .call(makeXGridlines()
             .tickSize(-this.height)
             .tickFormat(() => "")
@@ -84,9 +84,10 @@ export class Svg {
       // Add the Y gridlines
       this.plot.append("g")			
         .attr("class", "grid")
-        .attr("color", "grey")
+        .attr("color", "lightgrey")
         .call(makeYGridlines()
             .tickSize(-1 * this.width)
+            // .tickSize(-300)
             .tickFormat(() => "")
         )
     }
@@ -97,11 +98,11 @@ export class Svg {
       
       if(this.pannable){
         let panning_zoom = d3.zoom()
-        .scaleExtent([1, 10]) // This control how much you can unzoom (x1) and zoom (x10)
-        .translateExtent([[0, 0], [this.width, this.height]])
-        .on("start", (event, d) => { this.d3_svg.attr("cursor", "grabbing"); })
-        .on("zoom", (event) => { this.plot.attr("transform", event.transform); })
-        .on("end", (event, d) => {this.d3_svg.attr("cursor", "default")});
+          .scaleExtent([1.2, 10]) // This control how much you can unzoom (x1) and zoom (x10)
+          .translateExtent([[0, 0], [this.width, this.height]])
+          .on("start", (event, d) => { this.d3_svg.attr("cursor", "grabbing"); })
+          .on("zoom", (event) => { this.plot.attr("transform", event.transform); })
+          .on("end", (event, d) => {this.d3_svg.attr("cursor", "default")});
     
         this.d3_svg.call(panning_zoom);
 

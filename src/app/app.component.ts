@@ -4,7 +4,7 @@
 // https://br.pinterest.com/pin/800022321275429738/
 // import * as numeric from 'numeric';
 
-import { AfterViewInit, Component, ElementRef, ViewChild } from "@angular/core";
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, ViewChild } from "@angular/core";
 import { invoke } from "@tauri-apps/api/tauri";
 import { VisualizationComponent } from "./components/visualization/visualization.component";
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -27,7 +27,8 @@ import { RssViewComponent } from "./components/visualization/rss-view/rss-view.c
 import { provideRouter, Router, RouterOutlet} from "@angular/router";
 import { environment } from "src/environments/environment";
 import {MatSidenavModule} from '@angular/material/sidenav'
-import { RssViewDrawerComponent } from "./components/visualization/rss-view-drawer/rss-view-drawer.component";
+import { animate, state, style, transition, trigger } from '@angular/animations';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
     selector: "app-root",
@@ -55,18 +56,45 @@ import { RssViewDrawerComponent } from "./components/visualization/rss-view-draw
         MatPaginatorModule,
         MatSidenavModule,
         MatIconModule,
-        RssViewDrawerComponent
+        MatTooltipModule
+    ],
+    animations: [
+      trigger('slideInOut', [
+        state('void', style({
+          transform: 'translateX(-100%)',
+          opacity: 0
+        })),
+        state('in', style({
+          transform: 'translateX(0)',
+          opacity: 1
+        })),
+        state('out', style({
+          transform: 'translateX(-100%)',
+          opacity: 0
+        })),
+        transition('void => in', [
+          animate('0.5s ease-in-out')
+        ]),
+        transition('in => out', [
+          animate('0.5s ease-in-out')
+        ]),
+        transition('out => in', [
+          animate('0.5s ease-in-out')
+        ])
+      ])
     ]
+    
 })
 
 export class AppComponent implements AfterViewInit{
-  private DEV_MODE: boolean = true;
-
   @ViewChild("aside") aside: ElementRef<HTMLElement>;
+
   @ViewChild("header") header: ElementRef<HTMLElement>;
+
+  @ViewChild('rss_view') rss_view: RssViewComponent;
+  protected rss_view_enabled: boolean = null;
   
-  protected dag_view: VisualizationComponent;
-  private rss_view: RssViewComponent;
+  protected visualization_view: VisualizationComponent;
 
   public selected_directory: string = "";
   public tensor_path: string = "";
@@ -81,7 +109,7 @@ export class AppComponent implements AfterViewInit{
   pageSize = 10;
   pageIndex = 0;
 
-  constructor(private router: Router){}
+  constructor(private router: Router, private cdr: ChangeDetectorRef){}
 
   ngAfterViewInit(){
     this.matList_height = this.aside.nativeElement.clientHeight - this.header.nativeElement.clientHeight;
@@ -92,7 +120,7 @@ export class AppComponent implements AfterViewInit{
 
   public onActivate(componentInstance: any) {
     if (componentInstance instanceof VisualizationComponent) {
-      this.dag_view = componentInstance;
+      this.visualization_view = componentInstance;
     }
 
     if (componentInstance instanceof RssViewComponent) {
@@ -102,6 +130,10 @@ export class AppComponent implements AfterViewInit{
     if(this.rss_view != undefined){
       console.log("Pattern number: " + this.rss_view.getPatternNumber());
     }
+  }
+
+  private openDagView(){
+    this.router.navigate(['/visualizationView']);
   }
 
   public async openTensorDialog(){
@@ -152,7 +184,19 @@ export class AppComponent implements AfterViewInit{
 
   }
 
-  private openDagView(){
-    this.router.navigate(['/visualizationView']);
+  protected toggleRssView(){
+    if(this.rss_view_enabled == null){ return; }
+
+    this.rss_view_enabled = !this.rss_view_enabled;
+    this.cdr.detectChanges();
+  }
+
+  protected disableRssView(){
+    this.rss_view_enabled = false;
+    this.cdr.detectChanges();
+  }
+
+  public onTruncation(event){
+    this.visualization_view.onTruncation(event);
   }
 }

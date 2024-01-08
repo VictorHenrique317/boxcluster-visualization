@@ -17,7 +17,6 @@ import { ActivatedRoute } from '@angular/router';
 import { PortalDirective } from '../../directives/portal-directive.directive';
 import { RssViewComponent } from 'src/app/components/visualization/rss-view/rss-view.component';
 import { environment } from '../../../environments/environment';
-import { RssViewDrawerComponent } from "./rss-view-drawer/rss-view-drawer.component";
 import { animate, state, style, transition, trigger } from '@angular/animations';
 
 @Component({
@@ -29,8 +28,8 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
       CommonModule,
       MatCardModule, 
       PortalModule, 
-      RssViewComponent, 
-      RssViewDrawerComponent],
+      RssViewComponent
+    ],
       animations: [
         trigger('slideInOut', [
           state('void', style({
@@ -63,11 +62,7 @@ export class VisualizationComponent implements AfterViewInit{
   @ViewChild('vizualization_div') vizualization_div: ElementRef<HTMLDivElement>;
   private svg: Svg;
 
-  @ViewChild('rss_view') rss_view: RssViewComponent;
-  protected rss_view_enabled: boolean = null;
-  protected rss_view_drawer_enabled: boolean = false;
-  
-  private y_correction = 70;
+  private y_correction = 0;
 
   private datapoints: Array<DataPoint>;
 
@@ -88,11 +83,10 @@ export class VisualizationComponent implements AfterViewInit{
     this.svg = new Svg(this.vizualization_div, width, height, this.datapoints.slice(), this.scalingFunction, 40);
     this.svg.resize(width, height, this.y_correction);
     
-    
     // this.cdr.detectChanges();
   }
 
-  private updateDataPoints(){
+  public updateDataPoints(){
     if (environment.dev_mode){
       let datapoints: DataPoint[] = [
         new DataPoint(1, 0, 5.000000476837158, 2, -0.09219828993082047, -0.13575132191181183, 185, 0, 0, 0.5),
@@ -159,32 +153,12 @@ export class VisualizationComponent implements AfterViewInit{
     this.svg.resize(width, height, this.y_correction);
   }
 
-  protected enableRssView(){
-    this.rss_view_enabled = true;
-    this.cdr.detectChanges();
-
-    setTimeout(() => {
-      this.rss_view_drawer_enabled = false;
-      this.cdr.detectChanges();
-    }, 200);
-  }
-
-  protected disableRssView(){
-    this.rss_view_enabled = false;
-    this.cdr.detectChanges();
-
-    setTimeout(() => {
-      this.rss_view_drawer_enabled = true;
-      this.cdr.detectChanges();
-    }, 400);
-  }
-
   public onTruncation(event){
     let new_size = event;
     console.log("Truncating datapoints to only: " + new_size);
 
     if(environment.dev_mode) {
-      this.updateDataPoints(); // Resetting to all original datapoints in dev mode
+      this.updateDataPoints(); // Reseting to all original datapoints in dev mode
 
       let new_datapoints = [];
 
