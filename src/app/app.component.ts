@@ -26,34 +26,37 @@ import { open } from '@tauri-apps/api/dialog';
 import { RssViewComponent } from "./components/visualization/rss-view/rss-view.component";
 import { provideRouter, Router, RouterOutlet} from "@angular/router";
 import { environment } from "src/environments/environment";
-
-
+import {MatSidenavModule} from '@angular/material/sidenav'
+import { RssViewDrawerComponent } from "./components/visualization/rss-view-drawer/rss-view-drawer.component";
 
 @Component({
-  selector: "app-root",
-  templateUrl:'./app.component.html',
-  styleUrls:['./app.component.scss'],
-  standalone: true,
-  imports: [
-    RouterOutlet,
-    CommonModule,
-    VisualizationComponent,
-    RssViewComponent,
-    PatternSummaryComponent, 
-    DynamicPaginatorComponent,
-    MatSlideToggleModule, 
-    MatTabsModule, 
-    MatButtonToggleModule,
-    MatDividerModule,
-    MatListModule,
-    MatSelectModule, 
-    MatSlideToggleModule,
-    MatCheckboxModule,
-    MatMenuModule,
-    MatButtonModule,
-    MatRippleModule,
-    MatPaginatorModule,
-    MatIconModule]
+    selector: "app-root",
+    templateUrl: './app.component.html',
+    styleUrls: ['./app.component.scss'],
+    standalone: true,
+    imports: [
+        RouterOutlet,
+        CommonModule,
+        VisualizationComponent,
+        RssViewComponent,
+        PatternSummaryComponent,
+        DynamicPaginatorComponent,
+        MatSlideToggleModule,
+        MatTabsModule,
+        MatButtonToggleModule,
+        MatDividerModule,
+        MatListModule,
+        MatSelectModule,
+        MatSlideToggleModule,
+        MatCheckboxModule,
+        MatMenuModule,
+        MatButtonModule,
+        MatRippleModule,
+        MatPaginatorModule,
+        MatSidenavModule,
+        MatIconModule,
+        RssViewDrawerComponent
+    ]
 })
 
 export class AppComponent implements AfterViewInit{
@@ -85,6 +88,20 @@ export class AppComponent implements AfterViewInit{
 
     if(environment.dev_mode){ this.openDagView(); }
     
+  }
+
+  public onActivate(componentInstance: any) {
+    if (componentInstance instanceof VisualizationComponent) {
+      this.dag_view = componentInstance;
+    }
+
+    if (componentInstance instanceof RssViewComponent) {
+      this.rss_view = componentInstance;
+    }
+
+    if(this.rss_view != undefined){
+      console.log("Pattern number: " + this.rss_view.getPatternNumber());
+    }
   }
 
   public async openTensorDialog(){
@@ -131,18 +148,8 @@ export class AppComponent implements AfterViewInit{
     }
   }
 
-  public onActivate(componentInstance: any) {
-    if (componentInstance instanceof VisualizationComponent) {
-      this.dag_view = componentInstance;
-    }
+  protected openSettingsDialog(){
 
-    if (componentInstance instanceof RssViewComponent) {
-      this.rss_view = componentInstance;
-    }
-
-    if(this.rss_view != undefined){
-      console.log("Pattern number: " + this.rss_view.getPatternNumber());
-    }
   }
 
   private openDagView(){

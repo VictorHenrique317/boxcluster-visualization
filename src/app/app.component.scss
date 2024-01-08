@@ -4,7 +4,7 @@
 
 // $primary-palette: map-get($map: , $key: )
 
-$max_nav_height: 3em;
+$max_nav_height: 5vh;
 
 body{
     // $background: map-get($theme, background);
@@ -29,22 +29,65 @@ body{
         display: flex;
         flex-direction: column;
 
-        max-width: 20vw; 
-        min-width: 20vw;
+        width: 80vw;
         max-height: 100vh;
         min-height: 100vh;
+
+        // background-color: green;
+
+        #main-options{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            // background-color: brown;
+
+            padding-top: 0.5em;
+            padding-bottom: 0.5em;
+            padding-left: 0.5em;
+            padding-right: 0.5em;
+
+            height: 10vh;
+        }
+
+        #content{
+            height: 90vh;
+            background-color: mat.get-color-from-palette($primary-palette, 900);
+
+            #settings-wrapper-lower-content{
+
+            }
+
+            #settings-wrapper-upper-content{
+                background-color: mat.get-color-from-palette($primary-palette, 800);
+                max-width: 90%;
+            }
+
+            #paginator-placeholder{
+                width: 100%;
+                height: 100%;
+                // background-color: red;
+            }
+
+            app-dynamic-paginator{
+                flex: 4;
+            }
+        }
+
         header{
             min-height: $max_nav_height;
             max-height: $max_nav_height;
             padding-top: 1em;
             padding-bottom: 1em;
             padding-left: 1em;
+            padding-right: 1em;
 
             user-select: none;
 
             display: flex;
             flex-direction: row;
             align-items: center;
+
+            border-radius: 10px;
 
             mat-icon{
                 font-size: 2.5em;
@@ -53,12 +96,17 @@ body{
             }
 
             h1{
+                max-width: 80%;
+
+                margin: 0 0 0 0;
+
                 padding-top: 0.5em;
+                padding-bottom: 0.5em;
                 padding-left: 0.5em;
                 padding-right: 0.5em;
-                max-width: 70%;
+                
                 word-wrap: break-word;
-                font-size: 1.5em;
+                font-size: 1.25em;
             }
         }
 
@@ -70,10 +118,6 @@ body{
         h2{
             padding-left: 1em;
             padding-top: 1em;
-        }
-
-        app-dynamic-paginator{
-            flex: 4;
         }
     }
 
