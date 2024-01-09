@@ -5,6 +5,7 @@
 - [x] Remodelar a rss view
 
 ## Checklist 08/01/2023 - ???
-- [ ] Remodelar a interface de controle
+- [x] Remodelar a interface principal
+- [ ] Remodelar a interface de seleção de modelo
 - [ ] Cálculo do MDS dinâmico e ajustes na coordenadas do scatterplot
 - [ ] Scatterplot interativo

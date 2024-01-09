@@ -77,8 +77,6 @@ export class RssViewComponent {
     this.svg.resize(width, height, 0);
     this.connectDatapoints();
 
-    this.onSliderChange(null);
-
     this.initialized.emit();
    }
 

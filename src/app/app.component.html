@@ -1,16 +1,9 @@
 <body>
     <aside #aside>
         <div id="main-options">
-            <header class="main-option" *ngIf="upload_file_mode=='tensor'" #header matRipple [matRippleCentered]="true" 
-                (click)="openTensorDialog()"
-            matTooltip="Change model">
-                <mat-icon aria-hidden="false" aria-label="open_file" fontIcon="upload_file"></mat-icon>
-                <!-- <h1>Change model</h1> -->
-            </header>
-    
-            <header class="main-option" *ngIf="upload_file_mode=='patterns'" #header matRipple [matRippleCentered]="true" 
-                (click)="openPatternsDialog()"
-            matTooltip="Change model">
+            <header class="main-option" #model_selector matRipple [matRippleCentered]="true" 
+                (click)="openModelSelectionDialog('300ms', '300ms')"
+                matTooltip="Change model">
                 <mat-icon aria-hidden="false" aria-label="open_file" fontIcon="upload_file"></mat-icon>
                 <!-- <h1>Change model</h1> -->
             </header>

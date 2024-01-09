@@ -29,6 +29,10 @@ import { environment } from "src/environments/environment";
 import {MatSidenavModule} from '@angular/material/sidenav'
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { FileSelectionDialogComponent } from './components/file-selection-dialog/file-selection-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
+import { take } from "rxjs/operators";
 
 @Component({
     selector: "app-root",
@@ -56,7 +60,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
         MatPaginatorModule,
         MatSidenavModule,
         MatIconModule,
-        MatTooltipModule
+        MatTooltipModule,
+        MatDialogModule
     ],
     animations: [
       trigger('slideInOut', [
@@ -89,7 +94,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 export class AppComponent implements AfterViewInit{
   @ViewChild("aside") aside: ElementRef<HTMLElement>;
 
-  @ViewChild("header") header: ElementRef<HTMLElement>;
+  @ViewChild("model_selector") model_selector: ElementRef<HTMLElement>;
 
   @ViewChild('rss_view') rss_view: RssViewComponent;
   protected rss_view_enabled: boolean = null;
@@ -109,13 +114,12 @@ export class AppComponent implements AfterViewInit{
   pageSize = 10;
   pageIndex = 0;
 
-  constructor(private router: Router, private cdr: ChangeDetectorRef){}
+  constructor(private router: Router, private cdr: ChangeDetectorRef, public dialog: MatDialog){}
 
   ngAfterViewInit(){
-    this.matList_height = this.aside.nativeElement.clientHeight - this.header.nativeElement.clientHeight;
+    this.matList_height = this.aside.nativeElement.clientHeight - this.model_selector.nativeElement.clientHeight;
 
     if(environment.dev_mode){ this.openDagView(); }
-    
   }
 
   public onActivate(componentInstance: any) {
@@ -136,52 +140,35 @@ export class AppComponent implements AfterViewInit{
     this.router.navigate(['/visualizationView']);
   }
 
-  public async openTensorDialog(){
-    const options = {
-      multiple: false
-    };
-    const selected = await open(options);
-    
-    if (selected === null) { return; } // No tensor selected
-    
-    this.tensor_path = selected.toString();
-    this.tensor_name = this.tensor_path.split('\\').pop().split('/').pop();
-    if (this.tensor_path == ""){ return; } // No tensor selected
+  private handleModelChange(event: any){
+    this.tensor_path = event.tensor_path;
+    this.patterns_path = event.patterns_path;
 
-    this.selected_directory = this.tensor_path.substring(0, this.tensor_path.lastIndexOf('/'));
-    this.upload_file_mode = "patterns";
+    console.log("Tensor path: " + this.tensor_path);
+    console.log("Patterns path: " + this.patterns_path);
+    // this.openDagView();
   }
 
-  public async openPatternsDialog(){
-    const options = {
-      multiple: false
-    };
-    const selected = await open(options);
+  protected openModelSelectionDialog(enterAnimationDuration: string, exitAnimationDuration: string): void {
+    const dialogRef = this.dialog.open(FileSelectionDialogComponent, {
+      width: '500px',
+      height: '400px',
+      enterAnimationDuration,
+      exitAnimationDuration,
+    });
 
-    if (selected === null) { return; } // No tensor selected
-    
-    this.patterns_path = selected.toString();
-    if (this.patterns_path == ""){ return; } // No patterns selected
-    
-    if (this.tensor_path != "" && this.patterns_path != ""){
-      // Both are defined
-      invoke("initApplication", {tensorPath: this.tensor_path, patternsPath: this.patterns_path}).then((result: any) =>{
-        this.upload_file_mode = "tensor";
-        this.model_loaded = true;
+    dialogRef.afterClosed().pipe(take(1)).subscribe(result => {
+      // Executes when the dialog is closed
+      // if (result) {
+      //   this.handleModelChange(result);
+      // }
 
-        // Forcing a reload
-        this.router.navigateByUrl('', {skipLocationChange: true}).then(()=>{
-          this.openDagView();
-        });
+      this.handleModelChange(result);
+    });
 
-      }).catch((error: any) => {
-        console.log(error);
-      });
-    }
-  }
-
-  protected openSettingsDialog(){
-
+    // this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => {
+    //   console.log("Closed")
+    // });
   }
 
   protected toggleRssView(){

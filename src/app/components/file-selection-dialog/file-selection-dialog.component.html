@@ -1,0 +1,29 @@
+<body>
+    <h1 id="title" mat-dialog-title>Select model</h1>
+
+    <div id="dialog-content" mat-dialog-content>
+        Select the source tensor file and the patterns you want to visualize.
+    </div>
+
+    <div id="file-selection-wrapper">
+        <div class="file-selector" id="tensor-selection">
+            <h2>Tensor</h2>
+            <div class="clickable">
+                <mat-icon (click)="selectTensor()"> attach_file </mat-icon>
+                <p>filenameeeeeeeeeeeeeeeeeeeeeeeeeeeee.txt</p>
+            </div>
+        </div>
+        <div class="file-selector" id="patterns-selection">
+            <h2>Patterns</h2>
+            <div class="clickable">
+                <mat-icon (click)="selectPatterns()"> attach_file </mat-icon>
+                <p>filenameeeeeeeeeeeeeeeeeeeeeeeeeeeeee.txt</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="dialog-actions" mat-dialog-actions>
+        <button mat-button mat-dialog-close (click)="submit()">Ok</button>
+        <button mat-button mat-dialog-close cdkFocusInitial>Close</button>
+    </div>
+</body>

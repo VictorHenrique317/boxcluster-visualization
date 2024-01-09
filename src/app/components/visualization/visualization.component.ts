@@ -14,7 +14,6 @@ import { Color } from 'src/app/models/color';
 import * as d3 from 'd3';
 import { Svg } from 'src/app/models/svg';
 import { ActivatedRoute } from '@angular/router';
-import { PortalDirective } from '../../directives/portal-directive.directive';
 import { RssViewComponent } from 'src/app/components/visualization/rss-view/rss-view.component';
 import { environment } from '../../../environments/environment';
 import { animate, state, style, transition, trigger } from '@angular/animations';
