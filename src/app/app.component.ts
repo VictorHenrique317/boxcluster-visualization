@@ -119,7 +119,7 @@ export class AppComponent implements AfterViewInit{
   ngAfterViewInit(){
     this.matList_height = this.aside.nativeElement.clientHeight - this.model_selector.nativeElement.clientHeight;
 
-    if(environment.dev_mode){ this.openDagView(); }
+    if(environment.dev_mode){ this.openVisualizationView(); }
   }
 
   public onActivate(componentInstance: any) {
@@ -136,17 +136,54 @@ export class AppComponent implements AfterViewInit{
     }
   }
 
-  private openDagView(){
+  private reloadVisualizationView(){
+    this.router.navigateByUrl('', {skipLocationChange: true}).then(()=>{
+      this.openVisualizationView();
+    });
+  }
+
+  private openVisualizationView(){
     this.router.navigate(['/visualizationView']);
   }
 
   private handleModelChange(event: any){
-    this.tensor_path = event.tensor_path;
-    this.patterns_path = event.patterns_path;
+    console.log("Handling model change");
 
-    console.log("Tensor path: " + this.tensor_path);
-    console.log("Patterns path: " + this.patterns_path);
-    // this.openDagView();
+    if (event.tensor_path == null || event.patterns_path == null){
+      return;
+    }
+
+    this.model_loaded = false;
+    if(event.tensor_path != this.tensor_path){ // Change tensor and patterns
+      this.tensor_path = event.tensor_path;
+      this.patterns_path = event.patterns_path;
+      
+      invoke("initApplication", {tensorPath: this.tensor_path, patternsPath: this.patterns_path}).then((result: any) =>{
+        this.model_loaded = true;
+
+        this.reloadVisualizationView();
+
+      }).catch((error: any) => {
+        console.log(error);
+      });
+    }
+
+    else if(event.patterns_path != this.patterns_path) { // Only change patterns
+      this.tensor_path = event.tensor_path;
+      this.patterns_path = event.patterns_path;
+
+      invoke("changePatterns", {patternsPath: this.patterns_path}).then((result: any) =>{
+        this.model_loaded = true;
+
+        this.reloadVisualizationView();
+
+      }).catch((error: any) => {
+        console.log(error);
+      });
+
+    } else{
+      // Do nothing, the model is the same
+    }
   }
 
   protected openModelSelectionDialog(enterAnimationDuration: string, exitAnimationDuration: string): void {
@@ -155,15 +192,18 @@ export class AppComponent implements AfterViewInit{
       height: '400px',
       enterAnimationDuration,
       exitAnimationDuration,
+      
+      data: {
+        tensor_path: this.tensor_path,
+        patterns_path: this.patterns_path
+      }
     });
 
     dialogRef.afterClosed().pipe(take(1)).subscribe(result => {
       // Executes when the dialog is closed
-      // if (result) {
-      //   this.handleModelChange(result);
-      // }
-
-      this.handleModelChange(result);
+      if (result) {
+        this.handleModelChange(result);
+      }
     });
 
     // this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => {

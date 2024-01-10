@@ -50,11 +50,15 @@ export class RssViewComponent {
     console.log("Initializing rss view component");
     
     if(!environment.dev_mode){
+      console.log("Invoking getFullRssEvolution");
       invoke("getFullRssEvolution").then((result: Array<number>) =>{
+        
         this.rss_evolution = result;
         this.datapoints = this.wrapIntoDatapoints(this.rss_evolution);
         this.pattern_number = this.rss_evolution.length;
         
+        this.initializeSvg();
+
       }).catch((error: any) => {
         console.log(error);
       });
@@ -66,10 +70,12 @@ export class RssViewComponent {
         
       this.datapoints = this.wrapIntoDatapoints(this.rss_evolution);
       this.pattern_number = this.rss_evolution.length;
+
+      this.initializeSvg();
     }
   }
 
-  ngAfterViewInit() {
+  private initializeSvg() {
     let width = this.visualization_div.nativeElement.clientWidth;
     let height = this.visualization_div.nativeElement.clientHeight;
 

@@ -57,7 +57,8 @@
         <app-rss-view id="rss_view" class="floatable" 
                 (onTruncation)="onTruncation($event)"
                 (initialized)="disableRssView()"
-                [@slideInOut]="rss_view_enabled ? 'in' : 'out'">
+                [@slideInOut]="rss_view_enabled ? 'in' : 'out'"
+                *ngIf="model_loaded">
         </app-rss-view>
 
         <div id="router">

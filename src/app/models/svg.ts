@@ -121,20 +121,25 @@ export class Svg {
     
     private drawDataPoints() {
       if(this.plot == undefined){ return; }
-
-      this.plot.selectAll('circle').remove();
-      
+     
       this.scaled_datapoints = this.scaling_function(this.datapoints);
-      this.plot.selectAll('circle')
-        .data(this.scaled_datapoints)
-        .enter()
-        .append('circle')
-          .attr('cx', d => this.x_scale(d.x))
-          .attr('cy', d => this.y_scale(d.y))
-          .attr('r', d => d.size)
-          // .attr('stroke-width', d => d.stroke_width)
-          .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`);
-    }
+     
+      const circles = this.plot.selectAll('circle')
+        .data(this.scaled_datapoints, d => d.identifier); // Each datapoint has a unique identifier
+     
+      circles.exit().remove(); // Remove datapoints that are not in the new dataset
+     
+      circles.transition() // Animate existing datapoints
+        .duration(1000) // Duration of the animation in milliseconds
+        .attr('cx', d => this.x_scale(d.x))
+        .attr('cy', d => this.y_scale(d.y));
+     
+      circles.enter().append('circle') // Add new datapoints without animation
+        .attr('cx', d => this.x_scale(d.x))
+        .attr('cy', d => this.y_scale(d.y))
+        .attr('r', d => d.size)
+        .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`);
+     }
 
     public drawVerticalLine(x: number) {
       // Remove any existing line

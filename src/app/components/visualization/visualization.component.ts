@@ -55,7 +55,7 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
         ])
       ]
 })
-export class VisualizationComponent implements AfterViewInit{
+export class VisualizationComponent{
   @ViewChild('body') body: ElementRef<HTMLBodyElement>;
   
   @ViewChild('vizualization_div') vizualization_div: ElementRef<HTMLDivElement>;
@@ -68,21 +68,19 @@ export class VisualizationComponent implements AfterViewInit{
   constructor(private route: ActivatedRoute, private svg_service: SvgService, private cdr: ChangeDetectorRef){ }
 
   ngOnInit(){
+    console.log("Initializing visualization component");
     this.updateDataPoints();
-    console.log("Initializing dag view component with: " + this.datapoints.length + " datapoints");
-    console.log(this.datapoints);
-
     // this.rss_view_enabled = true;
   }
   
-  ngAfterViewInit(){
+  private createSvg(){
     let width = this.body.nativeElement.clientWidth;
     let height = this.body.nativeElement.clientHeight;
     
     this.svg = new Svg(this.vizualization_div, width, height, this.datapoints.slice(), this.scalingFunction, 40);
     this.svg.resize(width, height, this.y_correction);
     
-    // this.cdr.detectChanges();
+    this.cdr.detectChanges();
   }
 
   public updateDataPoints(){
@@ -108,23 +106,33 @@ export class VisualizationComponent implements AfterViewInit{
         new DataPoint(18, 0, 8.88748836517334 ,2 ,-0.010542476549744606 ,-0.021444378420710564 ,70 ,0 ,0, 0.15),
         new DataPoint(19, 0, 8.737260818481445 ,2 ,-0.010542476549744606 ,-0.021444378420710564 ,116 ,0 ,0, 0.7),
         new DataPoint(20, 0, 8.88748836517334  ,2 ,-0.020931201055645943 ,-0.015955956652760506, 30, 0, 0, 1)
-  
-        // new DataPoint(1, 0, 5.000000476837158, 2, -1, 1, 185, 70, 0),
-        // new DataPoint(2, 0, 5.000000476837158, 2, 1, 1, 172, 83, 0),
-        // new DataPoint(3, 0, 5.000000476837158, 2, -1, -1, 172, 83, 0),
-        // new DataPoint(4, 0, 5.000000476837158, 2, 1, -1, 172, 83, 0),
-        // new DataPoint(4, 0, 5.000000476837158, 2, 0, 0, 172, 83, 0),
-  
       ];
 
       this.datapoints = datapoints;
-      if(this.svg != undefined){ this.svg.setDatapoints(this.datapoints); }
+      
+      if(this.svg == undefined) { 
+        this.createSvg();
+
+      } else if(this.svg != undefined){
+        this.svg.setDatapoints(this.datapoints);
+      }
+      
       return;
     }
 
+    console.log("Invoking getDataPoints");
     invoke("getDataPoints").then((result: Array<DataPoint>) =>{
+      console.log("Received datapoints:");
+      console.log(result);
+
       this.datapoints = result;
-      if(this.svg != undefined){ this.svg.setDatapoints(this.datapoints); }
+
+      if(this.svg == undefined) { 
+        this.createSvg();
+        
+      } else if(this.svg != undefined){
+        this.svg.setDatapoints(this.datapoints);
+      }
       
     }).catch((error: any) => {
       console.log(error);

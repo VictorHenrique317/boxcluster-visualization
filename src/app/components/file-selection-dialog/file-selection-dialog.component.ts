@@ -1,8 +1,9 @@
 import { open } from '@tauri-apps/api/dialog';
-import {Component, EventEmitter, NgModule, Output} from '@angular/core';
+import {Component, EventEmitter, Inject, NgModule, Output} from '@angular/core';
 import {MatDialogRef, MatDialogModule} from '@angular/material/dialog';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
+import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-file-selection-dialog',
@@ -13,12 +14,17 @@ export class FileSelectionDialogComponent {
   @Output() modelChange: EventEmitter<any> = new EventEmitter();
   
   private tensor_path: string = "";
-  private tensor_name: string = "";
+  protected tensor_name: string = "";
 
   private patterns_path: string = "";
-  private patterns_name: string = "";
+  protected patterns_name: string = "";
 
-  constructor(public dialogRef: MatDialogRef<FileSelectionDialogComponent>) {}
+  constructor(public dialogRef: MatDialogRef<FileSelectionDialogComponent>, 
+    @Inject(MAT_DIALOG_DATA) public data: {tensor_path: string, patterns_path: string}) {
+      this.tensor_path = data.tensor_path;
+      this.patterns_path = data.patterns_path;
+      this.setNames();
+  }
 
   private isStateValid(): boolean{
     if(this.tensor_path == undefined || this.tensor_path == null || this.tensor_path == ""){
@@ -32,6 +38,11 @@ export class FileSelectionDialogComponent {
     return true;
   }
 
+  private setNames(){
+    this.tensor_name = this.tensor_path.split('\\').pop().split('/').pop();
+    this.patterns_name = this.patterns_path.split('\\').pop().split('/').pop();
+  }
+
   public async selectTensor(){
     const options = {
       multiple: false
@@ -40,7 +51,7 @@ export class FileSelectionDialogComponent {
     if (selected === null) { return; } // No tensor selected
     
     this.tensor_path = selected.toString();
-    this.tensor_name = this.tensor_path.split('\\').pop().split('/').pop();
+    this.setNames();
     if (this.tensor_path == ""){ return; } // No tensor selected
 }
 
@@ -52,24 +63,8 @@ export class FileSelectionDialogComponent {
     if (selected === null) { return; } // No patterns selected
     
     this.patterns_path = selected.toString();
-    this.patterns_name = this.patterns_path.split('\\').pop().split('/').pop();
+    this.setNames();
     if (this.patterns_path == ""){ return; } // No patterns selected
-    
-    // if (this.tensor_path != "" && this.patterns_path != ""){
-    //   // Both are defined
-    //   invoke("initApplication", {tensorPath: this.tensor_path, patternsPath: this.patterns_path}).then((result: any) =>{
-    //     this.upload_file_mode = "tensor";
-    //     this.model_loaded = true;
-
-    //     // Forcing a reload
-    //     this.router.navigateByUrl('', {skipLocationChange: true}).then(()=>{
-    //       this.openDagView();
-    //     });
-
-    //   }).catch((error: any) => {
-    //     console.log(error);
-    //   });
-    // }
   }
 
   protected submit() {

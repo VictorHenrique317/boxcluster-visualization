@@ -41,8 +41,6 @@ export class PatternSummaryComponent implements AfterViewInit{
     let page_size = Math.floor(this.available_height / this.height);
 
     this.page_size.emit(page_size);
-
-    console.log(this.pattern.dims_values);
   }
 
 }
