@@ -6,6 +6,7 @@
 
 ## Checklist 08/01/2023 - ???
 - [x] Remodelar a interface principal
-- [ ] Remodelar a interface de seleção de modelo
+- [x] Remodelar a interface de seleção de modelo
+- [x] Resolver problemas de usabilidade
 - [ ] Cálculo do MDS dinâmico e ajustes na coordenadas do scatterplot
 - [ ] Scatterplot interativo
