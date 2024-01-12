@@ -1,3 +1,4 @@
+import { resolveResource } from '@tauri-apps/api/path'
 import * as d3 from 'd3';
 import { Component, ElementRef, EventEmitter, Output, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -9,8 +10,9 @@ import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatCardModule} from '@angular/material/card';
 import { DataPoint } from 'src/app/models/datapoint';
-import { invoke } from '@tauri-apps/api';
+import { fs, invoke } from '@tauri-apps/api';
 import { ChangeDetectorRef } from '@angular/core';
+import { AfterViewInit } from '@angular/core'
 import { Color } from 'src/app/models/color';
 import { Svg } from 'src/app/models/svg';
 import { ActivatedRoute } from '@angular/router';
@@ -28,7 +30,7 @@ import { environment } from 'src/environments/environment';
   templateUrl: './rss-view.component.html',
   styleUrls: ['./rss-view.component.scss']
 })
-export class RssViewComponent {
+export class RssViewComponent implements AfterViewInit{
   @ViewChild('body') body: ElementRef<HTMLBodyElement>;
 
   @ViewChild('visualization_div') visualization_div: ElementRef<HTMLDivElement>;
@@ -45,34 +47,29 @@ export class RssViewComponent {
   private datapoints: Array<DataPoint>;
 
   constructor(private route: ActivatedRoute, private canvas_service: SvgService, private cdr: ChangeDetectorRef){}
-
-  ngOnInit(){
+  
+  async ngAfterViewInit() {
     console.log("Initializing rss view component");
+    console.log("Invoking getFullRssEvolution");
     
+    let rss_evolution;
     if(!environment.dev_mode){
-      console.log("Invoking getFullRssEvolution");
-      invoke("getFullRssEvolution").then((result: Array<number>) =>{
-        
-        this.rss_evolution = result;
-        this.datapoints = this.wrapIntoDatapoints(this.rss_evolution);
-        this.pattern_number = this.rss_evolution.length;
-        
-        this.initializeSvg();
-
-      }).catch((error: any) => {
+      rss_evolution = await invoke("getFullRssEvolution").catch((error: any) => {
         console.log(error);
       });
+
+    } else if(environment.dev_mode){
+      let rawdata = await fs.readTextFile(await resolveResource('resources/rss_evolution.json'));
+      rss_evolution = JSON.parse(rawdata);
     }
 
-    if(environment.dev_mode){
-      this.rss_evolution = [55563.5, 55548.7, 55534.2, 55519.6, 55505.7, 55492.6, 55479.7, 55467,
-        55454.9, 55443.1, 55432.9, 55423, 55413.4, 55403.8, 55394.2, 55384.9, 55375.5, 55366.3, 55357, 55347.8]
-        
-      this.datapoints = this.wrapIntoDatapoints(this.rss_evolution);
-      this.pattern_number = this.rss_evolution.length;
+    console.log("Received rss_evolution:");
+    console.log(rss_evolution);
+    this.rss_evolution = rss_evolution;
+    this.pattern_number = this.rss_evolution.length;
 
-      this.initializeSvg();
-    }
+    this.datapoints = this.wrapIntoDatapoints(this.rss_evolution);
+    this.initializeSvg();
   }
 
   private initializeSvg() {

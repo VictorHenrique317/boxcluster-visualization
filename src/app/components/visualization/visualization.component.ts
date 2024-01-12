@@ -1,3 +1,4 @@
+import { resolveResource } from '@tauri-apps/api/path'
 import { ChangeDetectorRef, Component, ViewContainerRef } from '@angular/core';
 import { ComponentPortal, PortalModule } from '@angular/cdk/portal';
 import { CommonModule } from '@angular/common';
@@ -7,7 +8,8 @@ import { ElementRef } from '@angular/core'
 import { AfterViewInit } from '@angular/core'
 import {cover, contain} from 'intrinsic-scale';
 import { DataPoint } from 'src/app/models/datapoint';
-import { event, invoke } from '@tauri-apps/api';
+import { event, fs, invoke } from '@tauri-apps/api';
+import { BaseDirectory } from "@tauri-apps/api/fs";
 import { SvgService } from 'src/app/services/svg/svg.service';
 import { Subscription } from 'rxjs';
 import { Color } from 'src/app/models/color';
@@ -55,7 +57,7 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
         ])
       ]
 })
-export class VisualizationComponent{
+export class VisualizationComponent implements AfterViewInit{
   @ViewChild('body') body: ElementRef<HTMLBodyElement>;
   
   @ViewChild('vizualization_div') vizualization_div: ElementRef<HTMLDivElement>;
@@ -66,11 +68,9 @@ export class VisualizationComponent{
   private datapoints: Array<DataPoint>;
 
   constructor(private route: ActivatedRoute, private svg_service: SvgService, private cdr: ChangeDetectorRef){ }
-
-  ngOnInit(){
+  ngAfterViewInit(): void {
     console.log("Initializing visualization component");
     this.updateDataPoints();
-    // this.rss_view_enabled = true;
   }
   
   private createSvg(){
@@ -83,60 +83,31 @@ export class VisualizationComponent{
     this.cdr.detectChanges();
   }
 
-  public updateDataPoints(){
-    if (environment.dev_mode){
-      let datapoints: DataPoint[] = [
-        new DataPoint(1, 0, 5.000000476837158, 2, -0.09219828993082047, -0.13575132191181183, 185, 0, 0, 0.5),
-        new DataPoint(2, 0, 5.000000476837158, 2, -0.1434944123029709, -0.025769922882318497, 172, 0, 0, 0.1),
-        new DataPoint(3, 0, 5.000000476837158, 2, 0.13556334376335144, 0.04386178404092789, 172, 0, 0, 0.3),
-        new DataPoint(4, 0, 5.000000476837158, 2, -0.07058414816856384, 0.12081196159124374, 172, 0, 0, 0.9),
-        new DataPoint(5, 0, 5.000000476837158, 2, -0.10426267236471176, 0.050395093858242035, 170, 0, 0, 1),
-        new DataPoint(6, 0, 5.000000476837158, 2, 0.019231455400586128, 0.12873762845993042, 167, 0, 0, 0.6),
-        new DataPoint(7, 0, 5.313292980194092, 2, -0.012485436163842678, -0.1166980192065239, 159, 0, 0, 0.7),
-        new DataPoint(8, 0, 5.000000476837158, 2, 0.0902477353811264, -0.09746352583169937, 200, 0, 0, 0.9),
-        new DataPoint(9, 0, 5.000000476837158, 2, 0.11125318706035614, -0.029057452455163002, 164, 0, 0, 0.1),
-        new DataPoint(10, 0, 5.000000476837158, 2, 0.07510804384946823, 0.07280625402927399, 164, 0, 0, 0.1),
-        new DataPoint(11, 0, 10.591045379638672 ,2 ,0.017545919865369797 ,-0.0036888536997139454 ,108 ,0 ,0, 0.6),
-        new DataPoint(12, 0, 9.654894828796387 ,2 ,-0.0016832565888762474 ,-0.0028650283347815275 ,250 ,0 ,0, 0.8),
-        new DataPoint(13, 0, 8.077374458312988 ,2 ,-0.022442487999796867 ,0.0031338557600975037 ,119 ,0 ,0, 0.2),
-        new DataPoint(14, 0, 13.373766899108887 ,2 ,0.0032756526488810778 ,0.0005078032845631242 ,101 ,0 ,0, 0.6),
-        new DataPoint(15, 0, 12.493330955505371 ,2 ,-0.01358407735824585 ,-0.009488344192504883 ,180 ,0 ,0, 0.4),
-        new DataPoint(16, 0, 9.654894828796387 ,2 ,-0.020130377262830734 ,-0.032513659447431564 ,112 ,0 ,0, 0.3),
-        new DataPoint(17, 0, 8.406118392944336 ,2 ,-0.012485436163842678 ,-0.03319296985864639 ,117 ,0 ,0, 0.9),
-        new DataPoint(18, 0, 8.88748836517334 ,2 ,-0.010542476549744606 ,-0.021444378420710564 ,70 ,0 ,0, 0.15),
-        new DataPoint(19, 0, 8.737260818481445 ,2 ,-0.010542476549744606 ,-0.021444378420710564 ,116 ,0 ,0, 0.7),
-        new DataPoint(20, 0, 8.88748836517334  ,2 ,-0.020931201055645943 ,-0.015955956652760506, 30, 0, 0, 1)
-      ];
+  public async updateDataPoints(){
+    console.log("Invoking getDataPoints");
+    
+    let datapoints;
+    if(!environment.dev_mode){
+      datapoints = await invoke("getDataPoints").catch((error: any) => {
+        console.log(error);
+      });
 
-      this.datapoints = datapoints;
-      
-      if(this.svg == undefined) { 
-        this.createSvg();
-
-      } else if(this.svg != undefined){
-        this.svg.setDatapoints(this.datapoints);
-      }
-      
-      return;
+    } else if (environment.dev_mode){
+      let rawdata = await fs.readTextFile(await resolveResource('resources/datapoints.json'));
+      datapoints = JSON.parse(rawdata);
     }
 
-    console.log("Invoking getDataPoints");
-    invoke("getDataPoints").then((result: Array<DataPoint>) =>{
-      console.log("Received datapoints:");
-      console.log(result);
+    console.log("Received datapoints:");
+    console.log(datapoints);
 
-      this.datapoints = result;
+    this.datapoints = datapoints;
 
-      if(this.svg == undefined) { 
-        this.createSvg();
-        
-      } else if(this.svg != undefined){
-        this.svg.setDatapoints(this.datapoints);
-      }
+    if(this.svg == undefined) { 
+      this.createSvg();
       
-    }).catch((error: any) => {
-      console.log(error);
-    });
+    } else if(this.svg != undefined){
+      this.svg.setDatapoints(this.datapoints);
+    }
   }
 
   private scalingFunction(datapoints: Array<DataPoint>) {
@@ -161,7 +132,7 @@ export class VisualizationComponent{
   }
 
   public onTruncation(event){
-    let new_size = event;
+    let new_size = event - 1; // -1 because the first point is the null model rss
     console.log("Truncating datapoints to only: " + new_size);
 
     if(environment.dev_mode) {

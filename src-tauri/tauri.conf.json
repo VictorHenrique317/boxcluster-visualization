@@ -12,6 +12,15 @@
   },
   "tauri": {
     "allowlist": {
+      "fs": {
+        "all": true,
+        "scope": [
+          "$RESOURCE/*",
+          "$RESOURCE/resources/*",
+          "$RESOURCE/resources/rss_evolution.json",
+          "$RESOURCE/resources/page_patterns.json"
+        ]
+      },
       "all": true,
       "dialog": {
         "all": true,
@@ -43,7 +52,11 @@
         "providerShortName": null,
         "signingIdentity": null
       },
-      "resources": [],
+      "resources": [
+        "resources/*",
+        "resources/rss_evolution.json",
+        "resources/page_patterns.json"
+      ],
       "shortDescription": "",
       "targets": "all",
       "windows": {

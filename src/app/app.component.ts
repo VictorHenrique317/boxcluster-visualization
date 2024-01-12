@@ -119,7 +119,11 @@ export class AppComponent implements AfterViewInit{
   ngAfterViewInit(){
     this.matList_height = this.aside.nativeElement.clientHeight - this.model_selector.nativeElement.clientHeight;
 
-    if(environment.dev_mode){ this.openVisualizationView(); }
+    if(environment.dev_mode){ 
+      this.model_loaded = true;
+      this.cdr.detectChanges();
+      this.openVisualizationView(); 
+    }
   }
 
   public onActivate(componentInstance: any) {
@@ -154,36 +158,36 @@ export class AppComponent implements AfterViewInit{
     }
 
     this.model_loaded = false;
-    if(event.tensor_path != this.tensor_path){ // Change tensor and patterns
-      this.tensor_path = event.tensor_path;
-      this.patterns_path = event.patterns_path;
-      
-      invoke("initApplication", {tensorPath: this.tensor_path, patternsPath: this.patterns_path}).then((result: any) =>{
-        this.model_loaded = true;
+    // if(event.tensor_path != this.tensor_path){ // Change tensor and patterns
+    this.tensor_path = event.tensor_path;
+    this.patterns_path = event.patterns_path;
+    
+    invoke("initApplication", {tensorPath: this.tensor_path, patternsPath: this.patterns_path}).then((result: any) =>{
+      this.model_loaded = true;
 
-        this.reloadVisualizationView();
+      this.reloadVisualizationView();
 
-      }).catch((error: any) => {
-        console.log(error);
-      });
-    }
+    }).catch((error: any) => {
+      console.log(error);
+    });
+    // }
 
-    else if(event.patterns_path != this.patterns_path) { // Only change patterns
-      this.tensor_path = event.tensor_path;
-      this.patterns_path = event.patterns_path;
+    // else if(event.patterns_path != this.patterns_path) { // Only change patterns
+    //   this.tensor_path = event.tensor_path;
+    //   this.patterns_path = event.patterns_path;
 
-      invoke("changePatterns", {patternsPath: this.patterns_path}).then((result: any) =>{
-        this.model_loaded = true;
+    //   invoke("changePatterns", {patternsPath: this.patterns_path}).then((result: any) =>{
+    //     this.model_loaded = true;
 
-        this.reloadVisualizationView();
+    //     this.reloadVisualizationView();
 
-      }).catch((error: any) => {
-        console.log(error);
-      });
+    //   }).catch((error: any) => {
+    //     console.log(error);
+    //   });
 
-    } else{
-      // Do nothing, the model is the same
-    }
+    // } else{
+    //   // Do nothing, the model is the same
+    // }
   }
 
   protected openModelSelectionDialog(enterAnimationDuration: string, exitAnimationDuration: string): void {

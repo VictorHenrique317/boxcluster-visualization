@@ -1,0 +1,6 @@
+[
+    {"identifier": 1, "dims_values": [[0, 1, 2], [0, 1, 3], [0, 1, 4]], "density": 0.8, "size": 2},
+    {"identifier": 2, "dims_values": [[0, 1, 2], [0, 1, 3], [0, 1, 4]], "density": 0.8, "size": 2},
+    {"identifier": 3, "dims_values": [[0, 1, 2], [0, 1, 3], [0, 1, 4]], "density": 0.8, "size": 2},
+    {"identifier": 4, "dims_values": [[0, 1, 2], [0, 1, 3], [0, 1, 4]], "density": 0.8, "size": 2}
+]
