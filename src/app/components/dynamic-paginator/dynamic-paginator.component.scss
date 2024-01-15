@@ -47,6 +47,8 @@ mat-list{
                 display: flex;
                 align-items: center;
                 justify-content: center;
+
+                color: mat.get-color-from-palette($primary-palette, '900-contrast');
             }
         }
         
@@ -62,6 +64,7 @@ mat-list{
                 justify-content: center;
                 margin-right: 0.25em;
                 margin-left: 0.25em;
+                color: mat.get-color-from-palette($primary-palette, '900-contrast');
             }
     
             mat-icon:hover{

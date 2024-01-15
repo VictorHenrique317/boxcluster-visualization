@@ -8,5 +8,5 @@
 - [x] Remodelar a interface principal
 - [x] Remodelar a interface de seleção de modelo
 - [x] Resolver problemas de usabilidade
-- [ ] Cálculo do MDS dinâmico e ajustes na coordenadas do scatterplot
+- [ ] Cálculo do MDS dinâmico e scatterplot quadrado
 - [ ] Scatterplot interativo

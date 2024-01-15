@@ -24,6 +24,7 @@ export class Svg {
     constructor(vizualization_div: ElementRef<HTMLDivElement>, width: number, height: number, 
                 datapoints: Array<DataPoint>, scaling_function: (arc: Array<any>) => Array<any>, 
                 number_of_gridlines: number = 40, gridlines: boolean = true, pannable: boolean = true){
+
         this.datapoints = datapoints;
         this.scaling_function = scaling_function;
         this.width = width;
@@ -50,10 +51,19 @@ export class Svg {
       this.d3_svg
         .attr('width', width)
         .attr('height', height);
-  
-      let x_scale = d3.scaleLinear()
+
+      let x_scale;
+
+      if(this.pannable){ // Only the pannable visualization will have square aspect ratio
+        x_scale = d3.scaleLinear()
+        .domain([-1, 1])
+        .range([0, (height - y_correction)/1]);
+
+      }else if(!this.pannable){
+        x_scale = d3.scaleLinear()
         .domain([-1, 1])
         .range([0, (width/1)]);
+      }
   
       let y_scale = d3.scaleLinear()
         .domain([-1, 1])
@@ -96,10 +106,10 @@ export class Svg {
       if(this.plot != undefined){ this.d3_svg.select("#plot").remove(); }
       this.plot = this.d3_svg.append("g").attr("id", "plot");
       
-      if(this.pannable){
+      if(this.pannable){ // Only the pannable square visualization will execute this
         let panning_zoom = d3.zoom()
-          .scaleExtent([1.2, 10]) // This control how much you can unzoom (x1) and zoom (x10)
-          .translateExtent([[0, 0], [this.width, this.height]])
+          .scaleExtent([1.6, 10]) // This control how much you can unzoom (x1) and zoom (x10)
+          .translateExtent([[0, 0], [this.height, this.height/1.15]])
           .on("start", (event, d) => { this.d3_svg.attr("cursor", "grabbing"); })
           .on("zoom", (event) => { this.plot.attr("transform", event.transform); })
           .on("end", (event, d) => {this.d3_svg.attr("cursor", "default")});
@@ -107,10 +117,11 @@ export class Svg {
         this.d3_svg.call(panning_zoom);
 
         // Apply initial zoom level
-        let initial_scale = 1.2;
-        let translation_factor = 0.1;
+        let initial_scale = 1.6;
+        let x_translation_factor = 0.05;
+        let y_translation_factor = 0.3;
         let initial_transform = d3.zoomIdentity
-          .translate(-this.width*(translation_factor), -this.height*(translation_factor))
+          .translate(-this.width*(x_translation_factor), -this.height*(y_translation_factor))
           .scale(initial_scale);
         this.d3_svg.call(panning_zoom.transform, initial_transform);
       }

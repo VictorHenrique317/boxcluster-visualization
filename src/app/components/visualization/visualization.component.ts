@@ -77,7 +77,8 @@ export class VisualizationComponent implements AfterViewInit{
     let width = this.body.nativeElement.clientWidth;
     let height = this.body.nativeElement.clientHeight;
     
-    this.svg = new Svg(this.vizualization_div, width, height, this.datapoints.slice(), this.scalingFunction, 40);
+    this.svg = new Svg(this.vizualization_div, width, height, this.datapoints.slice(), this.scalingFunction, 40, 
+      true, true);
     this.svg.resize(width, height, this.y_correction);
     
     this.cdr.detectChanges();
@@ -115,9 +116,9 @@ export class VisualizationComponent implements AfterViewInit{
     let y_max_module = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.y)));
 
     let scaled_datapoints: Array<DataPoint> = datapoints;
-    let screen_coverage = 0.7;
+    let screen_coverage = 0.05;
     datapoints.forEach(datapoint => {
-        datapoint.x /= x_max_module * ((1-screen_coverage) + 1);
+        datapoint.x /= y_max_module * ((1-screen_coverage) + 1);
         datapoint.y /= y_max_module * ((1-screen_coverage) + 1);
     });
 
