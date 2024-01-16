@@ -3,6 +3,7 @@
     <div id="slider-div">
         <mat-slider 
             class="example-margin"
+            [disabled]="sliderDisabled"
             (input)="onSliderDrag($event)"
             (change)="onSliderChange($event)"
             [max]="rss_evolution.length"

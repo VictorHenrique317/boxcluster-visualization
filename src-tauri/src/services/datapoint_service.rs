@@ -26,12 +26,11 @@ impl DataPointService {
 
     pub fn createDataPoints(identifier_mapper: &IdentifierMapper, coordinates: &Coordinates) -> Result<Vec<DataPoint>, GenericError> {
         let coordinates = coordinates.get();
+
         let mut pattern_representations: Vec<&Pattern> = Vec::new();
-        for r in identifier_mapper.getRepresentations().iter() {
-            match r.asPattern() {
-                Ok(pattern) => pattern_representations.push(pattern),
-                Err(e) => return Err(e),
-            }
+        for (identifier, _) in coordinates{
+            let pattern = identifier_mapper.getRepresentation(identifier)?.asPattern()?;
+            pattern_representations.push(pattern);
         }
 
         let mut datapoints: Vec<DataPoint> = Vec::new();
@@ -41,24 +40,31 @@ impl DataPointService {
 
         for pattern in pattern_representations {
             let coord = coordinates.get(&pattern.identifier)
-                .ok_or(GenericError::new("Could not get coordinates", file!(), &line!()))?;
+                .ok_or(GenericError::new(format!("Could not get coordinate: {}", &pattern.identifier).as_str(), file!(), &line!()))?;
             
             let size = DataPointService::normalizeSize(&pattern.size, &dimension);
             // let stroke_width = DataPointService::calculateStrokeWidth(&max_size, &size);
             let stroke_width = 2;
             let color = DataPointService::densityToColor(&pattern.density);
             
+            let x = coord.0 as f32;
+            let x = f32::round(100.0 * x) / 100.0;
+            
+            let y = coord.1 as f32;
+            let y = f32::round(100.0 * y) / 100.0;
+            
             let datapoint = DataPoint::new(
                 &pattern.identifier,
                 &size,
                 &stroke_width,
-                &(coord.0 as f32),
-                &(coord.1 as f32),
+                &x,
+                &y,
                 &color.0,
                 &color.1,
                 &color.2,
                 &color.3
                 );
+
             datapoints.push(datapoint);
         }
 

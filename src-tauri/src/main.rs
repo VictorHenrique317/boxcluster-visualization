@@ -4,7 +4,7 @@
     windows_subsystem = "windows"
 )]
 
-use boxcluster_visualization::{self, controller::states::states::*, database::{pattern::Pattern, datapoint::DataPoint}};
+use boxcluster_visualization::{self, controller::states::states::*, database::{pattern::Pattern, datapoint::{DataPoint, self}}};
 use tauri::State;
 use boxcluster_visualization::common::generic_error::GenericError;
 
@@ -470,7 +470,9 @@ fn getDataPoints(application_service: State<ApplicationServiceState>) -> Result<
     };
 
     match application_service.getDataPoints() {
-        Ok(data_points) => return Ok(data_points),
+        Ok(data_points) => {
+            return Ok(data_points);
+        },
         Err(error) => {
             error.print();
             return Err(error)

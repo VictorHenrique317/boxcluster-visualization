@@ -54,15 +54,23 @@
     </aside>
 
     <div id="main-app">
-        <app-rss-view id="rss_view" class="floatable" 
+        <app-rss-view #rss_view id="rss_view" class="floatable" 
                 (onTruncation)="onTruncation($event)"
                 (initialized)="disableRssView()"
                 [@slideInOut]="rss_view_enabled ? 'in' : 'out'"
                 *ngIf="model_loaded">
         </app-rss-view>
 
-        <div id="router">
-            <router-outlet (activate)="onActivate($event)"></router-outlet>
+        <div id="visualization">
+            <!-- <router-outlet 
+                (activate)="onActivate($event)"
+                (onTruncationFinished)="onTruncationFinished()"
+                >
+            </router-outlet> -->
+            <app-visualization #visualization_view
+                (onTruncation)="onTruncation($event)"
+                *ngIf="model_loaded">
+            </app-visualization>
         </div>
     </div>
 </body>

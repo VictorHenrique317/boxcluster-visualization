@@ -118,8 +118,14 @@ impl Coordinates {
     }
 
     fn calculate<T: DistancesTrait>(identifier_mapper: &IdentifierMapper, distances: &T) -> Result<HashMap<u32, (f64, f64)>, GenericError> {
+        if distances.get().len() == 0{ // Only one datapoint, no need to calculate MDS
+            let mut xys = HashMap::new();
+            xys.insert(1, (0.0, 0.0));
+            return Ok(xys);
+        }
+
         println!("  Applying Multi Dimensional Scaling...");
-        let n: usize = identifier_mapper.length() as usize;
+        let n: usize = distances.get().len();
         let dissimilarity_matrix: DMatrix<f64> = Coordinates::buildDissimilarityMatrix(distances, n)?;
         let xys = Coordinates::mds(dissimilarity_matrix, 2);
         return xys;

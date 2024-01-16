@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-
+use crate::model::analysis::metrics::metric::Metric;
 use crate::{model::{analysis::{metrics::{empty_model_rss::EmptyModelRss, distances::Distances, coordinates::Coordinates, rss_evolution::RssEvolution}, intersections_predictions::IntersectionsPredictions}, identifier_mapper::IdentifierMapper}, database::{tensor::Tensor, pattern::Pattern}, common::generic_error::GenericError};
 
 pub struct MetricsService{
@@ -47,23 +47,30 @@ impl MetricsService{
         );
     }
 
-    pub fn update(&mut self, tensor: &Tensor, identifier_mapper: &IdentifierMapper, visible_identifiers: &Vec<u32>)
+    pub fn update(&mut self, tensor: &Tensor, identifier_mapper: &IdentifierMapper, visible_identifiers: &Vec<u32>, lazy: &bool)
             -> Result<(), GenericError>{
-
+        
         let coordinates = Coordinates::new(
             identifier_mapper,
             &self.distances.getView(identifier_mapper, visible_identifiers)?,
         )?;
 
-        let rss_evolution = RssEvolution::new(
-            identifier_mapper,
-            tensor,
-            &self.empty_model_rss,
-            &identifier_mapper.getOrderedPatternsFrom(visible_identifiers)
-        )?;
-
         self.coordinates = coordinates;
-        self.rss_evolution = rss_evolution;
+
+        if !lazy{ // Re-calculate rss_evolution
+            let rss_evolution = RssEvolution::new(
+                identifier_mapper,
+                tensor,
+                &self.empty_model_rss,
+                &identifier_mapper.getOrderedPatternsFrom(visible_identifiers)
+            )?;
+
+            self.rss_evolution = rss_evolution;
+        
+        }else if *lazy{ // Just truncate
+            let new_size = visible_identifiers.len() as u32;
+            self.rss_evolution.truncate(&new_size);
+        }
 
         return Ok(());
     }

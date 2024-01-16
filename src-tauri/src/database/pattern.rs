@@ -18,7 +18,7 @@ pub enum Relation {
 
 #[derive(Clone, Debug)]
 pub struct Pattern {
-    pub identifier: u32,
+    pub identifier: u32, // Starts at 1
     pub dims_values: Vec<Vec<usize>>,
     pub density: f64,
     pub size: u32,

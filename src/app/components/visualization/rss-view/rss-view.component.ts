@@ -37,6 +37,7 @@ export class RssViewComponent implements AfterViewInit{
   private svg: Svg;
   pattern_number;
 
+  protected sliderDisabled: boolean = false;
   @Output() onTruncation: EventEmitter<any> = new EventEmitter();
   @Output() initialized: EventEmitter<any> = new EventEmitter();
 
@@ -145,6 +146,9 @@ export class RssViewComponent implements AfterViewInit{
         .attr('fill', 'none');
     }
   }
+
+  public enableSlider(){ this.sliderDisabled = false; }
+  public disableSlider(){ this.sliderDisabled = true; }
   
   protected onSliderChange(event: any) {
     this.onTruncation.emit(this.pattern_number);

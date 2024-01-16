@@ -124,9 +124,12 @@ fn testDag(){
     // let tensor_path = "tests/test_data/tensors/retweets2d.txt".to_owned();
     // let patterns_path = "tests/test_data/other_patterns/retweets2d_patterns.txt".to_owned();
 
-    // let mut application_manager = ApplicationService::default();
-    // application_manager.init(&tensor_path, &patterns_path);
+    let mut application_manager = ApplicationService::default();
+    application_manager.init(&tensor_path, &patterns_path);
 
-    // let distances = application_manager.getDistances();
-    // printMatrix(distances);
+
+    application_manager.truncateModel(&5);
+
+    let distances = application_manager.getDistances().unwrap();
+    printMatrix(distances);
 }

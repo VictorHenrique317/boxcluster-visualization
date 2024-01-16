@@ -3,10 +3,11 @@ use crate::common::generic_error::GenericError;
 use crate::database::pattern::Pattern;
 use crate::database::tensor::Tensor;
 
-use crate::model::identifier_mapper::IdentifierMapper;
+use crate::model::analysis::metrics::metric::Metric;
+use crate::model::identifier_mapper::{IdentifierMapper, self};
 use crate::services::dag::dag_service::DagService;
 use crate::services::datapoint_service::DataPointService;
-use crate::services::metrics_service::MetricsService;
+use crate::services::metrics_service::{MetricsService, self};
 
 #[derive(Default)]
 pub struct ApplicationStateService{
@@ -63,17 +64,40 @@ impl ApplicationStateService{
         return Ok(());
     }
 
-    fn update(&mut self, new_current_level_identifiers: Vec<u32>) -> Result<(), GenericError>{
+    fn update(&mut self, new_current_level_identifiers: &Option<Vec<u32>>) -> Result<(), GenericError>{
         let tensor = self.tensor.as_ref()
             .ok_or(GenericError::new("Tensor not initialized", file!(), &line!()))?;
 
-        self.metrics_service.as_mut().ok_or(GenericError::new("Metrics service not initialized", file!(), &line!()))?
-            .update(tensor, self.identifier_mapper.as_ref()
-                .ok_or(GenericError::new("Identifier mapper not initialized", file!(), &line!()))?,
-            &new_current_level_identifiers)?;
+        let identifier_mapper = self.identifier_mapper.as_mut()
+            .ok_or(GenericError::new("Identifier mapper not initialized", file!(), &line!()))?;
 
-        self.current_level_identifiers = new_current_level_identifiers.clone();
-        self.visible_identifiers = new_current_level_identifiers;
+        let lazy = match new_current_level_identifiers {
+            Some(_) => false, // Changing the current level identifiers has to be done eagerly
+            None => true, // Here we do not need to re-calculate rss_evolution
+        };
+
+        let identifiers_used_to_update = match new_current_level_identifiers {
+            Some(new_current_level_identifiers) => new_current_level_identifiers, // Updates all identifiers and reset visible identifiers
+            None => &self.visible_identifiers, // Updates only the visible identifiers
+        };
+
+        self.metrics_service.as_mut().ok_or(GenericError::new("Metrics service not initialized", file!(), &line!()))?
+            .update(tensor, identifier_mapper, identifiers_used_to_update, &lazy)?;
+
+        let coordinates = &self.metrics_service.as_ref()
+            .ok_or(GenericError::new("Metrics service not initialized", file!(), &line!()))?
+            .coordinates;
+
+        identifier_mapper.insertDataPointRepresentations(
+            DataPointService::createDataPoints(&identifier_mapper, coordinates)?
+        )?;
+
+        // Should also insert dagNode representations
+        
+        if !lazy{ // Reset everything because current_level_identifiers is gonna be changed
+            self.current_level_identifiers = identifiers_used_to_update.clone();
+            self.visible_identifiers = identifiers_used_to_update.clone();
+        }
 
         return Ok(());
     }
@@ -85,7 +109,7 @@ impl ApplicationStateService{
             .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()))?
             .ascendDag(self.identifierMapper()?, &self.current_identifier)?;
 
-        self.update(previous_identifiers)?;
+        self.update(&Some(previous_identifiers))?;
 
         return Ok(());
     }
@@ -97,7 +121,7 @@ impl ApplicationStateService{
 
         if next_identifiers.len() == 0{ return Ok(()); }
 
-        self.update(next_identifiers)?;
+        self.update(&Some(next_identifiers))?;
         return Ok(());
     }
 
@@ -105,12 +129,9 @@ impl ApplicationStateService{
         let mut visible_identifiers = self.current_level_identifiers.clone();
         visible_identifiers.sort();
         visible_identifiers.truncate(*new_size as usize);
-        
-        self.metrics_service.as_mut()
-            .ok_or(GenericError::new("Metrics service not initialized", file!(), &line!()))?
-            .rss_evolution.truncate(new_size);
+        self.visible_identifiers = visible_identifiers.clone();
 
-        self.visible_identifiers = visible_identifiers;
+        self.update(&None)?;
 
         return Ok(());
     }

@@ -99,7 +99,7 @@ export class AppComponent implements AfterViewInit{
   @ViewChild('rss_view') rss_view: RssViewComponent;
   protected rss_view_enabled: boolean = null;
   
-  protected visualization_view: VisualizationComponent;
+  @ViewChild('visualization_view') visualization_view: VisualizationComponent;
 
   public selected_directory: string = "";
   public tensor_path: string = "";
@@ -122,32 +122,15 @@ export class AppComponent implements AfterViewInit{
     if(environment.dev_mode){ 
       this.model_loaded = true;
       this.cdr.detectChanges();
-      this.openVisualizationView(); 
     }
   }
 
-  public onActivate(componentInstance: any) {
-    if (componentInstance instanceof VisualizationComponent) {
-      this.visualization_view = componentInstance;
-    }
+  private reloadApplication(){
+    this.model_loaded = false;
+    this.cdr.detectChanges();
 
-    if (componentInstance instanceof RssViewComponent) {
-      this.rss_view = componentInstance;
-    }
-
-    if(this.rss_view != undefined){
-      console.log("Pattern number: " + this.rss_view.getPatternNumber());
-    }
-  }
-
-  private reloadVisualizationView(){
-    this.router.navigateByUrl('', {skipLocationChange: true}).then(()=>{
-      this.openVisualizationView();
-    });
-  }
-
-  private openVisualizationView(){
-    this.router.navigate(['/visualizationView']);
+    this.model_loaded = true;
+    this.cdr.detectChanges();
   }
 
   private handleModelChange(event: any){
@@ -165,29 +148,11 @@ export class AppComponent implements AfterViewInit{
     invoke("initApplication", {tensorPath: this.tensor_path, patternsPath: this.patterns_path}).then((result: any) =>{
       this.model_loaded = true;
 
-      this.reloadVisualizationView();
+      this.reloadApplication();
 
     }).catch((error: any) => {
       console.log(error);
     });
-    // }
-
-    // else if(event.patterns_path != this.patterns_path) { // Only change patterns
-    //   this.tensor_path = event.tensor_path;
-    //   this.patterns_path = event.patterns_path;
-
-    //   invoke("changePatterns", {patternsPath: this.patterns_path}).then((result: any) =>{
-    //     this.model_loaded = true;
-
-    //     this.reloadVisualizationView();
-
-    //   }).catch((error: any) => {
-    //     console.log(error);
-    //   });
-
-    // } else{
-    //   // Do nothing, the model is the same
-    // }
   }
 
   protected openModelSelectionDialog(enterAnimationDuration: string, exitAnimationDuration: string): void {
@@ -227,7 +192,12 @@ export class AppComponent implements AfterViewInit{
     this.cdr.detectChanges();
   }
 
-  public onTruncation(event){
+  protected onTruncation(event){
+    this.rss_view.disableSlider(); 
+    setTimeout(() => { 
+        this.rss_view.enableSlider();
+    }, 1100);
+
     this.visualization_view.onTruncation(event);
-  }
+ }
 }

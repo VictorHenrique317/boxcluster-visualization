@@ -1,5 +1,5 @@
 import { resolveResource } from '@tauri-apps/api/path'
-import { ChangeDetectorRef, Component, ViewContainerRef } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Output, ViewContainerRef } from '@angular/core';
 import { ComponentPortal, PortalModule } from '@angular/cdk/portal';
 import { CommonModule } from '@angular/common';
 import {MatCardModule} from '@angular/material/card';
@@ -152,10 +152,9 @@ export class VisualizationComponent implements AfterViewInit{
 
     invoke("truncateModel", {newSize: new_size}).then((result: any) => { // This performs the truncation
       this.updateDataPoints(); // This updates to the the new truncated datapoints
-      
+
     }).catch((error: any) => {
       console.log(error);
     });
   }
-
 }

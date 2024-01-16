@@ -26,7 +26,21 @@ impl IdentifierMapper{
         return mapping;
     }
 
+    fn removeAllDagNodeRepresentations(&mut self){
+        for identifier_representation in self.mapping.values_mut() {
+            identifier_representation.removeDagNodeRepresentation();
+        }
+    }
+
+    fn removeAllDatapointRepresentations(&mut self){
+        for identifier_representation in self.mapping.values_mut() {
+            identifier_representation.removeDatapointRepresentation();
+        }
+    }
+
     pub fn insertDagNodeRepresentations(&mut self, dag_nodes_representations: Vec<DagNode>) -> Result<(), GenericError>{
+        self.removeAllDagNodeRepresentations();
+
         let dag_nodes_representations: HashMap<u32, DagNode> = dag_nodes_representations.into_iter()
             .map(|dag_node| (dag_node.identifier, dag_node))
             .collect();
@@ -42,6 +56,8 @@ impl IdentifierMapper{
     }
 
     pub fn insertDataPointRepresentations(&mut self, data_point_representations: Vec<DataPoint>) -> Result<(), GenericError>{
+        self.removeAllDatapointRepresentations();
+
         let data_point_representations: HashMap<u32, DataPoint> = data_point_representations.into_iter()
             .map(|data_point| (data_point.identifier, data_point))
             .collect();

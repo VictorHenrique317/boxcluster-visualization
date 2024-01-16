@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
 use std::{collections::HashMap, time::Instant};
+use plotters::data;
+
 use crate::{services::{io_service::IoService, plot_service::PlotService}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper}, database::datapoint::DataPoint, common::generic_error::GenericError};
 use super::application_state_service::ApplicationStateService;
 
@@ -100,12 +102,12 @@ impl ApplicationService{
 
     pub fn getDataPoints(&self) -> Result<Vec<DataPoint>, GenericError>{
         let visible_identifiers = self.application_state_service.getVisibleIdentifiers();
-        return Ok(
-            self.application_state_service.identifierMapper()?
+        let datapoints: Vec<DataPoint> = self.application_state_service.identifierMapper()?
             .getOrderedDataPointsFrom(visible_identifiers).into_iter()
             .map(|datapoint| datapoint.clone())
-            .collect()
-        );
+            .collect();
+
+        return Ok(datapoints);
     }
 
     pub fn getFullRssEvolution(&self) -> Result<Vec<f64>, GenericError>{

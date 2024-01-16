@@ -24,6 +24,14 @@ impl IdentifierRepresentation {
         self.data_point_representation = Some(data_point_representation);
     }
 
+    pub fn removeDagNodeRepresentation(&mut self){
+        self.dag_node_representation = None;
+    }
+
+    pub fn removeDatapointRepresentation(&mut self){
+        self.data_point_representation = None;
+    }
+
     pub fn asPattern(&self) -> Result<&Pattern, GenericError> {
         return self.pattern_representation.as_ref()
             .ok_or(GenericError::new("Could not get pattern representation", file!(), &line!()));

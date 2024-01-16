@@ -132,32 +132,40 @@ export class Svg {
     
     private drawDataPoints() {
       if(this.plot == undefined){ return; }
-   
+     
       this.scaled_datapoints = this.scaling_function(this.datapoints);
-   
+     
       const circles = this.plot.selectAll('circle')
           .data(this.scaled_datapoints, d => d.identifier); // Each datapoint has a unique identifier
-   
+     
       circles.exit()
           .transition() // Add exit animation
           .duration(1000) // Duration of the animation in milliseconds
           .attr('r', 0) // Reduce radius to 0
           .remove(); // Remove datapoints that are not in the new dataset
-   
+     
       circles.transition() // Animate existing datapoints
           .duration(1000) // Duration of the animation in milliseconds
-          .attr('cx', d => this.x_scale(d.x))
+          .attr('cx', d => {
+            const result = this.x_scale(d.x);
+            // console.log(`x_scale(${d.x}) returned ${result}`);
+            return result;
+          })
           .attr('cy', d => this.y_scale(d.y));
-   
+     
       circles.enter().append('circle') // Add new datapoints with animation
-          .attr('cx', d => this.x_scale(d.x))
+          .attr('cx', d => {
+            const result = this.x_scale(d.x);
+            // console.log(`x_scale(${d.x}) returned ${result}`);
+            return result;
+          })
           .attr('cy', d => this.y_scale(d.y))
           .attr('r', 0) // Start from radius 0
           .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
           .transition() // Transition to final state
           .duration(1000) // Duration of the animation in milliseconds
           .attr('r', d => d.size); // End with actual radius
-   }
+     }
 
     public drawVerticalLine(x: number) {
       // Remove any existing line
