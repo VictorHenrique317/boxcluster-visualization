@@ -92,16 +92,24 @@ impl ApplicationService{
         return Ok(());
     }
 
-    pub fn truncateModel(&mut self, new_size: &u32) -> Result<(), GenericError> {
+    pub fn truncateModel(&mut self, new_size: &u32) -> Result<Vec<(f32, f32)>, GenericError> {
         println!("\nTruncating model to {} patterns", new_size);
         self.application_state_service.truncateModel(&new_size)?;
         PlotService::plot(&self.application_state_service);
 
-        return Ok(());
+        let mut datapoints = self.getDataPoints()?;
+        datapoints.truncate(*new_size as usize);
+
+        let datapoints_changes: Vec<(f32, f32)> = datapoints.into_iter()
+            .map(|datapoint| (datapoint.x, datapoint.y))
+            .collect();
+
+        return Ok(datapoints_changes);
     }
 
     pub fn getDataPoints(&self) -> Result<Vec<DataPoint>, GenericError>{
         let visible_identifiers = self.application_state_service.getVisibleIdentifiers();
+        // let identifiers = self.application_state_service.getAllIdentifiers()?;
         let datapoints: Vec<DataPoint> = self.application_state_service.identifierMapper()?
             .getOrderedDataPointsFrom(visible_identifiers).into_iter()
             .map(|datapoint| datapoint.clone())

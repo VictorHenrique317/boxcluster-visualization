@@ -118,6 +118,10 @@ export class VisualizationComponent implements AfterViewInit{
     let scaled_datapoints: Array<DataPoint> = datapoints;
     let screen_coverage = 0.05;
     datapoints.forEach(datapoint => {
+        if(y_max_module > -0.5 && y_max_module < 0.5){
+          y_max_module = 1;
+        }
+
         datapoint.x /= y_max_module * ((1-screen_coverage) + 1);
         datapoint.y /= y_max_module * ((1-screen_coverage) + 1);
     });
@@ -150,8 +154,8 @@ export class VisualizationComponent implements AfterViewInit{
       return;
     }
 
-    invoke("truncateModel", {newSize: new_size}).then((result: any) => { // This performs the truncation
-      this.updateDataPoints(); // This updates to the the new truncated datapoints
+    invoke("truncateModel", {newSize: new_size}).then((datapoint_changes: any) => { // This performs the truncation
+      this.updateDataPoints();
 
     }).catch((error: any) => {
       console.log(error);

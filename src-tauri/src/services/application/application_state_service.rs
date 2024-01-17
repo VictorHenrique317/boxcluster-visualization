@@ -141,6 +141,12 @@ impl ApplicationStateService{
             .ok_or(GenericError::new("Identifier mapper not initialized", file!(), &line!()));
     }
 
+    pub fn getAllIdentifiers(&self) -> Result<&Vec<u32>, GenericError>{
+        return Ok(
+            &self.current_level_identifiers
+        );
+    }
+
     pub fn getVisibleIdentifiers(&self) -> &Vec<u32>{
         return &self.visible_identifiers;
     }

@@ -48,10 +48,10 @@ impl DataPointService {
             let color = DataPointService::densityToColor(&pattern.density);
             
             let x = coord.0 as f32;
-            let x = f32::round(100.0 * x) / 100.0;
+            // let x = f32::round(100.0 * x) / 100.0;
             
             let y = coord.1 as f32;
-            let y = f32::round(100.0 * y) / 100.0;
+            // let y = f32::round(100.0 * y) / 100.0;
             
             let datapoint = DataPoint::new(
                 &pattern.identifier,

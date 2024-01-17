@@ -5,6 +5,7 @@
 )]
 
 use boxcluster_visualization::{self, controller::states::states::*, database::{pattern::Pattern, datapoint::{DataPoint, self}}};
+use serde_json::to_string_pretty;
 use tauri::State;
 use boxcluster_visualization::common::generic_error::GenericError;
 
@@ -347,7 +348,7 @@ fn changePatterns(application_service: State<ApplicationServiceState>, patterns_
 
 #[tauri::command]
 fn truncateModel(application_service: State<ApplicationServiceState>, new_size: u32) 
-        -> Result<(), GenericError>{
+        -> Result<Vec<(f32, f32)>, GenericError>{
     println!("Calling truncateModel...");
 
     let mut application_service = match application_service.0.lock() {
@@ -360,7 +361,7 @@ fn truncateModel(application_service: State<ApplicationServiceState>, new_size: 
     };
 
     match application_service.truncateModel(&new_size) {
-        Ok(_) => return Ok(()),
+        Ok(datapoint_changes) => return Ok(datapoint_changes),
         Err(error) => {
             error.print();
             return Err(error)
@@ -471,6 +472,8 @@ fn getDataPoints(application_service: State<ApplicationServiceState>) -> Result<
 
     match application_service.getDataPoints() {
         Ok(data_points) => {
+        //     let serialized = to_string_pretty(&data_points).unwrap_or_else(|err| format!("Failed to serialize: {:?}", err));
+        //    println!("Serialized data: {}", serialized);
             return Ok(data_points);
         },
         Err(error) => {
