@@ -77,7 +77,12 @@ export class RssViewComponent implements AfterViewInit{
     let width = this.visualization_div.nativeElement.clientWidth;
     let height = this.visualization_div.nativeElement.clientHeight;
 
-    this.svg = new Svg(this.visualization_div, width, height, this.datapoints, this.scalingFunction, 10, true, false);
+    this.svg = new Svg(this.visualization_div, width, height, this.datapoints, 
+      this.scalingFunction, 
+      null,
+      null,
+      null,
+      10, true, false);
     this.svg.resize(width, height, 0);
     this.connectDatapoints();
 

@@ -27,4 +27,18 @@ html, body{
             object-fit:contain;
         }
     }
+
+    #datapoint_tooltip{
+        position: absolute;
+        top: 0;
+        left: 0;
+
+        width: 15%;
+        height: 15%;
+    }
+}
+
+.floatable {
+    z-index: 1;
+    position: absolute;
 }

@@ -1,4 +1,4 @@
-<body>
+<body #app_body id="app_body">
     <aside #aside>
         <div id="main-options">
             <header class="main-option" #model_selector matRipple [matRippleCentered]="true" 
@@ -69,6 +69,7 @@
                 >
             </router-outlet> -->
             <app-visualization #visualization_view
+                [app_body]="app_body"
                 (onTruncation)="onTruncation($event)"
                 *ngIf="model_loaded">
             </app-visualization>

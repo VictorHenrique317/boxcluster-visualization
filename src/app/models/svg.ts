@@ -7,6 +7,9 @@ export class Svg {
     private plot: any;
 
     private scaling_function: any;
+    private hover_function: any;
+    private positioning_ref: any;
+    private tooltip_component: any;
     private datapoints: Array<DataPoint>;
     private scaled_datapoints: Array<DataPoint>;
 
@@ -21,12 +24,18 @@ export class Svg {
 
     private pannable: boolean;
 
-    constructor(vizualization_div: ElementRef<HTMLDivElement>, width: number, height: number, 
-                datapoints: Array<DataPoint>, scaling_function: (arc: Array<any>) => Array<any>, 
+    constructor(vizualization_div: ElementRef<HTMLDivElement>, width: number, height: number, datapoints: Array<DataPoint>, 
+                scaling_function: (arc: Array<any>) => Array<any>,
+                hover_function: (mouse_position: [number, number], datapoint: DataPoint, tooltip_component: any, positioning_ref: any) => void,
+                positioning_ref: any,
+                tooltip_component: any,
                 number_of_gridlines: number = 40, gridlines: boolean = true, pannable: boolean = true){
 
         this.datapoints = datapoints;
         this.scaling_function = scaling_function;
+        this.hover_function = hover_function;
+        this.positioning_ref = positioning_ref;
+        this.tooltip_component = tooltip_component;
         this.width = width;
         this.height = height;
         this.number_of_gridlines = number_of_gridlines;
@@ -132,40 +141,45 @@ export class Svg {
     
     private drawDataPoints() {
       if(this.plot == undefined){ return; }
-     
+    
       this.scaled_datapoints = this.scaling_function(this.datapoints);
-     
+    
       const circles = this.plot.selectAll('circle')
           .data(this.scaled_datapoints, d => d.identifier); // Each datapoint has a unique identifier
-     
+    
       circles.exit()
           .transition() // Add exit animation
           .duration(1000) // Duration of the animation in milliseconds
           .attr('r', 0) // Reduce radius to 0
           .remove(); // Remove datapoints that are not in the new dataset
-     
+    
       circles.transition() // Animate existing datapoints
           .duration(1000) // Duration of the animation in milliseconds
           .attr('cx', d => {
-            const result = this.x_scale(parseFloat(d.x));
-            // console.log(`x_scale(${d.x}) returned ${result}`);
-            return result;
+              const result = this.x_scale(parseFloat(d.x));
+              return result;
           })
           .attr('cy', d => this.y_scale(parseFloat(d.y)));
-     
+    
       circles.enter().append('circle') // Add new datapoints with animation
           .attr('cx', d => {
-            const result = this.x_scale(parseFloat(d.x));
-            // console.log(`x_scale(${d.x}) returned ${result}`);
-            return result;
+              const result = this.x_scale(parseFloat(d.x));
+              return result;
           })
           .attr('cy', d => this.y_scale(parseFloat(d.y)))
           .attr('r', 0) // Start from radius 0
           .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
+          .style('cursor', 'pointer') // Set cursor to pointer
+          .on('mouseover', (event, d) => { 
+            if (this.hover_function != null){ this.hover_function(d3.pointer(event), d, this.tooltip_component, this.positioning_ref); }
+           })
+          .on('mouseout', (event, d) => { 
+            if(this.hover_function != null){ this.hover_function(d3.pointer(event), null, this.tooltip_component, this.positioning_ref); }
+           })
           .transition() // Transition to final state
           .duration(1000) // Duration of the animation in milliseconds
           .attr('r', d => d.size); // End with actual radius
-     }
+    }    
 
     public drawVerticalLine(x: number) {
       // Remove any existing line

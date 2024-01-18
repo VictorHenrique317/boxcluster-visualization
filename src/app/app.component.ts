@@ -23,13 +23,13 @@ import { CommonModule } from "@angular/common";
 import { PatternSummaryComponent } from "./components/dynamic-paginator/pattern-summary/pattern-summary.component";
 import { DynamicPaginatorComponent } from "./components/dynamic-paginator/dynamic-paginator.component";
 import { open } from '@tauri-apps/api/dialog';
-import { RssViewComponent } from "./components/visualization/rss-view/rss-view.component";
+import { RssViewComponent } from "./components/main_options/rss-view/rss-view.component";
 import { provideRouter, Router, RouterOutlet} from "@angular/router";
 import { environment } from "src/environments/environment";
 import {MatSidenavModule} from '@angular/material/sidenav'
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { FileSelectionDialogComponent } from './components/file-selection-dialog/file-selection-dialog.component';
+import { FileSelectionDialogComponent } from './components/main_options/file-selection-dialog/file-selection-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
 import { take } from "rxjs/operators";
@@ -92,6 +92,7 @@ import { take } from "rxjs/operators";
 })
 
 export class AppComponent implements AfterViewInit{
+  @ViewChild("app_body") app_body: ElementRef<HTMLBodyElement>;
   @ViewChild("aside") aside: ElementRef<HTMLElement>;
   
   @ViewChild("model_selector") model_selector: ElementRef<HTMLElement>;

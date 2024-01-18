@@ -1,5 +1,5 @@
 import { resolveResource } from '@tauri-apps/api/path'
-import { ChangeDetectorRef, Component, EventEmitter, Output, ViewContainerRef } from '@angular/core';
+import { ChangeDetectorRef, Component, ComponentFactoryResolver, EventEmitter, InjectionToken, Input, Output, Renderer2, ViewContainerRef } from '@angular/core';
 import { ComponentPortal, PortalModule } from '@angular/cdk/portal';
 import { CommonModule } from '@angular/common';
 import {MatCardModule} from '@angular/material/card';
@@ -16,58 +16,64 @@ import { Color } from 'src/app/models/color';
 import * as d3 from 'd3';
 import { Svg } from 'src/app/models/svg';
 import { ActivatedRoute } from '@angular/router';
-import { RssViewComponent } from 'src/app/components/visualization/rss-view/rss-view.component';
+import { RssViewComponent } from 'src/app/components/main_options/rss-view/rss-view.component';
 import { environment } from '../../../environments/environment';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { DataPointTooltipComponent } from "./datapoint-tooltip/datapoint-tooltip.component";
 
 @Component({
     selector: 'app-visualization',
     standalone: true,
     templateUrl: './visualization.component.html',
     styleUrls: ['./visualization.component.scss'],
-    imports: [
-      CommonModule,
-      MatCardModule, 
-      PortalModule, 
-      RssViewComponent
-    ],
-      animations: [
+    animations: [
         trigger('slideInOut', [
-          state('void', style({
-            transform: 'translateX(100%)',
-            opacity: 0
-          })),
-          state('in', style({
-            transform: 'translateX(0)',
-            opacity: 1
-          })),
-          state('out', style({
-            transform: 'translateX(100%)',
-            opacity: 0
-          })),
-          transition('void => in', [
-            animate('0.5s ease-in-out')
-          ]),
-          transition('in => out', [
-            animate('0.5s ease-in-out')
-          ]),
-          transition('out => in', [
-            animate('0.5s ease-in-out')
-          ])
+            state('void', style({
+                transform: 'translateX(100%)',
+                opacity: 0
+            })),
+            state('in', style({
+                transform: 'translateX(0)',
+                opacity: 1
+            })),
+            state('out', style({
+                transform: 'translateX(100%)',
+                opacity: 0
+            })),
+            transition('void => in', [
+                animate('0.5s ease-in-out')
+            ]),
+            transition('in => out', [
+                animate('0.5s ease-in-out')
+            ]),
+            transition('out => in', [
+                animate('0.5s ease-in-out')
+            ])
         ])
-      ]
+    ],
+    imports: [
+        CommonModule,
+        MatCardModule,
+        PortalModule,
+        RssViewComponent,
+        DataPointTooltipComponent
+    ]
 })
+
 export class VisualizationComponent implements AfterViewInit{
+  @Input() app_body: HTMLBodyElement;
+  
   @ViewChild('body') body: ElementRef<HTMLBodyElement>;
   
-  @ViewChild('vizualization_div') vizualization_div: ElementRef<HTMLDivElement>;
-  private svg: Svg;
-
-  private y_correction = 0;
-
   private datapoints: Array<DataPoint>;
 
-  constructor(private route: ActivatedRoute, private svg_service: SvgService, private cdr: ChangeDetectorRef){ }
+  @ViewChild('vizualization_div') visualization_div: ElementRef<HTMLDivElement>;
+  private svg: Svg;
+  private y_correction = 0;
+
+  @ViewChild('datapoint_tooltip') datapoint_tooltip: DataPointTooltipComponent;
+
+  constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef){ }
   ngAfterViewInit(): void {
     console.log("Initializing visualization component");
     this.updateDataPoints();
@@ -77,8 +83,12 @@ export class VisualizationComponent implements AfterViewInit{
     let width = this.body.nativeElement.clientWidth;
     let height = this.body.nativeElement.clientHeight;
     
-    this.svg = new Svg(this.vizualization_div, width, height, this.datapoints.slice(), this.scalingFunction, 40, 
-      true, true);
+    this.svg = new Svg(this.visualization_div, width, height, this.datapoints.slice(), 
+      this.scalingFunction, 
+      this.hoverFunction,
+      this.app_body,
+      this.datapoint_tooltip,
+      40, true, true);
     this.svg.resize(width, height, this.y_correction);
     
     this.cdr.detectChanges();
@@ -110,6 +120,27 @@ export class VisualizationComponent implements AfterViewInit{
       this.svg.setDatapoints(this.datapoints);
     }
   }
+
+  private hoverFunction(mouse_position: [number, number], datapoint: DataPoint, 
+      tooltip_component: DataPointTooltipComponent, positioning_ref: HTMLBodyElement){
+    
+    console.log(positioning_ref.clientWidth);
+    console.log(positioning_ref.clientHeight);
+    console.log(mouse_position[0]);
+    console.log(mouse_position[1]);
+    // console.log(positioning_ref.nativeElement.getBoundingClientRect().top);
+    // console.log(positioning_ref.nativeElement.getBoundingClientRect().left);
+
+    tooltip_component.setDatapoint(datapoint);
+    tooltip_component.toggleVisibility();
+
+    // Convert mouse_position to CSS units
+    const left = mouse_position[0] + 'px';
+    const top = mouse_position[1] + 'px';
+
+    // Set the position of the tooltip
+    tooltip_component.setPosition(top, left);
+}
 
   private scalingFunction(datapoints: Array<DataPoint>) {
     let x_max_module = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.x)));
