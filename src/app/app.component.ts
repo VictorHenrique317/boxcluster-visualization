@@ -4,7 +4,7 @@
 // https://br.pinterest.com/pin/800022321275429738/
 // import * as numeric from 'numeric';
 
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, ViewChild } from "@angular/core";
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, ViewChild , Renderer2} from "@angular/core";
 import { invoke } from "@tauri-apps/api/tauri";
 import { VisualizationComponent } from "./components/visualization/visualization.component";
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -93,8 +93,10 @@ import { take } from "rxjs/operators";
 
 export class AppComponent implements AfterViewInit{
   @ViewChild("aside") aside: ElementRef<HTMLElement>;
-
+  
   @ViewChild("model_selector") model_selector: ElementRef<HTMLElement>;
+
+  @ViewChild("drawer_content") drawer_content: ElementRef<HTMLElement>;
 
   @ViewChild('rss_view') rss_view: RssViewComponent;
   protected rss_view_enabled: boolean = null;
@@ -114,7 +116,7 @@ export class AppComponent implements AfterViewInit{
   pageSize = 10;
   pageIndex = 0;
 
-  constructor(private router: Router, private cdr: ChangeDetectorRef, public dialog: MatDialog){}
+  constructor(private router: Router, private cdr: ChangeDetectorRef, public dialog: MatDialog, private renderer: Renderer2){}
 
   ngAfterViewInit(){
     this.matList_height = this.aside.nativeElement.clientHeight - this.model_selector.nativeElement.clientHeight;
@@ -183,7 +185,18 @@ export class AppComponent implements AfterViewInit{
   protected toggleRssView(){
     if(this.rss_view_enabled == null){ return; }
 
+    // if(this.rss_view_enabled) {
+    //   this.rss_view_enabled = false;
+    //   this.renderer.addClass(this.drawer_content.nativeElement, "faded");
+    // }
+
+    // else if(!this.rss_view_enabled) {
+    //   this.rss_view_enabled = true;
+    //   this.renderer.removeClass(this.drawer_content.nativeElement, "faded");
+    // }
+
     this.rss_view_enabled = !this.rss_view_enabled;
+
     this.cdr.detectChanges();
   }
 
