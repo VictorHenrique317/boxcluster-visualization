@@ -43,6 +43,7 @@ impl DataPointService {
                 .ok_or(GenericError::new(format!("Could not get coordinate: {}", &pattern.identifier).as_str(), file!(), &line!()))?;
             
             let size = DataPointService::normalizeSize(&pattern.size, &dimension);
+            let density = pattern.density as f32;
             // let stroke_width = DataPointService::calculateStrokeWidth(&max_size, &size);
             let stroke_width = 2;
             let color = DataPointService::densityToColor(&pattern.density);
@@ -56,6 +57,7 @@ impl DataPointService {
             let datapoint = DataPoint::new(
                 &pattern.identifier,
                 &size,
+                &density,
                 &stroke_width,
                 &x,
                 &y,

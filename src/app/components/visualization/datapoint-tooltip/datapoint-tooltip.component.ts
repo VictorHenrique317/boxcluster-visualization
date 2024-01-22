@@ -27,8 +27,10 @@ export class DataPointTooltipComponent {
     this.datapoint = datapoint;
   }
 
-  public setPosition(top: string, left: string) {
-    this.renderer.setStyle(this.elementRef.nativeElement, 'top', top);
-    this.renderer.setStyle(this.elementRef.nativeElement, 'left', left);
+  public setPosition(top: number, left: number) {
+    let top_str = top + 'px';
+    let left_str = left + 'px';
+    this.renderer.setStyle(this.elementRef.nativeElement, 'top', top_str);
+    this.renderer.setStyle(this.elementRef.nativeElement, 'left', left_str);
   }
 }

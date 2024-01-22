@@ -69,7 +69,6 @@
                 >
             </router-outlet> -->
             <app-visualization #visualization_view
-                [app_body]="app_body"
                 (onTruncation)="onTruncation($event)"
                 *ngIf="model_loaded">
             </app-visualization>

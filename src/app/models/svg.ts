@@ -1,15 +1,14 @@
 import * as d3 from 'd3';
 import { ElementRef } from '@angular/core';
 import { DataPoint } from './datapoint';
+import { event } from '@tauri-apps/api';
 
 export class Svg {
     private d3_svg: any;
     private plot: any;
 
     private scaling_function: any;
-    private hover_function: any;
-    private positioning_ref: any;
-    private tooltip_component: any;
+    private tooltip: any;
     private datapoints: Array<DataPoint>;
     private scaled_datapoints: Array<DataPoint>;
 
@@ -26,16 +25,12 @@ export class Svg {
 
     constructor(vizualization_div: ElementRef<HTMLDivElement>, width: number, height: number, datapoints: Array<DataPoint>, 
                 scaling_function: (arc: Array<any>) => Array<any>,
-                hover_function: (mouse_position: [number, number], datapoint: DataPoint, tooltip_component: any, positioning_ref: any) => void,
-                positioning_ref: any,
-                tooltip_component: any,
+                tooltip,
                 number_of_gridlines: number = 40, gridlines: boolean = true, pannable: boolean = true){
 
         this.datapoints = datapoints;
         this.scaling_function = scaling_function;
-        this.hover_function = hover_function;
-        this.positioning_ref = positioning_ref;
-        this.tooltip_component = tooltip_component;
+        this.tooltip = tooltip;
         this.width = width;
         this.height = height;
         this.number_of_gridlines = number_of_gridlines;
@@ -141,9 +136,10 @@ export class Svg {
     
     private drawDataPoints() {
       if(this.plot == undefined){ return; }
+
+      if(this.tooltip!=null){ this.plot.call(this.tooltip); }
     
       this.scaled_datapoints = this.scaling_function(this.datapoints);
-    
       const circles = this.plot.selectAll('circle')
           .data(this.scaled_datapoints, d => d.identifier); // Each datapoint has a unique identifier
     
@@ -170,16 +166,12 @@ export class Svg {
           .attr('r', 0) // Start from radius 0
           .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
           .style('cursor', 'pointer') // Set cursor to pointer
-          .on('mouseover', (event, d) => { 
-            if (this.hover_function != null){ this.hover_function(d3.pointer(event), d, this.tooltip_component, this.positioning_ref); }
-           })
-          .on('mouseout', (event, d) => { 
-            if(this.hover_function != null){ this.hover_function(d3.pointer(event), null, this.tooltip_component, this.positioning_ref); }
-           })
+          .on('mouseover', (event, d) => { if(this.tooltip!=null) {this.tooltip.show(d, event.currentTarget);} })
+          .on('mouseout', (event, d) => { if(this.tooltip!=null) {this.tooltip.hide(d, event.currentTarget);} })
           .transition() // Transition to final state
           .duration(1000) // Duration of the animation in milliseconds
           .attr('r', d => d.size); // End with actual radius
-    }    
+    }
 
     public drawVerticalLine(x: number) {
       // Remove any existing line

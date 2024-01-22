@@ -1,3 +1,4 @@
+import * as d3Tip from "d3-tip";
 import { resolveResource } from '@tauri-apps/api/path'
 import { ChangeDetectorRef, Component, ComponentFactoryResolver, EventEmitter, InjectionToken, Input, Output, Renderer2, ViewContainerRef } from '@angular/core';
 import { ComponentPortal, PortalModule } from '@angular/cdk/portal';
@@ -61,8 +62,6 @@ import { DataPointTooltipComponent } from "./datapoint-tooltip/datapoint-tooltip
 })
 
 export class VisualizationComponent implements AfterViewInit{
-  @Input() app_body: HTMLBodyElement;
-  
   @ViewChild('body') body: ElementRef<HTMLBodyElement>;
   
   private datapoints: Array<DataPoint>;
@@ -70,8 +69,6 @@ export class VisualizationComponent implements AfterViewInit{
   @ViewChild('vizualization_div') visualization_div: ElementRef<HTMLDivElement>;
   private svg: Svg;
   private y_correction = 0;
-
-  @ViewChild('datapoint_tooltip') datapoint_tooltip: DataPointTooltipComponent;
 
   constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef){ }
   ngAfterViewInit(): void {
@@ -82,15 +79,26 @@ export class VisualizationComponent implements AfterViewInit{
   private createSvg(){
     let width = this.body.nativeElement.clientWidth;
     let height = this.body.nativeElement.clientHeight;
+
+    const tooltip = d3Tip.default()
+        .attr('class', 'd3-tip')
+        .offset([-10, 0])
+        .html(function(d) {
+          return "\
+            <div style='background-color:#ededed; padding: 0.5em 0.5em 0.5em 0.5em; border-radius: 10px; border: 1px dashed black;'>\
+              <strong>ID:</strong> <span style='color:#BC2602'>" + d.identifier + "</span><br>\
+              <strong>Size:</strong> <span style='color:#BC2602'>" + d.size + "</span><br>\
+              <strong>Density:</strong> <span style='color:#BC2602'>" + Math.round(d.density * 100) / 100 + "</span>\
+            </div>\
+            ";
+        });
     
     this.svg = new Svg(this.visualization_div, width, height, this.datapoints.slice(), 
       this.scalingFunction, 
-      this.hoverFunction,
-      this.app_body,
-      this.datapoint_tooltip,
+      tooltip,
       40, true, true);
+
     this.svg.resize(width, height, this.y_correction);
-    
     this.cdr.detectChanges();
   }
 
@@ -120,27 +128,6 @@ export class VisualizationComponent implements AfterViewInit{
       this.svg.setDatapoints(this.datapoints);
     }
   }
-
-  private hoverFunction(mouse_position: [number, number], datapoint: DataPoint, 
-      tooltip_component: DataPointTooltipComponent, positioning_ref: HTMLBodyElement){
-    
-    console.log(positioning_ref.clientWidth);
-    console.log(positioning_ref.clientHeight);
-    console.log(mouse_position[0]);
-    console.log(mouse_position[1]);
-    // console.log(positioning_ref.nativeElement.getBoundingClientRect().top);
-    // console.log(positioning_ref.nativeElement.getBoundingClientRect().left);
-
-    tooltip_component.setDatapoint(datapoint);
-    tooltip_component.toggleVisibility();
-
-    // Convert mouse_position to CSS units
-    const left = mouse_position[0] + 'px';
-    const top = mouse_position[1] + 'px';
-
-    // Set the position of the tooltip
-    tooltip_component.setPosition(top, left);
-}
 
   private scalingFunction(datapoints: Array<DataPoint>) {
     let x_max_module = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.x)));
