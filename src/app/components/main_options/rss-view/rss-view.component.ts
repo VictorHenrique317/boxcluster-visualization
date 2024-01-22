@@ -46,6 +46,7 @@ export class RssViewComponent implements AfterViewInit{
 
   public rss_evolution: Array<number> = [];
   private datapoints: Array<DataPoint>;
+  private scaled_datapoints: Array<DataPoint>;
 
   constructor(private route: ActivatedRoute, private canvas_service: SvgService, private cdr: ChangeDetectorRef){}
   
@@ -68,24 +69,18 @@ export class RssViewComponent implements AfterViewInit{
     console.log(rss_evolution);
     this.rss_evolution = rss_evolution;
     this.pattern_number = this.rss_evolution.length;
-
     this.datapoints = this.wrapIntoDatapoints(this.rss_evolution);
-    this.initializeSvg();
-  }
-
-  private initializeSvg() {
+    
     let width = this.visualization_div.nativeElement.clientWidth;
     let height = this.visualization_div.nativeElement.clientHeight;
 
-    this.svg = new Svg(this.visualization_div, width, height, this.datapoints, 
-      this.scalingFunction, 
-      null,
-      10, true, false);
+    this.svg = new Svg(this.visualization_div, width, height, 10, true, false);
     this.svg.resize(width, height, 0);
-    this.connectDatapoints();
+    this.drawDataPoints();
 
+    this.connectDatapoints();
     this.initialized.emit();
-   }
+  }
 
   private wrapIntoDatapoints(rss_evolution: Array<number>): Array<DataPoint>{
     let datapoints: DataPoint[] = [];
@@ -129,20 +124,54 @@ export class RssViewComponent implements AfterViewInit{
     return scaled_datapoints;
   }
 
+  private drawDataPoints() {
+    if(this.svg.plot == undefined){ return; }
+  
+    this.scaled_datapoints = this.scalingFunction(this.datapoints);
+    const circles = this.svg.plot.selectAll('circle')
+        .data(this.scaled_datapoints, d => d.identifier); // Each datapoint has a unique identifier
+  
+    circles.exit()
+        .transition() // Add exit animation
+        .duration(1000) // Duration of the animation in milliseconds
+        .attr('r', 0) // Reduce radius to 0
+        .remove(); // Remove datapoints that are not in the new dataset
+  
+    circles.transition() // Animate existing datapoints
+        .duration(1000) // Duration of the animation in milliseconds
+        .attr('cx', d => {
+            const result = this.svg.getXScale()(parseFloat(d.x));
+            return result;
+        })
+        .attr('cy', d => this.svg.getYScale()(parseFloat(d.y)));
+  
+    circles.enter().append('circle') // Add new datapoints with animation
+        .attr('cx', d => {
+            const result = this.svg.getXScale()(parseFloat(d.x));
+            return result;
+        })
+        .attr('cy', d => this.svg.getYScale()(parseFloat(d.y)))
+        .attr('r', 0) // Start from radius 0
+        .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
+        .style('cursor', 'pointer') // Set cursor to pointer
+        .transition() // Transition to final state
+        .duration(1000) // Duration of the animation in milliseconds
+        .attr('r', d => d.size); // End with actual radius
+  }
+
   private connectDatapoints(){
     console.log("Connecting datapoints");
-    let scaled_datapoints = this.svg.getScaledDatapoints();
-    if(scaled_datapoints.length < 2){ return; }
+    if(this.scaled_datapoints.length < 2){ return; }
 
     let line = d3.line<DataPoint>()
       .x(d => this.svg.getXScale()(d.x))
       .y(d => this.svg.getYScale()(d.y));
 
-    for(let i = 0; i < scaled_datapoints.length - 1; i++) {
-      let point1 = scaled_datapoints[i];
-      let point2 = scaled_datapoints[i+1];
+    for(let i = 0; i < this.scaled_datapoints.length - 1; i++) {
+      let point1 = this.scaled_datapoints[i];
+      let point2 = this.scaled_datapoints[i+1];
 
-      this.svg.getPlot().append('path')
+      this.svg.plot.append('path')
         .attr('d', line([point1, point2]))
         .attr('stroke', 'black')
         .attr('stroke-width', 2)

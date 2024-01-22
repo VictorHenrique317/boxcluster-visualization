@@ -4,13 +4,8 @@ import { DataPoint } from './datapoint';
 import { event } from '@tauri-apps/api';
 
 export class Svg {
-    private d3_svg: any;
-    private plot: any;
-
-    private scaling_function: any;
-    private tooltip: any;
-    private datapoints: Array<DataPoint>;
-    private scaled_datapoints: Array<DataPoint>;
+    public d3_svg: any;
+    public plot: any;
 
     private width: number;
     private height: number;
@@ -23,25 +18,15 @@ export class Svg {
 
     private pannable: boolean;
 
-    constructor(vizualization_div: ElementRef<HTMLDivElement>, width: number, height: number, datapoints: Array<DataPoint>, 
-                scaling_function: (arc: Array<any>) => Array<any>,
-                tooltip,
+    constructor(vizualization_div: ElementRef<HTMLDivElement>, width: number, height: number, 
                 number_of_gridlines: number = 40, gridlines: boolean = true, pannable: boolean = true){
 
-        this.datapoints = datapoints;
-        this.scaling_function = scaling_function;
-        this.tooltip = tooltip;
         this.width = width;
         this.height = height;
         this.number_of_gridlines = number_of_gridlines;
         this.gridlines = gridlines;
         this.pannable = pannable;
         this.create(vizualization_div);
-    }
-
-    public setDatapoints(datapoints: Array<DataPoint>){
-      this.datapoints = datapoints;
-      this.drawDataPoints();
     }
 
     private create(vizualization_div: ElementRef<HTMLDivElement>){
@@ -105,7 +90,7 @@ export class Svg {
             .tickFormat(() => "")
         )
     }
-  
+    
     private createPlot(){
       if(this.plot != undefined){ this.d3_svg.select("#plot").remove(); }
       this.plot = this.d3_svg.append("g").attr("id", "plot");
@@ -131,46 +116,7 @@ export class Svg {
       }
       
       if(this.gridlines){ this.drawGridLines(); }
-      this.drawDataPoints();
-    }
-    
-    private drawDataPoints() {
-      if(this.plot == undefined){ return; }
-
-      if(this.tooltip!=null){ this.plot.call(this.tooltip); }
-    
-      this.scaled_datapoints = this.scaling_function(this.datapoints);
-      const circles = this.plot.selectAll('circle')
-          .data(this.scaled_datapoints, d => d.identifier); // Each datapoint has a unique identifier
-    
-      circles.exit()
-          .transition() // Add exit animation
-          .duration(1000) // Duration of the animation in milliseconds
-          .attr('r', 0) // Reduce radius to 0
-          .remove(); // Remove datapoints that are not in the new dataset
-    
-      circles.transition() // Animate existing datapoints
-          .duration(1000) // Duration of the animation in milliseconds
-          .attr('cx', d => {
-              const result = this.x_scale(parseFloat(d.x));
-              return result;
-          })
-          .attr('cy', d => this.y_scale(parseFloat(d.y)));
-    
-      circles.enter().append('circle') // Add new datapoints with animation
-          .attr('cx', d => {
-              const result = this.x_scale(parseFloat(d.x));
-              return result;
-          })
-          .attr('cy', d => this.y_scale(parseFloat(d.y)))
-          .attr('r', 0) // Start from radius 0
-          .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
-          .style('cursor', 'pointer') // Set cursor to pointer
-          .on('mouseover', (event, d) => { if(this.tooltip!=null) {this.tooltip.show(d, event.currentTarget);} })
-          .on('mouseout', (event, d) => { if(this.tooltip!=null) {this.tooltip.hide(d, event.currentTarget);} })
-          .transition() // Transition to final state
-          .duration(1000) // Duration of the animation in milliseconds
-          .attr('r', d => d.size); // End with actual radius
+      // this.drawDataPoints();
     }
 
     public drawVerticalLine(x: number) {
@@ -188,23 +134,11 @@ export class Svg {
           .attr('stroke-width', 2);
   }
 
-    public getD3Svg(){
-      return this.d3_svg;
-    }
+  public getXScale(){
+    return this.x_scale;
+  }
 
-    public getPlot(){
-      return this.plot;
-    }
-
-    public getScaledDatapoints(){
-      return this.scaled_datapoints;
-    }
-
-    public getXScale(){
-      return this.x_scale;
-    }
-
-    public getYScale(){
-      return this.y_scale;
-    }
+  public getYScale(){
+    return this.y_scale;
+  }
 }

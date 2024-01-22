@@ -68,40 +68,35 @@ export class VisualizationComponent implements AfterViewInit{
 
   @ViewChild('vizualization_div') visualization_div: ElementRef<HTMLDivElement>;
   private svg: Svg;
+  private tooltip;
   private y_correction = 0;
 
   constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef){ }
   ngAfterViewInit(): void {
     console.log("Initializing visualization component");
-    this.updateDataPoints();
-  }
-  
-  private createSvg(){
     let width = this.body.nativeElement.clientWidth;
     let height = this.body.nativeElement.clientHeight;
 
-    const tooltip = d3Tip.default()
-        .attr('class', 'd3-tip')
-        .offset([-10, 0])
-        .html(function(d) {
-          return "\
-            <div style='background-color:#ededed; padding: 0.5em 0.5em 0.5em 0.5em; border-radius: 10px; border: 1px dashed black;'>\
-              <strong>ID:</strong> <span style='color:#BC2602'>" + d.identifier + "</span><br>\
-              <strong>Size:</strong> <span style='color:#BC2602'>" + d.size + "</span><br>\
-              <strong>Density:</strong> <span style='color:#BC2602'>" + Math.round(d.density * 100) / 100 + "</span>\
-            </div>\
-            ";
-        });
+    this.tooltip = d3Tip.default()
+      .attr('class', 'd3-tip')
+      .offset([-10, 0])
+      .html(function(d) {
+        return "\
+          <div style='background-color:#ededed; padding: 0.5em 0.5em 0.5em 0.5em; border-radius: 10px; border: 1px dashed black;'>\
+            <strong>ID:</strong> <span style='color:#BC2602'>" + d.identifier + "</span><br>\
+            <strong>Size:</strong> <span style='color:#BC2602'>" + d.size + "</span><br>\
+            <strong>Density:</strong> <span style='color:#BC2602'>" + Math.round(d.density * 100) / 100 + "</span>\
+          </div>\
+          ";
+      });
     
-    this.svg = new Svg(this.visualization_div, width, height, this.datapoints.slice(), 
-      this.scalingFunction, 
-      tooltip,
-      40, true, true);
-
+    this.svg = new Svg(this.visualization_div, width, height, 40, true, true);
     this.svg.resize(width, height, this.y_correction);
     this.cdr.detectChanges();
-  }
 
+    this.updateDataPoints();
+  }
+  
   public async updateDataPoints(){
     console.log("Invoking getDataPoints");
     
@@ -120,13 +115,7 @@ export class VisualizationComponent implements AfterViewInit{
     console.log(datapoints);
 
     this.datapoints = datapoints;
-
-    if(this.svg == undefined) { 
-      this.createSvg();
-      
-    } else if(this.svg != undefined){
-      this.svg.setDatapoints(this.datapoints);
-    }
+    this.drawDataPoints();
   }
 
   private scalingFunction(datapoints: Array<DataPoint>) {
@@ -147,11 +136,51 @@ export class VisualizationComponent implements AfterViewInit{
     return scaled_datapoints;
   }
 
+  private drawDataPoints() {
+    if(this.svg.plot == undefined){ return; }
+
+    this.svg.plot.call(this.tooltip);
+  
+    let scaled_datapoints = this.scalingFunction(this.datapoints);
+    const circles = this.svg.plot.selectAll('circle')
+        .data(scaled_datapoints, d => d.identifier); // Each datapoint has a unique identifier
+  
+    circles.exit()
+        .transition() // Add exit animation
+        .duration(1000) // Duration of the animation in milliseconds
+        .attr('r', 0) // Reduce radius to 0
+        .remove(); // Remove datapoints that are not in the new dataset
+  
+    circles.transition() // Animate existing datapoints
+        .duration(1000) // Duration of the animation in milliseconds
+        .attr('cx', d => {
+            const result = this.svg.getXScale()(parseFloat(d.x));
+            return result;
+        })
+        .attr('cy', d => this.svg.getYScale()(parseFloat(d.y)));
+  
+    circles.enter().append('circle') // Add new datapoints with animation
+        .attr('cx', d => {
+            const result = this.svg.getXScale()(parseFloat(d.x));
+            return result;
+        })
+        .attr('cy', d => this.svg.getYScale()(parseFloat(d.y)))
+        .attr('r', 0) // Start from radius 0
+        .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
+        .style('cursor', 'pointer') // Set cursor to pointer
+        .on('mouseover', (event, d) => { if(this.tooltip!=null) {this.tooltip.show(d, event.currentTarget);} })
+        .on('mouseout', (event, d) => { if(this.tooltip!=null) {this.tooltip.hide(d, event.currentTarget);} })
+        .transition() // Transition to final state
+        .duration(1000) // Duration of the animation in milliseconds
+        .attr('r', d => d.size); // End with actual radius
+  }
+
   public onResize(event) {
     let width = this.body.nativeElement.clientWidth;
     let height = this.body.nativeElement.clientHeight;
 
     this.svg.resize(width, height, this.y_correction);
+    // this.drawDataPoints();
   }
 
   public onTruncation(event){
@@ -168,7 +197,7 @@ export class VisualizationComponent implements AfterViewInit{
       }
 
       this.datapoints = new_datapoints; // Truncation
-      if(this.svg != undefined){ this.svg.setDatapoints(this.datapoints); } // Updating the svg
+      if(this.svg != undefined){ this.drawDataPoints(); } // Updating the svg
       return;
     }
 
