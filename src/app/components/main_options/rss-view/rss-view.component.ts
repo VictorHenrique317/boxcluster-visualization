@@ -131,32 +131,15 @@ export class RssViewComponent implements AfterViewInit{
     const circles = this.svg.plot.selectAll('circle')
         .data(this.scaled_datapoints, d => d.identifier); // Each datapoint has a unique identifier
   
-    circles.exit()
-        .transition() // Add exit animation
-        .duration(1000) // Duration of the animation in milliseconds
-        .attr('r', 0) // Reduce radius to 0
-        .remove(); // Remove datapoints that are not in the new dataset
-  
-    circles.transition() // Animate existing datapoints
-        .duration(1000) // Duration of the animation in milliseconds
-        .attr('cx', d => {
-            const result = this.svg.getXScale()(parseFloat(d.x));
-            return result;
-        })
-        .attr('cy', d => this.svg.getYScale()(parseFloat(d.y)));
-  
     circles.enter().append('circle') // Add new datapoints with animation
         .attr('cx', d => {
             const result = this.svg.getXScale()(parseFloat(d.x));
             return result;
         })
         .attr('cy', d => this.svg.getYScale()(parseFloat(d.y)))
-        .attr('r', 0) // Start from radius 0
+        .attr('r', d => d.size)
         .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
-        .style('cursor', 'pointer') // Set cursor to pointer
-        .transition() // Transition to final state
-        .duration(1000) // Duration of the animation in milliseconds
-        .attr('r', d => d.size); // End with actual radius
+        .style('cursor', 'pointer'); // Set cursor to pointer
   }
 
   private connectDatapoints(){
@@ -196,6 +179,7 @@ export class RssViewComponent implements AfterViewInit{
     let height = this.visualization_div.nativeElement.clientHeight;
 
     this.svg.resize(width, height, 0);
+    this.drawDataPoints();
     this.connectDatapoints();
   }
   

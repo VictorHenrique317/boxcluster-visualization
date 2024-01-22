@@ -17,6 +17,7 @@ mat-list{
 
     mat-list-item:hover{
         cursor: pointer;
+        color: white;
         background-color: mat.get-color-from-palette($primary-palette, 800);
     }
 
@@ -83,3 +84,5 @@ mat-list{
 .mat-list-item-content {
     font-size: 10em;
   }
+
+

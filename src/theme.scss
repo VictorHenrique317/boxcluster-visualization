@@ -46,3 +46,7 @@ $theme: mat.define-light-theme((
 $palette-color: map-get($theme, color);
 $background: map-get($palette-color, background);
 $background-color: map-get($background, background);
+
+.mdc-list-item:hover .mdc-list-item__primary-text {
+  color: white !important;
+}

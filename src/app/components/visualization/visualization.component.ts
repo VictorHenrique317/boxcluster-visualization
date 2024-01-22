@@ -180,7 +180,7 @@ export class VisualizationComponent implements AfterViewInit{
     let height = this.body.nativeElement.clientHeight;
 
     this.svg.resize(width, height, this.y_correction);
-    // this.drawDataPoints();
+    this.drawDataPoints();
   }
 
   public onTruncation(event){
