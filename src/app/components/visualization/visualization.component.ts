@@ -12,7 +12,7 @@ import { DataPoint } from 'src/app/models/datapoint';
 import { event, fs, invoke } from '@tauri-apps/api';
 import { BaseDirectory } from "@tauri-apps/api/fs";
 import { SvgService } from 'src/app/services/svg/svg.service';
-import { Subscription } from 'rxjs';
+import { Subscription, take } from 'rxjs';
 import { Color } from 'src/app/models/color';
 import * as d3 from 'd3';
 import { Svg } from 'src/app/models/svg';
@@ -21,6 +21,9 @@ import { RssViewComponent } from 'src/app/components/main_options/rss-view/rss-v
 import { environment } from '../../../environments/environment';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { DataPointTooltipComponent } from "./datapoint-tooltip/datapoint-tooltip.component";
+import { DatapointInfoDialogComponent } from "./datapoint-info-dialog/datapoint-info-dialog.component";
+import { MatDialog } from "@angular/material/dialog";
+import { Pattern } from "src/app/models/pattern";
 
 @Component({
     selector: 'app-visualization',
@@ -71,7 +74,7 @@ export class VisualizationComponent implements AfterViewInit{
   private tooltip;
   private y_correction = 0;
 
-  constructor(private route: ActivatedRoute, private cdr: ChangeDetectorRef){ }
+  constructor(private route: ActivatedRoute, public dialog: MatDialog, private cdr: ChangeDetectorRef){ }
   ngAfterViewInit(): void {
     console.log("Initializing visualization component");
     let width = this.body.nativeElement.clientWidth;
@@ -103,7 +106,7 @@ export class VisualizationComponent implements AfterViewInit{
     let datapoints;
     if(!environment.dev_mode){
       datapoints = await invoke("getDataPoints").catch((error: any) => {
-        console.log(error);
+        console.error(error);
       });
 
     } else if (environment.dev_mode){
@@ -116,6 +119,8 @@ export class VisualizationComponent implements AfterViewInit{
 
     this.datapoints = datapoints;
     this.drawDataPoints();
+
+    this.onDatapointClick('300ms', '300ms', 1); // TODO: REMOVE
   }
 
   private scalingFunction(datapoints: Array<DataPoint>) {
@@ -168,11 +173,38 @@ export class VisualizationComponent implements AfterViewInit{
         .attr('r', 0) // Start from radius 0
         .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
         .style('cursor', 'pointer') // Set cursor to pointer
-        .on('mouseover', (event, d) => { if(this.tooltip!=null) {this.tooltip.show(d, event.currentTarget);} })
-        .on('mouseout', (event, d) => { if(this.tooltip!=null) {this.tooltip.hide(d, event.currentTarget);} })
+        .on('mouseover', (event, d) => { this.tooltip.show(d, event.currentTarget); })
+        .on('mouseout', (event, d) => { this.tooltip.hide(d, event.currentTarget); })
+        .on('click', (event, d) => { this.onDatapointClick('300ms', '300ms', d.identifier); })
         .transition() // Transition to final state
         .duration(1000) // Duration of the animation in milliseconds
         .attr('r', d => d.size); // End with actual radius
+  }
+
+  private async onDatapointClick(enterAnimationDuration: string, exitAnimationDuration: string, identifier: number): Promise<void> {
+    let pattern;
+    if(!environment.dev_mode){
+      pattern = await invoke("getPattern", {identifier: identifier}).catch((error: any) => {
+        console.error(error);
+      });
+    }else if(environment.dev_mode){
+      let rawdata = await fs.readTextFile(await resolveResource('resources/pattern.json'));
+      pattern = JSON.parse(rawdata);
+    }
+
+    const dialogRef = this.dialog.open(DatapointInfoDialogComponent, {
+      width: '500px',
+      height: '400px',
+      enterAnimationDuration,
+      exitAnimationDuration,
+      
+      data: {
+        pattern: pattern
+      }
+    });
+
+    // Executes when the dialog is closed
+    dialogRef.afterClosed().pipe(take(1)).subscribe(result => {});
   }
 
   public onResize(event) {

@@ -154,7 +154,7 @@ export class AppComponent implements AfterViewInit{
       this.reloadApplication();
 
     }).catch((error: any) => {
-      console.log(error);
+      console.error(error);
     });
   }
 
@@ -177,10 +177,6 @@ export class AppComponent implements AfterViewInit{
         this.handleModelChange(result);
       }
     });
-
-    // this.dialog.afterAllClosed.pipe(take(1)).subscribe(() => {
-    //   console.log("Closed")
-    // });
   }
 
   protected toggleRssView(){

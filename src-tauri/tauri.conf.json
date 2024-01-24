@@ -55,7 +55,8 @@
       "resources": [
         "resources/*",
         "resources/rss_evolution.json",
-        "resources/page_patterns.json"
+        "resources/page_patterns.json",
+        "resources/pattern.json"
       ],
       "shortDescription": "",
       "targets": "all",

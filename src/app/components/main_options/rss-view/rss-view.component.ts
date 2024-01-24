@@ -57,7 +57,7 @@ export class RssViewComponent implements AfterViewInit{
     let rss_evolution;
     if(!environment.dev_mode){
       rss_evolution = await invoke("getFullRssEvolution").catch((error: any) => {
-        console.log(error);
+        console.error(error);
       });
 
     } else if(environment.dev_mode){

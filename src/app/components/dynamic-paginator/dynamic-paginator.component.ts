@@ -50,7 +50,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
     let sounding_pattern;
     if(!environment.dev_mode){
       sounding_pattern = await invoke("getSoundingPattern").catch((error: any) => {
-        console.log(error);
+        console.error(error);
       });
 
     }else if(environment.dev_mode){
@@ -76,7 +76,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
 
     if(!environment.dev_mode){
       let data = await invoke("refreshPageSize", {pageSize: this.page_size}).catch((error: any) => {
-        console.log(error);
+        console.error(error);
       });
 
       this.page_items = data[0];
@@ -104,7 +104,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
       this.cdr.detectChanges();
 
     }).catch((error: any) => {
-      console.log(error);
+      console.error(error);
     });
   }
 
@@ -117,7 +117,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
       this.cdr.detectChanges();
 
     }).catch((error: any) => {
-      console.log(error);
+      console.error(error);
     });
   }
 
@@ -130,7 +130,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
       this.cdr.detectChanges();
 
     }).catch((error: any) => {
-      console.log(error);
+      console.error(error);
     });
   }
 
@@ -143,7 +143,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
       this.cdr.detectChanges();
 
     }).catch((error: any) => {
-      console.log(error);
+      console.error(error);
     });
   }
 
@@ -156,7 +156,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
       this.cdr.detectChanges();
 
     }).catch((error: any) => {
-      console.log(error);
+      console.error(error);
     });
   }
 }
