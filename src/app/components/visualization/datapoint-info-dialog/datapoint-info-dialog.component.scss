@@ -9,24 +9,53 @@ body{
     flex-direction: column;
     align-items: center;
 
-    background-color: red;
+    // background-color: red;
     header{
         width: 100%;
-        height: 25%;
-        background-color: green;
+        height: 18%;
+        // background-color: green;
 
     }
 
     section{
         width: 100%;
-        height: 75%;
-        background-color: yellow;
+        height: 82%;
+        // background-color: yellow;
 
-        p {
-            word-wrap: normal; /* Allows long words to be able to be broken and wrap onto the next line */
-            overflow-wrap: break-word; /* Similar to word-wrap, but works in all browsers */
-            white-space: normal; /* Allows the text to wrap to the next line */
-            background-color: brown;
+        #tab-group{
+            width: 100%;
+            height: 100%;
+
+            // background-color: blue;
+
+            .tab-wrapper{
+                display: flex;
+                flex-direction: row;
+
+                padding: 0 2em 0 1em;
+
+                // height: 100%;
+                // background-color: red;
+
+                .table-container {
+                    overflow-y: auto; /* Enable vertical scrollbar */
+                    // direction: rtl;
+                    width: 300px;
+                    max-height: 400px;
+
+                    table{
+                        // background-color: green;
+                        // height: 70%;
+                    }
+                }
+
+                
+
+                .filter{
+                    padding: 1em 0em 0 2em;
+                    height: 20%;
+                }
+            }
         }
     }
 }
