@@ -4,6 +4,7 @@ use serde::{Serialize, ser::SerializeStruct};
 pub struct DataPoint {
     pub identifier: u32,
     pub size: f32,
+    pub pattern_size: u32,
     pub density: f32,
     pub stroke_width: u32,
 
@@ -13,7 +14,7 @@ pub struct DataPoint {
     pub r: u32,
     pub g: u32,
     pub b: u32,
-    pub a: u32,
+    pub a: f32,
 }
 
 impl Serialize for DataPoint {
@@ -21,6 +22,7 @@ impl Serialize for DataPoint {
         let mut state = serializer.serialize_struct("DataPoint", 8)?;
         state.serialize_field("identifier", &self.identifier)?;
         state.serialize_field("size", &self.size)?;
+        state.serialize_field("pattern_size", &self.pattern_size)?;
         state.serialize_field("density", &self.density)?;
         state.serialize_field("stroke_width", &self.stroke_width)?;
     
@@ -38,11 +40,12 @@ impl Serialize for DataPoint {
  }
 
 impl DataPoint {
-    pub fn new(identifier: &u32, size: &f32, density: &f32, stroke_width: &u32, x: &f32, y: &f32, r: &u32, g: &u32, b: &u32, a: &u32) -> DataPoint { 
+    pub fn new(identifier: &u32, size: &f32, pattern_size: &u32, density: &f32, stroke_width: &u32, x: &f32, y: &f32, r: &u32, g: &u32, b: &u32, a: &f32) -> DataPoint { 
         return DataPoint { identifier: *identifier, 
             x: *x, 
             y: *y , 
             size: *size, 
+            pattern_size: *pattern_size, 
             density: *density, 
             stroke_width:*stroke_width, 
             r: *r,  

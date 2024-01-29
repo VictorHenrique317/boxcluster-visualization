@@ -15,11 +15,12 @@ impl DataPointService {
         
     }
 
-    fn densityToColor(density: &f64) -> (u32, u32, u32, u32) {
+    fn densityToColor(density: &f64) -> (u32, u32, u32, f32) {
         let r = 255 as u32;
         let g = 0;
         let b = 0 as u32;
-        let a = (255 as f64 * density) as u32;
+        // let a = (255 as f64 * density) as u32;
+        let a = *density as f32;
 
         return (r, g, b, a);
     }
@@ -57,6 +58,7 @@ impl DataPointService {
             let datapoint = DataPoint::new(
                 &pattern.identifier,
                 &size,
+                &pattern.size,
                 &density,
                 &stroke_width,
                 &x,

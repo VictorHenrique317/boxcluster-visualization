@@ -11,8 +11,11 @@ body{
 
     // background-color: red;
     header{
-        width: 100%;
+        width: 90%;
         height: 18%;
+
+        padding: 1em 0 0 1em;
+        overflow: hidden;
         // background-color: green;
 
     }
@@ -46,6 +49,12 @@ body{
                     table{
                         // background-color: green;
                         // height: 70%;
+
+                        th{
+                            // display: none;
+                            text-align: center;
+                            font-size: 1em;
+                        }
                     }
                 }
 

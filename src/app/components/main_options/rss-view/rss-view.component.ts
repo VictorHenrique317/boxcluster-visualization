@@ -88,7 +88,7 @@ export class RssViewComponent implements AfterViewInit{
     for (let i = 0; i < rss_evolution.length; i++){
       let x = undefined;
       let y = undefined;
-      let datapoint = new DataPoint(i, rss_evolution[i], 10, 0, 0, x, y, 0, 0, 0, 0);
+      let datapoint = new DataPoint(i, rss_evolution[i], 10, 10, 0, 0, x, y, 0, 0, 0, 0);
       datapoints[i] = datapoint;
     }
 
@@ -117,7 +117,7 @@ export class RssViewComponent implements AfterViewInit{
       y /= ((1-vertical_screen_coverage) + 1)
       
       let radius = 3;
-      let datapoint = new DataPoint(i, rss, radius, 0, 0, x, y, 0, 0, 0, 1);
+      let datapoint = new DataPoint(i, rss, radius, 10, 0, 0, x, y, 0, 0, 0, 1);
       scaled_datapoints[i] = datapoint;
     }
 

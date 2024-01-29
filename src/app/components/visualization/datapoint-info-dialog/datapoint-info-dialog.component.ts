@@ -39,6 +39,7 @@ export class DatapointInfoDialogComponent {
   
   protected displayed_columns: string[] = ['values'];
   protected data_source: MatTableDataSource<Array<any>>;
+  protected data_source_length: number;
   protected selected_tab;
 
   constructor(public dialogRef: MatDialogRef<DatapointInfoDialogComponent>, 
@@ -47,6 +48,7 @@ export class DatapointInfoDialogComponent {
       this.selected_tab = 0;
       this.pattern = data.pattern;
       this.data_source = new MatTableDataSource(this.pattern.dims_values[this.selected_tab]);
+      this.data_source_length = this.data_source.data.length;
   }
 
   ngAfterViewInit() {
@@ -65,6 +67,7 @@ export class DatapointInfoDialogComponent {
     });
     
     this.data_source.data = filteredData;
+    this.data_source_length = this.data_source.data.length;
 }
 
 
@@ -72,6 +75,7 @@ export class DatapointInfoDialogComponent {
     this.selected_tab = tab_index;
     let dim = this.pattern.dims_values[tab_index];
     this.data_source.data = dim;
+    this.data_source_length = this.data_source.data.length;
     this.data_source.sort = this.sort;
     
     if (this.input != null){

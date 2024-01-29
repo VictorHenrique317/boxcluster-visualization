@@ -87,7 +87,7 @@ export class VisualizationComponent implements AfterViewInit{
         return "\
           <div style='background-color:#ededed; padding: 0.5em 0.5em 0.5em 0.5em; border-radius: 10px; border: 1px dashed black;'>\
             <strong>ID:</strong> <span style='color:#BC2602'>" + d.identifier + "</span><br>\
-            <strong>Size:</strong> <span style='color:#BC2602'>" + d.size + "</span><br>\
+            <strong>Size:</strong> <span style='color:#BC2602'>" + d.pattern_size + "</span><br>\
             <strong>Density:</strong> <span style='color:#BC2602'>" + Math.round(d.density * 100) / 100 + "</span>\
           </div>\
           ";
@@ -120,7 +120,7 @@ export class VisualizationComponent implements AfterViewInit{
     this.datapoints = datapoints;
     this.drawDataPoints();
 
-    this.onDatapointClick('300ms', '300ms', 1); // TODO: REMOVE
+    // this.onDatapointClick('300ms', '300ms', 1); // TODO: REMOVE
   }
 
   private scalingFunction(datapoints: Array<DataPoint>) {
@@ -187,6 +187,7 @@ export class VisualizationComponent implements AfterViewInit{
       pattern = await invoke("getPattern", {identifier: identifier}).catch((error: any) => {
         console.error(error);
       });
+
     }else if(environment.dev_mode){
       let rawdata = await fs.readTextFile(await resolveResource('resources/pattern.json'));
       pattern = JSON.parse(rawdata);

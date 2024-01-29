@@ -96,6 +96,11 @@ impl IdentifierMapper{
         return representations;
     }
 
+    pub fn getIdentifier(&self, identifier: &u32) -> Result<&IdentifierRepresentation, GenericError>{
+        return self.mapping.get(identifier)
+            .ok_or(GenericError::new("Could not get identifier representation", file!(), &line!()));
+    }
+
     pub fn getIdentifiers(&self) -> Vec<u32>{
         let mut keys: Vec<u32> = self.mapping.keys().cloned().collect();
         keys.sort();

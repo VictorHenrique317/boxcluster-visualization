@@ -54,7 +54,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
       });
 
     }else if(environment.dev_mode){
-      let dims_values: Array<Array<number>> = [[0, 1, 2], [0, 1, 3], [0, 1, 4]];
+      let dims_values: Array<Array<string>> = [["a", "b", "c"], ["a", "b", "c"], ["a", "b", "c"]];
       sounding_pattern = new Pattern(1, dims_values, 0.8, 2);
     }
 

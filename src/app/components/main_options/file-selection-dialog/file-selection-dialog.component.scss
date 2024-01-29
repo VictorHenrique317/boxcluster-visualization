@@ -28,7 +28,7 @@ body{
         // background-color: yellow;
         display: flex;
         flex-direction: row;
-        justify-content: space-around;
+        justify-content: space-evenly;
         align-items: center;
 
         .file-selector{
@@ -91,7 +91,7 @@ body{
                     text-overflow: ellipsis;
                     white-space: nowrap;
                     
-                    max-width: 80%;
+                    max-width: 100%;
 
                     // background-color: red;
                 }

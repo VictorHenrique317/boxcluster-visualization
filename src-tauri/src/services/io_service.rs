@@ -49,4 +49,8 @@ impl IoService {
 
         return pattern_reader.read();
     }
+
+    pub fn getTranslator(&self) -> &Translator {
+        return &self.translator;
+    }
 }

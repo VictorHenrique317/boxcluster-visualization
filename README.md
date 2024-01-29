@@ -9,5 +9,5 @@
 - [x] Remodelar a interface de seleção de modelo
 - [x] Resolver problemas de usabilidade
 - [x] Cálculo do MDS dinâmico e scatterplot quadrado
-- [ ] Scatterplot interativo
+- [x] Scatterplot interativo
 - [ ] Adicionar força repulsiva entre pontos

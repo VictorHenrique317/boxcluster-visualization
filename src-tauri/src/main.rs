@@ -4,8 +4,9 @@
     windows_subsystem = "windows"
 )]
 
-use boxcluster_visualization::{self, controller::states::states::*, database::{pattern::Pattern, datapoint::{DataPoint, self}}};
-use serde_json::to_string_pretty;
+use std::sync::MutexGuard;
+
+use boxcluster_visualization::{self, controller::states::states::*, database::{datapoint::{DataPoint, self}, pattern::Pattern, raw_pattern::RawPattern}, services::{application::application_service, dynamic_paginator_service::DynamicPaginatorService}};
 use tauri::State;
 use boxcluster_visualization::common::generic_error::GenericError;
 
@@ -15,7 +16,7 @@ use boxcluster_visualization::common::generic_error::GenericError;
 
 #[tauri::command]
 fn getSoundingPattern(paginator_service: State<PaginatorServiceState>, application_service: State<ApplicationServiceState>) 
-        -> Result<Pattern, GenericError> {
+        -> Result<RawPattern, GenericError> {
 
     println!("Calling getSoundingPattern...");
 
@@ -45,7 +46,7 @@ fn getSoundingPattern(paginator_service: State<PaginatorServiceState>, applicati
         }
     };
 
-    match paginator_service.getSoundingPattern(identifier_mapper) {
+    match paginator_service.getSoundingPattern(identifier_mapper, application_service.getTranslator()) {
         Ok(pattern) => return Ok(pattern),
         Err(error) => return Err(error),
     }
@@ -53,7 +54,7 @@ fn getSoundingPattern(paginator_service: State<PaginatorServiceState>, applicati
 
 #[tauri::command]
 fn refreshPageSize(paginator_service: State<PaginatorServiceState>, 
-        application_service: State<ApplicationServiceState>, page_size: u32) -> Result<(Vec<Pattern>, u32, u32), GenericError> {
+        application_service: State<ApplicationServiceState>, page_size: u32) -> Result<(Vec<RawPattern>, u32, u32), GenericError> {
     
     println!("Calling refreshPageSize...");
 
@@ -83,7 +84,7 @@ fn refreshPageSize(paginator_service: State<PaginatorServiceState>,
         }
     };
 
-    match paginator_service.refreshPageSize(identifier_mapper, page_size) {
+    match paginator_service.refreshPageSize(identifier_mapper, application_service.getTranslator(), page_size) {
         Ok(patterns) => return Ok(patterns),
         Err(error) => {
             error.print();
@@ -94,7 +95,7 @@ fn refreshPageSize(paginator_service: State<PaginatorServiceState>,
 
 #[tauri::command]
 fn goToPage(paginator_service: State<PaginatorServiceState>, 
-        application_service: State<ApplicationServiceState>, page_index: u32) -> Result<(Vec<Pattern>, u32, u32), GenericError> {
+        application_service: State<ApplicationServiceState>, page_index: u32) -> Result<(Vec<RawPattern>, u32, u32), GenericError> {
 
     println!("Calling goToPage...");
 
@@ -124,7 +125,7 @@ fn goToPage(paginator_service: State<PaginatorServiceState>,
         }
     };
 
-    match paginator_service.goToPage(identifier_mapper, &page_index) {
+    match paginator_service.goToPage(identifier_mapper, application_service.getTranslator(), &page_index) {
         Ok(patterns) => return Ok(patterns),
         Err(error) => {
             error.print();
@@ -135,7 +136,7 @@ fn goToPage(paginator_service: State<PaginatorServiceState>,
 
 #[tauri::command]
 fn goToFirstPage(paginator_service: State<PaginatorServiceState>, 
-        application_service: State<ApplicationServiceState>) -> Result<(Vec<Pattern>, u32, u32), GenericError> {
+        application_service: State<ApplicationServiceState>) -> Result<(Vec<RawPattern>, u32, u32), GenericError> {
 
     println!("Calling goToFirstPage...");
 
@@ -166,7 +167,7 @@ fn goToFirstPage(paginator_service: State<PaginatorServiceState>,
     };
 
     let first_page = paginator_service.first_page.clone();
-    match paginator_service.goToPage(identifier_mapper, &first_page) {
+    match paginator_service.goToPage(identifier_mapper, application_service.getTranslator(), &first_page) {
         Ok(patterns) => return Ok(patterns),
         Err(error) => {
             error.print();
@@ -177,7 +178,7 @@ fn goToFirstPage(paginator_service: State<PaginatorServiceState>,
 
 #[tauri::command]
 fn goToLastPage(paginator_service: State<PaginatorServiceState>, 
-        application_service: State<ApplicationServiceState>) -> Result<(Vec<Pattern>, u32, u32), GenericError> {
+        application_service: State<ApplicationServiceState>) -> Result<(Vec<RawPattern>, u32, u32), GenericError> {
 
     println!("Calling goToLastPage...");
 
@@ -208,7 +209,7 @@ fn goToLastPage(paginator_service: State<PaginatorServiceState>,
         }
     };
 
-    match paginator_service.goToPage(identifier_mapper, &last_page) {
+    match paginator_service.goToPage(identifier_mapper, application_service.getTranslator(), &last_page) {
         Ok(patterns) => return Ok(patterns),
         Err(error) => {
             error.print();
@@ -219,7 +220,7 @@ fn goToLastPage(paginator_service: State<PaginatorServiceState>,
 
 #[tauri::command]
 fn nextPage(paginator_service: State<PaginatorServiceState>, 
-        application_service: State<ApplicationServiceState>) -> Result<(Vec<Pattern>, u32, u32), GenericError> {
+        application_service: State<ApplicationServiceState>) -> Result<(Vec<RawPattern>, u32, u32), GenericError> {
 
     println!("Calling nextPage...");
 
@@ -249,7 +250,7 @@ fn nextPage(paginator_service: State<PaginatorServiceState>,
         }
     };
 
-    match paginator_service.nextPage(identifier_mapper) {
+    match paginator_service.nextPage(identifier_mapper, application_service.getTranslator()) {
         Ok(patterns) => return Ok(patterns),
         Err(error) => {
             error.print();
@@ -260,7 +261,7 @@ fn nextPage(paginator_service: State<PaginatorServiceState>,
 
 #[tauri::command]
 fn previousPage(paginator_service: State<PaginatorServiceState>, 
-        application_service: State<ApplicationServiceState>) -> Result<(Vec<Pattern>, u32, u32), GenericError> {
+        application_service: State<ApplicationServiceState>) -> Result<(Vec<RawPattern>, u32, u32), GenericError> {
 
     println!("Calling previousPage...");
 
@@ -290,7 +291,7 @@ fn previousPage(paginator_service: State<PaginatorServiceState>,
         }
     };
 
-    match paginator_service.previousPage(identifier_mapper) {
+    match paginator_service.previousPage(identifier_mapper, application_service.getTranslator()) {
         Ok(patterns) => return Ok(patterns),
         Err(error) => {
             error.print();
@@ -483,6 +484,28 @@ fn getDataPoints(application_service: State<ApplicationServiceState>) -> Result<
     }
 }
 
+#[tauri::command]
+fn getPattern(application_service: State<ApplicationServiceState>, identifier: u32) -> Result<RawPattern, GenericError> {
+    println!("Calling getPattern...");
+
+    let application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    match application_service.getRawPattern(&identifier) {
+        Ok(pattern) => return Ok(pattern),
+        Err(error) => {
+            error.print();
+            return Err(error)
+        }
+    }
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(ApplicationServiceState(Default::default()))
@@ -503,7 +526,8 @@ fn main() {
             truncateModel,
             getFullRssEvolution,
             getTruncatedRssEvolution,
-            getDataPoints
+            getDataPoints,
+            getPattern
             ])
         .run(tauri::generate_context!())
         .expect("Error while running tauri application");

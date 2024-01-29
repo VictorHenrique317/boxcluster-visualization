@@ -2,7 +2,7 @@
 use std::{collections::HashMap, time::Instant};
 use plotters::data;
 
-use crate::{services::{io_service::IoService, plot_service::PlotService}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper}, database::datapoint::DataPoint, common::generic_error::GenericError};
+use crate::{services::{io_service::IoService, plot_service::PlotService}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper, io::translator::Translator}, database::{datapoint::DataPoint, pattern::Pattern, raw_pattern::RawPattern}, common::generic_error::GenericError};
 use super::application_state_service::ApplicationStateService;
 
 pub struct ApplicationService{
@@ -63,6 +63,10 @@ impl ApplicationService{
         return self.application_state_service.identifierMapper();
     }
 
+    pub fn getTranslator(&self) -> &Translator {
+        return self.io_service.getTranslator();
+    }
+
     // ================ External API ================
 
     pub fn changePatterns(&mut self, patterns_path: &String) -> Result<(), GenericError>{
@@ -116,6 +120,17 @@ impl ApplicationService{
             .collect();
 
         return Ok(datapoints);
+    }
+
+    pub fn getRawPattern(&self, identifier: &u32) -> Result<RawPattern, GenericError>{
+        let visible_identifiers = self.application_state_service.getVisibleIdentifiers();
+
+        if !visible_identifiers.contains(identifier){
+            return Err(GenericError::new("Identifier not visible", file!(), &line!()));
+        }
+
+        return self.getIdentifierMapper()?.getIdentifier(identifier)?
+            .asRawPattern(self.io_service.getTranslator());
     }
 
     pub fn getFullRssEvolution(&self) -> Result<Vec<f64>, GenericError>{

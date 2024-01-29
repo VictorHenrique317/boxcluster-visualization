@@ -1,4 +1,6 @@
-use crate::{database::{pattern::Pattern, dag_node::DagNode, datapoint::DataPoint}, common::generic_error::GenericError};
+use crate::{database::{dag_node::DagNode, datapoint::DataPoint, pattern::Pattern, raw_pattern::RawPattern}, common::generic_error::GenericError};
+
+use super::io::translator::Translator;
 
 
 pub struct IdentifierRepresentation {
@@ -35,6 +37,20 @@ impl IdentifierRepresentation {
     pub fn asPattern(&self) -> Result<&Pattern, GenericError> {
         return self.pattern_representation.as_ref()
             .ok_or(GenericError::new("Could not get pattern representation", file!(), &line!()));
+    }
+
+    pub fn asRawPattern(&self, translator: &Translator) -> Result<RawPattern, GenericError> {
+        let pattern = self.pattern_representation.as_ref()
+            .ok_or(GenericError::new("Could not get pattern representation", file!(), &line!()))?;
+
+        let raw_dims_values = translator.untranslateLineDims(&pattern.dims_values)?;
+        let raw_dims_values: Vec<Vec<String>> = raw_dims_values.iter()
+            .map(|raw_dim_values| raw_dim_values.split(",").map(|s| s.to_string()).collect())
+            .collect();
+
+        let raw_pattern = RawPattern::new(&pattern.identifier, &raw_dims_values, &pattern.density, &pattern.size);
+
+        return Ok(raw_pattern);
     }
 
     pub fn asDagNode(&self) -> Result<&DagNode, GenericError> {
