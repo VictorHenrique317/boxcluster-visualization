@@ -110,7 +110,7 @@ export class VisualizationComponent implements AfterViewInit{
       });
 
     } else if (environment.dev_mode){
-      let rawdata = await fs.readTextFile(await resolveResource('resources/datapoints.json'));
+      let rawdata = await fs.readTextFile(await resolveResource('resources/datapoints2.json'));
       datapoints = JSON.parse(rawdata);
     }
 
@@ -126,16 +126,32 @@ export class VisualizationComponent implements AfterViewInit{
   private scalingFunction(datapoints: Array<DataPoint>) {
     let x_max_module = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.x)));
     let y_max_module = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.y)));
+    let max_module = Math.max(x_max_module, y_max_module);
 
     let scaled_datapoints: Array<DataPoint> = datapoints;
-    let screen_coverage = 0.05;
+    // let screen_coverage = 0.05;
+    let screen_coverage = 0.5;
     datapoints.forEach(datapoint => {
-        if(y_max_module > -0.5 && y_max_module < 0.5){
-          y_max_module = 1;
-        }
+        // if(max_module > -0.5 && max_module < 0.5){
+        //   max_module = 1;
+        // }
 
-        datapoint.x /= y_max_module * ((1-screen_coverage) + 1);
-        datapoint.y /= y_max_module * ((1-screen_coverage) + 1);
+        let result_x = datapoint.x / x_max_module;
+        let result_y = datapoint.y / y_max_module;
+
+      if (isNaN(result_x) || !isFinite(result_x)) {
+          result_x = datapoint.x;
+      }
+
+      if (isNaN(result_y) || !isFinite(result_y)) {
+          result_y = datapoint.y;
+      }
+
+        // datapoint.x /= x_max_module * ((1-screen_coverage) + 1);
+        // datapoint.y /= y_max_module * ((1-screen_coverage) + 1);
+
+        datapoint.x = result_x / ((1-screen_coverage) + 1);
+        datapoint.y = result_y / ((1-screen_coverage) + 1);
     });
 
     return scaled_datapoints;

@@ -97,8 +97,9 @@ export class Svg {
       
       if(this.pannable){ // Only the pannable square visualization will execute this
         let panning_zoom = d3.zoom()
-          .scaleExtent([1.6, 10]) // This control how much you can unzoom (x1) and zoom (x10)
-          .translateExtent([[0, 0], [this.height, this.height/1.15]])
+          .scaleExtent([1.4, 10]) // This control how much you can unzoom (x1) and zoom (x10)
+          // .translateExtent([[0, 0], [this.height, this.height/1.2]])
+          .translateExtent([[0, 0], [this.height, this.height]])
           .on("start", (event, d) => { this.d3_svg.attr("cursor", "grabbing"); })
           .on("zoom", (event) => { this.plot.attr("transform", event.transform); })
           .on("end", (event, d) => {this.d3_svg.attr("cursor", "default")});
@@ -106,11 +107,13 @@ export class Svg {
         this.d3_svg.call(panning_zoom);
 
         // Apply initial zoom level
-        let initial_scale = 1.6;
-        let x_translation_factor = 0.05;
-        let y_translation_factor = 0.3;
+        let initial_scale = 1.4;
+        let x_translation_factor = 0.0;
+        // let y_translation_factor = 0.15;
+        let y_translation_factor = 0.2;
         let initial_transform = d3.zoomIdentity
           .translate(-this.width*(x_translation_factor), -this.height*(y_translation_factor))
+          // .translate(-this.width*(x_translation_factor), 0)
           .scale(initial_scale);
         this.d3_svg.call(panning_zoom.transform, initial_transform);
       }

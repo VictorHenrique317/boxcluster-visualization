@@ -18,7 +18,8 @@
           "$RESOURCE/*",
           "$RESOURCE/resources/*",
           "$RESOURCE/resources/rss_evolution.json",
-          "$RESOURCE/resources/page_patterns.json"
+          "$RESOURCE/resources/page_patterns.json",
+          "$RESOURCE/resources/datapoints2.json"
         ]
       },
       "all": true,
