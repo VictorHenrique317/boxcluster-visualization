@@ -7,6 +7,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import {routes} from './routes';
 import { provideRouter } from "@angular/router";
+import { MatDialogModule } from "@angular/material/dialog";
 
 if (environment.production) {
   enableProdMode();
@@ -14,5 +15,6 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
     providers: [importProvidersFrom(
-      BrowserAnimationsModule,), provideRouter(routes)]
+      BrowserAnimationsModule, MatDialogModule), 
+      provideRouter(routes),]
 }).catch((err) => console.error(err));

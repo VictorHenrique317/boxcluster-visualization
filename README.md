@@ -4,10 +4,13 @@
 - [x] Resolver bugs visuais
 - [x] Remodelar a rss view
 
-## Checklist 08/01/2023 - ???
+## Checklist 08/01/2023 - 06/02/2024
 - [x] Remodelar a interface principal
 - [x] Remodelar a interface de seleção de modelo
 - [x] Resolver problemas de usabilidade
 - [x] Cálculo do MDS dinâmico e scatterplot quadrado
 - [x] Scatterplot interativo
-- [ ] Adicionar força repulsiva entre pontos
+
+
+## Checklist 06/02/2024 - ???
+- [] Implementar dialog de erro

@@ -33,6 +33,7 @@ import { FileSelectionDialogComponent } from './components/main_options/file-sel
 import { MatDialog } from '@angular/material/dialog';
 import { MatDialogModule } from '@angular/material/dialog';
 import { take } from "rxjs/operators";
+import { ErrorService } from "./services/dialog/error.service";
 
 @Component({
     selector: "app-root",
@@ -117,7 +118,7 @@ export class AppComponent implements AfterViewInit{
   pageSize = 10;
   pageIndex = 0;
 
-  constructor(private router: Router, private cdr: ChangeDetectorRef, public dialog: MatDialog, private renderer: Renderer2){}
+  constructor(private cdr: ChangeDetectorRef, public dialog: MatDialog, private error_service: ErrorService){}
 
   ngAfterViewInit(){
     this.matList_height = this.aside.nativeElement.clientHeight - this.model_selector.nativeElement.clientHeight;
@@ -155,6 +156,7 @@ export class AppComponent implements AfterViewInit{
 
     }).catch((error: any) => {
       console.error(error);
+      this.error_service.openErrorDialog(error);
     });
   }
 
