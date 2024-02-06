@@ -1,1 +1,16 @@
-<p>{{this.error_message}}</p>
+<body>
+    <header>
+        <div id="title">
+            <mat-icon>error</mat-icon>
+            <h1>ERROR</h1>
+        </div>
+        
+        <span>An error occurred while executing the application:</span>
+    </header>
+    
+    <section>{{this.error_message}}</section>
+
+    <div id="dialog-actions" mat-dialog-actions>
+        <button mat-button mat-dialog-close cdkFocusInitial (click)="submit()">Close</button>
+    </div>
+</body>

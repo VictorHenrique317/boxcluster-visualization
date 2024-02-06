@@ -30,10 +30,9 @@ import {MatSidenavModule} from '@angular/material/sidenav'
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FileSelectionDialogComponent } from './components/main_options/file-selection-dialog/file-selection-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
-import { MatDialogModule } from '@angular/material/dialog';
 import { take } from "rxjs/operators";
-import { ErrorService } from "./services/dialog/error.service";
+import { DialogService } from "./services/dialog/dialog.service";
+import { ErrorDialogComponent } from "./components/error-dialog/error-dialog.component";
 
 @Component({
     selector: "app-root",
@@ -62,7 +61,6 @@ import { ErrorService } from "./services/dialog/error.service";
         MatSidenavModule,
         MatIconModule,
         MatTooltipModule,
-        MatDialogModule
     ],
     animations: [
       trigger('slideInOut', [
@@ -118,7 +116,7 @@ export class AppComponent implements AfterViewInit{
   pageSize = 10;
   pageIndex = 0;
 
-  constructor(private cdr: ChangeDetectorRef, public dialog: MatDialog, private error_service: ErrorService){}
+  constructor(private cdr: ChangeDetectorRef, private dialog_service: DialogService){}
 
   ngAfterViewInit(){
     this.matList_height = this.aside.nativeElement.clientHeight - this.model_selector.nativeElement.clientHeight;
@@ -127,6 +125,8 @@ export class AppComponent implements AfterViewInit{
       this.model_loaded = true;
       this.cdr.detectChanges();
     }
+
+    this.dialog_service.open(ErrorDialogComponent, ErrorDialogComponent.WIDTH, ErrorDialogComponent.HEIGHT, {error_message: "This is a test error message."}); // TODO: Remove
   }
 
   private reloadApplication(){
@@ -156,29 +156,18 @@ export class AppComponent implements AfterViewInit{
 
     }).catch((error: any) => {
       console.error(error);
-      this.error_service.openErrorDialog(error);
+      this.dialog_service.openErrorDialog(error);
     });
   }
 
   protected openModelSelectionDialog(enterAnimationDuration: string, exitAnimationDuration: string): void {
-    const dialogRef = this.dialog.open(FileSelectionDialogComponent, {
-      width: '500px',
-      height: '400px',
-      enterAnimationDuration,
-      exitAnimationDuration,
-      
-      data: {
-        tensor_path: this.tensor_path,
-        patterns_path: this.patterns_path
-      }
-    });
-
-    dialogRef.afterClosed().pipe(take(1)).subscribe(result => {
-      // Executes when the dialog is closed
-      if (result) {
-        this.handleModelChange(result);
-      }
-    });
+    let dialog_data = {
+      tensor_path: this.tensor_path,
+      patterns_path: this.patterns_path
+    };
+    this.dialog_service.open(FileSelectionDialogComponent, 
+      '500px', '400px', dialog_data, 
+      this.handleModelChange.bind(this));
   }
 
   protected toggleRssView(){

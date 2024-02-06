@@ -22,8 +22,8 @@ import { environment } from '../../../environments/environment';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { DataPointTooltipComponent } from "./datapoint-tooltip/datapoint-tooltip.component";
 import { DatapointInfoDialogComponent } from "./datapoint-info-dialog/datapoint-info-dialog.component";
-import { MatDialog } from "@angular/material/dialog";
 import { Pattern } from "src/app/models/pattern";
+import { DialogService } from "src/app/services/dialog/dialog.service";
 
 @Component({
     selector: 'app-visualization',
@@ -74,7 +74,7 @@ export class VisualizationComponent implements AfterViewInit{
   private tooltip;
   private y_correction = 0;
 
-  constructor(private route: ActivatedRoute, public dialog: MatDialog, private cdr: ChangeDetectorRef){ }
+  constructor(public dialog_service: DialogService, private cdr: ChangeDetectorRef){ }
   ngAfterViewInit(): void {
     console.log("Initializing visualization component");
     let width = this.body.nativeElement.clientWidth;
@@ -209,19 +209,10 @@ export class VisualizationComponent implements AfterViewInit{
       pattern = JSON.parse(rawdata);
     }
 
-    const dialogRef = this.dialog.open(DatapointInfoDialogComponent, {
-      width: '500px',
-      height: '590px',
-      enterAnimationDuration,
-      exitAnimationDuration,
-      
-      data: {
-        pattern: pattern
-      }
-    });
-
-    // Executes when the dialog is closed
-    dialogRef.afterClosed().pipe(take(1)).subscribe(result => {});
+    let dialog_data = {
+      pattern: pattern
+    }
+    this.dialog_service.open(DatapointInfoDialogComponent, '500px', '590px', dialog_data);
   }
 
   public onResize(event) {
