@@ -126,7 +126,7 @@ export class AppComponent implements AfterViewInit{
       this.cdr.detectChanges();
     }
 
-    this.dialog_service.open(ErrorDialogComponent, ErrorDialogComponent.WIDTH, ErrorDialogComponent.HEIGHT, {error_message: "This is a test error message."}); // TODO: Remove
+    // this.dialog_service.open(ErrorDialogComponent, ErrorDialogComponent.WIDTH, ErrorDialogComponent.HEIGHT, {error_message: "This is a test error message."}); // TODO: Remove
   }
 
   private reloadApplication(){

@@ -10,7 +10,7 @@
 - [x] Scatterplot interativo
 
 ## Checklist 06/02/2024 -> ??? - v0.2.1
-- [] Implementar dialog de erro
+- [x] Implementar dialog de erro
 - [] Implementar legendas de tamanho e densidade
 - [] Fazer o programa aceitar arquivos com padrões que possuem dados adicionais
 
