@@ -10,6 +10,7 @@ import { invoke } from '@tauri-apps/api/tauri'
 import { MatDividerModule } from '@angular/material/divider';
 import { environment } from 'src/environments/environment';
 import { fs } from '@tauri-apps/api';
+import { DialogService } from 'src/app/services/dialog/dialog.service';
 
 @Component({
   selector: 'app-dynamic-paginator',
@@ -37,7 +38,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
   public available_height: number;
   public navigation_options_height: number;
 
-  constructor(private cdr: ChangeDetectorRef){}
+  constructor(private cdr: ChangeDetectorRef, private dialog_service: DialogService){}
 
   async ngAfterViewInit(){
     console.log("Initializing paginator");
@@ -51,6 +52,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
     if(!environment.dev_mode){
       sounding_pattern = await invoke("getSoundingPattern").catch((error: any) => {
         console.error(error);
+        this.dialog_service.openErrorDialog(error);
       });
 
     }else if(environment.dev_mode){
@@ -77,6 +79,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
     if(!environment.dev_mode){
       let data = await invoke("refreshPageSize", {pageSize: this.page_size}).catch((error: any) => {
         console.error(error);
+      this.dialog_service.openErrorDialog(error);
       });
 
       this.page_items = data[0];
@@ -105,6 +108,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
 
     }).catch((error: any) => {
       console.error(error);
+      this.dialog_service.openErrorDialog(error);
     });
   }
 
@@ -118,6 +122,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
 
     }).catch((error: any) => {
       console.error(error);
+      this.dialog_service.openErrorDialog(error);
     });
   }
 
@@ -131,6 +136,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
 
     }).catch((error: any) => {
       console.error(error);
+      this.dialog_service.openErrorDialog(error);
     });
   }
 
@@ -144,6 +150,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
 
     }).catch((error: any) => {
       console.error(error);
+      this.dialog_service.openErrorDialog(error);
     });
   }
 
@@ -157,6 +164,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
 
     }).catch((error: any) => {
       console.error(error);
+      this.dialog_service.openErrorDialog(error);
     });
   }
 }

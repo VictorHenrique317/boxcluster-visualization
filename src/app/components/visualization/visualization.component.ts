@@ -107,6 +107,7 @@ export class VisualizationComponent implements AfterViewInit{
     if(!environment.dev_mode){
       datapoints = await invoke("getDataPoints").catch((error: any) => {
         console.error(error);
+      this.dialog_service.openErrorDialog(error);
       });
 
     } else if (environment.dev_mode){
@@ -202,6 +203,7 @@ export class VisualizationComponent implements AfterViewInit{
     if(!environment.dev_mode){
       pattern = await invoke("getPattern", {identifier: identifier}).catch((error: any) => {
         console.error(error);
+        this.dialog_service.openErrorDialog(error);
       });
 
     }else if(environment.dev_mode){
@@ -245,7 +247,8 @@ export class VisualizationComponent implements AfterViewInit{
       this.updateDataPoints();
 
     }).catch((error: any) => {
-      console.log(error);
+      console.error(error);
+      this.dialog_service.openErrorDialog(error);
     });
   }
 }

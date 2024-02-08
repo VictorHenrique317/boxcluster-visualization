@@ -18,6 +18,7 @@ import { Svg } from 'src/app/models/svg';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { DialogService } from 'src/app/services/dialog/dialog.service';
 
 @Component({
   selector: 'app-rss-view',
@@ -48,7 +49,7 @@ export class RssViewComponent implements AfterViewInit{
   private datapoints: Array<DataPoint>;
   private scaled_datapoints: Array<DataPoint>;
 
-  constructor(private route: ActivatedRoute, private canvas_service: SvgService, private cdr: ChangeDetectorRef){}
+  constructor(private route: ActivatedRoute, private dialog_service: DialogService){}
   
   async ngAfterViewInit() {
     console.log("Initializing rss view component");
@@ -58,6 +59,7 @@ export class RssViewComponent implements AfterViewInit{
     if(!environment.dev_mode){
       rss_evolution = await invoke("getFullRssEvolution").catch((error: any) => {
         console.error(error);
+        this.dialog_service.openErrorDialog(error);
       });
 
     } else if(environment.dev_mode){
