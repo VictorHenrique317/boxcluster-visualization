@@ -24,6 +24,8 @@ import { DataPointTooltipComponent } from "./datapoint-tooltip/datapoint-tooltip
 import { DatapointInfoDialogComponent } from "./datapoint-info-dialog/datapoint-info-dialog.component";
 import { Pattern } from "src/app/models/pattern";
 import { DialogService } from "src/app/services/dialog/dialog.service";
+import { legendCircle } from 'src/js/circle_legend.js';
+
 
 @Component({
     selector: 'app-visualization',
@@ -120,6 +122,7 @@ export class VisualizationComponent implements AfterViewInit{
 
     this.datapoints = datapoints;
     this.drawDataPoints();
+    this.drawCircleLegend();
 
     // this.onDatapointClick('300ms', '300ms', 1); // TODO: REMOVE
   }
@@ -197,6 +200,31 @@ export class VisualizationComponent implements AfterViewInit{
         .duration(1000) // Duration of the animation in milliseconds
         .attr('r', d => d.size); // End with actual radius
   }
+  private drawCircleLegend(){
+    let legend = legendCircle(null)
+      .scale(
+        d3.scaleSqrt()
+            .domain([0, 500])
+            .range([0, 40])
+      )
+      .tickValues([15, 150, 500])
+      .tickFormat((d, i, e) => `${d}${i === e.length - 1 ? " bushels of hay" : ""}`)
+      .tickSize(5); // defaults to 5
+    
+    const svg_width = this.svg.d3_svg.attr('width');
+    const svg_height = this.svg.d3_svg.attr('height');
+    const legend_x_padding = svg_width * 0.02;
+    const legend_y_padding = svg_height * 0.15;
+  
+    // Remove the old legend if it exists
+    this.svg.d3_svg.select("#circle_legend").remove();
+  
+    this.svg.d3_svg.append("g")
+      .attr('id', 'circle_legend') // Add a unique id to the legend
+      .attr('transform', `translate(${legend_x_padding}, ${svg_height - legend_y_padding})`)
+      .call(legend);
+  }  
+  
 
   private async onDatapointClick(enterAnimationDuration: string, exitAnimationDuration: string, identifier: number): Promise<void> {
     let pattern;
@@ -223,6 +251,7 @@ export class VisualizationComponent implements AfterViewInit{
 
     this.svg.resize(width, height, this.y_correction);
     this.drawDataPoints();
+    this.drawCircleLegend();
   }
 
   public onTruncation(event){
