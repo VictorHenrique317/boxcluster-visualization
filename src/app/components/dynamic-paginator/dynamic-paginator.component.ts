@@ -52,7 +52,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
     if(!environment.dev_mode){
       sounding_pattern = await invoke("getSoundingPattern").catch((error: any) => {
         console.error(error);
-        this.dialog_service.openErrorDialog(error);
+        this.dialog_service.openErrorDialog("Could not load paginator.");
       });
 
     }else if(environment.dev_mode){
@@ -79,7 +79,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
     if(!environment.dev_mode){
       let data = await invoke("refreshPageSize", {pageSize: this.page_size}).catch((error: any) => {
         console.error(error);
-      this.dialog_service.openErrorDialog(error);
+        this.dialog_service.openErrorDialog("Could not refresh paginator.");
       });
 
       this.page_items = data[0];
@@ -108,7 +108,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
 
     }).catch((error: any) => {
       console.error(error);
-      this.dialog_service.openErrorDialog(error);
+      this.dialog_service.openErrorDialog("Could not go to page: " + page_index + ".");
     });
   }
 
@@ -122,7 +122,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
 
     }).catch((error: any) => {
       console.error(error);
-      this.dialog_service.openErrorDialog(error);
+      this.dialog_service.openErrorDialog("Could not go to first page.");
     });
   }
 
@@ -136,7 +136,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
 
     }).catch((error: any) => {
       console.error(error);
-      this.dialog_service.openErrorDialog(error);
+      this.dialog_service.openErrorDialog("Could not go to last page.");
     });
   }
 
@@ -150,7 +150,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
 
     }).catch((error: any) => {
       console.error(error);
-      this.dialog_service.openErrorDialog(error);
+      this.dialog_service.openErrorDialog("Could not go to next page.");
     });
   }
 
@@ -164,7 +164,7 @@ export class DynamicPaginatorComponent implements AfterViewInit {
 
     }).catch((error: any) => {
       console.error(error);
-      this.dialog_service.openErrorDialog(error);
+      this.dialog_service.openErrorDialog("Could not go to previous page.");
     });
   }
 }

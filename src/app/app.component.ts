@@ -156,7 +156,7 @@ export class AppComponent implements AfterViewInit{
 
     }).catch((error: any) => {
       console.error(error);
-      this.dialog_service.openErrorDialog(error);
+      this.dialog_service.openErrorDialog("ERROR Could not read tensor or patterns.");
     });
   }
 

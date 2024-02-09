@@ -59,7 +59,7 @@ export class RssViewComponent implements AfterViewInit{
     if(!environment.dev_mode){
       rss_evolution = await invoke("getFullRssEvolution").catch((error: any) => {
         console.error(error);
-        this.dialog_service.openErrorDialog(error);
+        this.dialog_service.openErrorDialog("Could not load rss graph.");
       });
 
     } else if(environment.dev_mode){

@@ -107,7 +107,7 @@ export class VisualizationComponent implements AfterViewInit{
     if(!environment.dev_mode){
       datapoints = await invoke("getDataPoints").catch((error: any) => {
         console.error(error);
-      this.dialog_service.openErrorDialog(error);
+        this.dialog_service.openErrorDialog("Error while fetching data points.");
       });
 
     } else if (environment.dev_mode){
@@ -203,7 +203,7 @@ export class VisualizationComponent implements AfterViewInit{
     if(!environment.dev_mode){
       pattern = await invoke("getPattern", {identifier: identifier}).catch((error: any) => {
         console.error(error);
-        this.dialog_service.openErrorDialog(error);
+        this.dialog_service.openErrorDialog("Error while fetching pattern.");
       });
 
     }else if(environment.dev_mode){
@@ -248,7 +248,7 @@ export class VisualizationComponent implements AfterViewInit{
 
     }).catch((error: any) => {
       console.error(error);
-      this.dialog_service.openErrorDialog(error);
+      this.dialog_service.openErrorDialog("Error while truncating datapoints.");
     });
   }
 }
