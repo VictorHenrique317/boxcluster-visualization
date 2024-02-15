@@ -90,7 +90,7 @@ export class RssViewComponent implements AfterViewInit{
     for (let i = 0; i < rss_evolution.length; i++){
       let x = undefined;
       let y = undefined;
-      let datapoint = new DataPoint(i, rss_evolution[i], 10, 10, 0, 0, x, y, 0, 0, 0, 0);
+      let datapoint = new DataPoint(i, 10, 10, 0, 0, x, y, 0, 0, 0, 0);
       datapoints[i] = datapoint;
     }
 
@@ -98,8 +98,8 @@ export class RssViewComponent implements AfterViewInit{
   }
 
   private scalingFunction(datapoints: Array<DataPoint>): Array<any>{
-    let min_rss = Math.min(...datapoints.map(datapoint => Math.abs(datapoint.value)));
-    let max_rss = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.value)));
+    let min_rss = Math.min(...this.rss_evolution.map(rss => Math.abs(rss)));
+    let max_rss = Math.max(...this.rss_evolution.map(rss => Math.abs(rss)));
 
     let max_y = max_rss;
     let y_range = max_rss - min_rss;
@@ -109,7 +109,7 @@ export class RssViewComponent implements AfterViewInit{
     let vertical_screen_coverage = 0.9;
     let scaled_datapoints: Array<DataPoint> = datapoints;
     for (let i = 0; i < datapoints.length; i++){
-      let rss = datapoints[i].value;
+      let rss = this.rss_evolution[i];
       
       let x = ((i + 0.5)/length) * 2 - 1; // scale x to be between -1 and 1
       x /= ((1-lateral_screen_coverage) + 1)
@@ -119,7 +119,7 @@ export class RssViewComponent implements AfterViewInit{
       y /= ((1-vertical_screen_coverage) + 1)
       
       let radius = 3;
-      let datapoint = new DataPoint(i, rss, radius, 10, 0, 0, x, y, 0, 0, 0, 1);
+      let datapoint = new DataPoint(i, radius, 10, 0, 0, x, y, 0, 0, 0, 1);
       scaled_datapoints[i] = datapoint;
     }
 

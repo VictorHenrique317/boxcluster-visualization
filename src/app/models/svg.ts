@@ -18,6 +18,8 @@ export class Svg {
 
     private pannable: boolean;
 
+    private initial_scale: number;
+
     constructor(vizualization_div: ElementRef<HTMLDivElement>, width: number, height: number, 
                 number_of_gridlines: number = 40, gridlines: boolean = true, pannable: boolean = true){
 
@@ -107,14 +109,14 @@ export class Svg {
         this.d3_svg.call(panning_zoom);
 
         // Apply initial zoom level
-        let initial_scale = 1.4;
+        this.initial_scale=  1.4;
         let x_translation_factor = 0.0;
         // let y_translation_factor = 0.15;
         let y_translation_factor = 0.2;
         let initial_transform = d3.zoomIdentity
           .translate(-this.width*(x_translation_factor), -this.height*(y_translation_factor))
           // .translate(-this.width*(x_translation_factor), 0)
-          .scale(initial_scale);
+          .scale(this.initial_scale);
         this.d3_svg.call(panning_zoom.transform, initial_transform);
       }
       
@@ -143,5 +145,9 @@ export class Svg {
 
   public getYScale(){
     return this.y_scale;
+  }
+
+  public getInitialScale(){
+    return this.initial_scale;
   }
 }

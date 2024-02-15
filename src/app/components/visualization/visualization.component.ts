@@ -122,7 +122,7 @@ export class VisualizationComponent implements AfterViewInit{
 
     this.datapoints = datapoints;
     this.drawDataPoints();
-    this.drawCircleLegend();
+    
 
     // this.onDatapointClick('300ms', '300ms', 1); // TODO: REMOVE
   }
@@ -199,40 +199,55 @@ export class VisualizationComponent implements AfterViewInit{
         .transition() // Transition to final state
         .duration(1000) // Duration of the animation in milliseconds
         .attr('r', d => d.size); // End with actual radius
+    
+    this.drawCircleLegend();
   }
+
+  private async getRawPattern(identifier: number){
+    let pattern = await invoke("getPattern", {identifier: identifier}).catch((error: any) => {
+      console.error(error);
+      this.dialog_service.openErrorDialog("Error while fetching pattern.");
+    });
+
+    return pattern;
+  }
+
   private drawCircleLegend(){
+    let min_pattern_size = Math.min(...this.datapoints.map(datapoint => Math.abs(datapoint.pattern_size)));
+    let max_pattern_size = Math.max(...this.datapoints.map(datapoint => Math.abs(datapoint.pattern_size)));
+    let half_pattern_size = Math.round((max_pattern_size - min_pattern_size) / 2);
+
+    let min_size = Math.min(...this.datapoints.map(datapoint => Math.abs(datapoint.size))) * this.svg.getInitialScale();
+    let max_size = Math.max(...this.datapoints.map(datapoint => Math.abs(datapoint.size))) * this.svg.getInitialScale();
+
     let legend = legendCircle(null)
       .scale(
-        d3.scaleSqrt()
-            .domain([0, 500])
-            .range([0, 40])
+        d3.scaleLinear()
+            .domain([min_pattern_size, max_pattern_size])
+            .range([min_size, max_size])
       )
-      .tickValues([15, 150, 500])
-      .tickFormat((d, i, e) => `${d}${i === e.length - 1 ? " bushels of hay" : ""}`)
-      .tickSize(5); // defaults to 5
+      .tickValues([min_pattern_size, half_pattern_size, max_pattern_size])
+      .tickFormat((d, i, e) => `${d}${i === e.length - 1 ? " Cells" : ""}`)
+      .tickSize(max_size); // defaults to 5
     
     const svg_width = this.svg.d3_svg.attr('width');
     const svg_height = this.svg.d3_svg.attr('height');
-    const legend_x_padding = svg_width * 0.02;
-    const legend_y_padding = svg_height * 0.15;
+    const legend_x_padding = 10;
+    const legend_y_padding = 10;
   
     // Remove the old legend if it exists
     this.svg.d3_svg.select("#circle_legend").remove();
   
     this.svg.d3_svg.append("g")
       .attr('id', 'circle_legend') // Add a unique id to the legend
-      .attr('transform', `translate(${legend_x_padding}, ${svg_height - legend_y_padding})`)
+      .attr('transform', `translate(${legend_x_padding}, ${legend_y_padding})`)
       .call(legend);
-  }  
-  
+  }
 
   private async onDatapointClick(enterAnimationDuration: string, exitAnimationDuration: string, identifier: number): Promise<void> {
     let pattern;
     if(!environment.dev_mode){
-      pattern = await invoke("getPattern", {identifier: identifier}).catch((error: any) => {
-        console.error(error);
-        this.dialog_service.openErrorDialog("Error while fetching pattern.");
-      });
+      pattern = await this.getRawPattern(identifier);
 
     }else if(environment.dev_mode){
       let rawdata = await fs.readTextFile(await resolveResource('resources/pattern.json'));
@@ -251,7 +266,6 @@ export class VisualizationComponent implements AfterViewInit{
 
     this.svg.resize(width, height, this.y_correction);
     this.drawDataPoints();
-    this.drawCircleLegend();
   }
 
   public onTruncation(event){
