@@ -15,7 +15,6 @@ import { SvgService } from 'src/app/services/svg/svg.service';
 import { Subscription, take } from 'rxjs';
 import { Color } from 'src/app/models/color';
 import * as d3 from 'd3';
-import { Svg } from 'src/app/models/svg';
 import { ActivatedRoute } from '@angular/router';
 import { RssViewComponent } from 'src/app/components/main_options/rss-view/rss-view.component';
 import { environment } from '../../../environments/environment';
@@ -72,15 +71,26 @@ export class VisualizationComponent implements AfterViewInit{
   private datapoints: Array<DataPoint>;
 
   @ViewChild('vizualization_div') visualization_div: ElementRef<HTMLDivElement>;
-  private svg: Svg;
-  private tooltip;
+  private svg: any;
+  private plot: any;
+
+  private initial_scale: number = 1.4;
+  private number_of_gridlines: number = 40;
   private y_correction = 0;
+  
+  private svg_width: number;
+  private svg_height: number;
+  private x_scale: any;
+  private y_scale: any;
+  
+  private tooltip;
+  
 
   constructor(public dialog_service: DialogService, private cdr: ChangeDetectorRef){ }
   ngAfterViewInit(): void {
     console.log("Initializing visualization component");
-    let width = this.body.nativeElement.clientWidth;
-    let height = this.body.nativeElement.clientHeight;
+    this.svg_width = this.body.nativeElement.clientWidth;
+    this.svg_height = this.body.nativeElement.clientHeight;
 
     this.tooltip = d3Tip.default()
       .attr('class', 'd3-tip')
@@ -95,12 +105,14 @@ export class VisualizationComponent implements AfterViewInit{
           ";
       });
     
-    this.svg = new Svg(this.visualization_div, width, height, 40, true, true);
-    this.svg.resize(width, height, this.y_correction);
+    this.svg = this.createSvg();
+    this.resizeSvg(this.svg_width, this.svg_height);
     this.cdr.detectChanges();
 
     this.updateDataPoints();
   }
+
+  
   
   public async updateDataPoints(){
     console.log("Invoking getDataPoints");
@@ -162,12 +174,12 @@ export class VisualizationComponent implements AfterViewInit{
   }
 
   private drawDataPoints() {
-    if(this.svg.plot == undefined){ return; }
+    if(this.plot == undefined){ return; }
 
-    this.svg.plot.call(this.tooltip);
+    this.plot.call(this.tooltip);
   
     let scaled_datapoints = this.scalingFunction(this.datapoints);
-    const circles = this.svg.plot.selectAll('circle')
+    const circles = this.plot.selectAll('circle')
         .data(scaled_datapoints, d => d.identifier); // Each datapoint has a unique identifier
   
     circles.exit()
@@ -179,17 +191,17 @@ export class VisualizationComponent implements AfterViewInit{
     circles.transition() // Animate existing datapoints
         .duration(1000) // Duration of the animation in milliseconds
         .attr('cx', d => {
-            const result = this.svg.getXScale()(parseFloat(d.x));
+            const result = this.x_scale(parseFloat(d.x));
             return result;
         })
-        .attr('cy', d => this.svg.getYScale()(parseFloat(d.y)));
+        .attr('cy', d => this.y_scale(parseFloat(d.y)));
   
     circles.enter().append('circle') // Add new datapoints with animation
         .attr('cx', d => {
-            const result = this.svg.getXScale()(parseFloat(d.x));
+            const result = this.x_scale(parseFloat(d.x));
             return result;
         })
-        .attr('cy', d => this.svg.getYScale()(parseFloat(d.y)))
+        .attr('cy', d => this.y_scale(parseFloat(d.y)))
         .attr('r', 0) // Start from radius 0
         .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
         .style('cursor', 'pointer') // Set cursor to pointer
@@ -217,8 +229,8 @@ export class VisualizationComponent implements AfterViewInit{
     let max_pattern_size = Math.max(...this.datapoints.map(datapoint => Math.abs(datapoint.pattern_size)));
     let half_pattern_size = Math.round((max_pattern_size - min_pattern_size) / 2);
 
-    let min_size = Math.min(...this.datapoints.map(datapoint => Math.abs(datapoint.size))) * this.svg.getInitialScale();
-    let max_size = Math.max(...this.datapoints.map(datapoint => Math.abs(datapoint.size))) * this.svg.getInitialScale();
+    let min_size = Math.min(...this.datapoints.map(datapoint => Math.abs(datapoint.size))) * this.initial_scale;
+    let max_size = Math.max(...this.datapoints.map(datapoint => Math.abs(datapoint.size))) * this.initial_scale;
 
     let legend = legendCircle(null)
       .scale(
@@ -230,15 +242,15 @@ export class VisualizationComponent implements AfterViewInit{
       .tickFormat((d, i, e) => `${d}${i === e.length - 1 ? " Cells" : ""}`)
       .tickSize(max_size); // defaults to 5
     
-    const svg_width = this.svg.d3_svg.attr('width');
-    const svg_height = this.svg.d3_svg.attr('height');
+    const svg_width = this.svg.attr('width');
+    const svg_height = this.svg.attr('height');
     const legend_x_padding = 10;
     const legend_y_padding = 10;
   
     // Remove the old legend if it exists
-    this.svg.d3_svg.select("#circle_legend").remove();
+    this.svg.select("#circle_legend").remove();
   
-    this.svg.d3_svg.append("g")
+    this.svg.append("g")
       .attr('id', 'circle_legend') // Add a unique id to the legend
       .attr('transform', `translate(${legend_x_padding}, ${legend_y_padding})`)
       .call(legend);
@@ -264,7 +276,7 @@ export class VisualizationComponent implements AfterViewInit{
     let width = this.body.nativeElement.clientWidth;
     let height = this.body.nativeElement.clientHeight;
 
-    this.svg.resize(width, height, this.y_correction);
+    this.resizeSvg(width, height);
     this.drawDataPoints();
   }
 
@@ -294,4 +306,90 @@ export class VisualizationComponent implements AfterViewInit{
       this.dialog_service.openErrorDialog("Error while truncating datapoints.");
     });
   }
+
+
+  // ========================= SVG FUNCTIONS ========================= //
+  private createSvg(){
+    let svg = d3.select(this.visualization_div.nativeElement)
+      .append('svg')
+        .attr('width', this.svg_width)
+        .attr('height',this.svg_height);
+
+    return svg;
+  }
+
+  public resizeSvg(width: number, height: number){
+    this.svg
+      .attr('width', width)
+      .attr('height', height);
+
+    let x_scale = d3.scaleLinear()
+      .domain([-1, 1])
+      .range([0, (height - this.y_correction)/1]);
+
+    let y_scale = d3.scaleLinear()
+      .domain([-1, 1])
+      .range([(height - this.y_correction)/1, 0]);
+
+    this.x_scale = x_scale;
+    this.y_scale = y_scale;
+    this.svg_width = width;
+    this.svg_height = height;
+
+    this.createPlot();
+  }
+
+  private createPlot(){
+    if(this.plot != undefined){ this.svg.select("#plot").remove(); }
+    this.plot = this.svg.append("g").attr("id", "plot");
+    
+    let panning_zoom = d3.zoom()
+      .scaleExtent([1.4, 10]) // This control how much you can unzoom (x1) and zoom (x10)
+      // .translateExtent([[0, 0], [this.height, this.height/1.2]])
+      .translateExtent([[0, 0], [this.svg_height, this.svg_height]])
+      .on("start", (event, d) => { this.svg.attr("cursor", "grabbing"); })
+      .on("zoom", (event) => { this.plot.attr("transform", event.transform); })
+      .on("end", (event, d) => {this.svg.attr("cursor", "default")});
+
+    this.svg.call(panning_zoom);
+
+    // Apply initial zoom level
+    let x_translation_factor = 0.0;
+    // let y_translation_factor = 0.15;
+    let y_translation_factor = 0.2;
+    let initial_transform = d3.zoomIdentity
+      .translate(-this.svg_width*(x_translation_factor), -this.svg_height*(y_translation_factor))
+      // .translate(-this.width*(x_translation_factor), 0)
+      .scale(this.initial_scale);
+    this.svg.call(panning_zoom.transform, initial_transform);
+    
+    this.drawGridLines();
+  }
+
+  private drawGridLines() {
+    let makeXGridlines = () => { return d3.axisBottom(this.x_scale).ticks(this.number_of_gridlines) }
+    let makeYGridlines = () => { return d3.axisLeft(this.y_scale).ticks(this.number_of_gridlines) }
+
+    // Add the X gridlines
+    this.plot.append("g")			
+      .attr("class", "grid")
+      .attr("transform", "translate(0," + this.svg_height + ")")
+      .attr("color", "lightgrey")
+      .call(makeXGridlines()
+          .tickSize(-this.svg_height)
+          .tickFormat(() => "")
+      )
+
+    // Add the Y gridlines
+    this.plot.append("g")			
+      .attr("class", "grid")
+      .attr("color", "lightgrey")
+      .call(makeYGridlines()
+          .tickSize(-1 * this.svg_width)
+          // .tickSize(-300)
+          .tickFormat(() => "")
+      )
+  }
+
+  // ========================= SVG FUNCTIONS ========================= //
 }
