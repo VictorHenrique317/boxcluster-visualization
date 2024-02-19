@@ -74,6 +74,7 @@ export class VisualizationComponent implements AfterViewInit{
   private svg: any;
   private plot: any;
 
+  private zoom_level: number;
   private initial_scale: number = 1.4;
   private number_of_gridlines: number = 40;
   private y_correction = 0;
@@ -108,12 +109,12 @@ export class VisualizationComponent implements AfterViewInit{
     this.svg = this.createSvg();
     this.resizeSvg(this.svg_width, this.svg_height);
     this.cdr.detectChanges();
+    
+    this.zoom_level = this.initial_scale;
 
     this.updateDataPoints();
   }
 
-  
-  
   public async updateDataPoints(){
     console.log("Invoking getDataPoints");
     
@@ -229,8 +230,8 @@ export class VisualizationComponent implements AfterViewInit{
     let max_pattern_size = Math.max(...this.datapoints.map(datapoint => Math.abs(datapoint.pattern_size)));
     let half_pattern_size = Math.round((max_pattern_size - min_pattern_size) / 2);
 
-    let min_size = Math.min(...this.datapoints.map(datapoint => Math.abs(datapoint.size))) * this.initial_scale;
-    let max_size = Math.max(...this.datapoints.map(datapoint => Math.abs(datapoint.size))) * this.initial_scale;
+    let min_size = Math.min(...this.datapoints.map(datapoint => Math.abs(datapoint.size))) * this.zoom_level;
+    let max_size = Math.max(...this.datapoints.map(datapoint => Math.abs(datapoint.size))) * this.zoom_level;
 
     let legend = legendCircle(null)
       .scale(
@@ -348,7 +349,13 @@ export class VisualizationComponent implements AfterViewInit{
       // .translateExtent([[0, 0], [this.height, this.height/1.2]])
       .translateExtent([[0, 0], [this.svg_height, this.svg_height]])
       .on("start", (event, d) => { this.svg.attr("cursor", "grabbing"); })
-      .on("zoom", (event) => { this.plot.attr("transform", event.transform); })
+      .on("zoom", (event) => { 
+        this.plot.attr("transform", event.transform); 
+        if(event.sourceEvent instanceof WheelEvent){
+          this.zoom_level = event.transform.k;
+          this.drawCircleLegend();
+        }
+      })
       .on("end", (event, d) => {this.svg.attr("cursor", "default")});
 
     this.svg.call(panning_zoom);
