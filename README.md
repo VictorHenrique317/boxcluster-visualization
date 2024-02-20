@@ -9,7 +9,7 @@
 - [x] Cálculo do MDS dinâmico e scatterplot quadrado
 - [x] Scatterplot interativo
 
-## Checklist 06/02/2024 -> ??? - v0.2.1
+## Checklist 06/02/2024 -> 20/02/2024 - v0.2.1
 - [x] Implementar dialog de erro
 - [x] Implementar legendas de tamanho e densidade
 - [x] Fazer o programa aceitar arquivos com padrões que possuem dados adicionais
