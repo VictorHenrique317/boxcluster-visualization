@@ -11,7 +11,7 @@
 
 ## Checklist 06/02/2024 -> ??? - v0.2.1
 - [x] Implementar dialog de erro
-- [] Implementar legendas de tamanho e densidade
+- [x] Implementar legendas de tamanho e densidade
 - [] Fazer o programa aceitar arquivos com padrões que possuem dados adicionais
 
 ## Checklist ??? -> ??? - v0.3.0

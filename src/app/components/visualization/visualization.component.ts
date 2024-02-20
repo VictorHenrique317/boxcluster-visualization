@@ -24,7 +24,7 @@ import { DatapointInfoDialogComponent } from "./datapoint-info-dialog/datapoint-
 import { Pattern } from "src/app/models/pattern";
 import { DialogService } from "src/app/services/dialog/dialog.service";
 import { legendCircle } from 'src/js/circle_legend.js';
-
+import { Legend } from 'src/js/color_legend.js';
 
 @Component({
     selector: 'app-visualization',
@@ -214,6 +214,7 @@ export class VisualizationComponent implements AfterViewInit{
         .attr('r', d => d.size); // End with actual radius
     
     this.drawCircleLegend();
+    this.drawColorLegend();
   }
 
   private async getRawPattern(identifier: number){
@@ -255,6 +256,24 @@ export class VisualizationComponent implements AfterViewInit{
       .attr('id', 'circle_legend') // Add a unique id to the legend
       .attr('transform', `translate(${legend_x_padding}, ${legend_y_padding})`)
       .call(legend);
+  }
+
+  private drawColorLegend(){
+    let svg_width = this.svg.attr('width');
+    let legend_width = 320;
+    const legend_x_padding = 10;
+
+    let legend_x = svg_width - (legend_width + legend_x_padding);
+
+    let legend = Legend(d3.scaleLinear([0, 1], ["rgba(255,0,0,0)", "red"]), {
+      title: "Density",
+      width: legend_width,
+    })
+
+    this.svg.append('g')
+      .attr("transform", `translate(${legend_x}, 0)`)
+      .append(() => legend);
+    
   }
 
   private async onDatapointClick(enterAnimationDuration: string, exitAnimationDuration: string, identifier: number): Promise<void> {
