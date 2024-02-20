@@ -11,12 +11,12 @@ pub struct PatternReader<'a> {
 
 impl PatternReader<'_>{
     pub fn new<'a>(file_path: &String, translator: &'a Translator) -> Result<PatternReader<'a>, GenericError> {
-        let density = Reader::fileHasDensity(&file_path)?;
+        let file_has_densities = Reader::fileHasDensity(&file_path)?;
 
         let instance = PatternReader {
             file_path: file_path.clone(),
             translator: translator,
-            file_has_densities: density,
+            file_has_densities: file_has_densities,
         };
 
         return Ok(instance);
@@ -28,9 +28,7 @@ impl PatternReader<'_>{
         
         for (i, line) in lines.iter().enumerate() {
             let mut density: f64 = 1.0;
-            let mut line_dims: Vec<String> = line.split(" ")
-                .map(|s| s.to_owned())
-                .collect();
+            let mut line_dims: Vec<String> = Reader::preProcessLine(&line);
 
             if self.file_has_densities{
                 density = line_dims.pop()

@@ -107,17 +107,17 @@ impl Translator {
             // dbg!(self.translator.len());
             
             let dim_translator = self.translator.get(i)
-                .ok_or(GenericError::new("Error parsing tensor file", file!(), &line!()))?;
+                .ok_or(GenericError::new(format!("Could not get translator for dimension index {}", i).as_str(), file!(), &line!()))?;
 
             let values: Vec<String> = dim.split(",").map(|i| i.to_owned()).collect();
             let mut translated_dim: Vec<usize> = Vec::new();
     
             for value in values{
                 let translated_value = dim_translator.get(&value)
-                    .ok_or(GenericError::new("Error parsing tensor file", file!(), &line!()))?;
+                    .ok_or(GenericError::new(format!("Could not translate value: {}", value).as_str(), file!(), &line!()))?;
 
                 let translated_value = usize::try_from(*translated_value)
-                    .map_err(|_| GenericError::new("Error parsing tensor file", file!(), &line!()))?;
+                    .map_err(|_| GenericError::new(format!("Could not cast {} to usize", translated_value).as_str(), file!(), &line!()))?;
 
                 translated_dim.push(translated_value);
             }

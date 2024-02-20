@@ -39,6 +39,21 @@ impl Reader{
         return Ok(first_line);
     }
 
+    pub fn preProcessLine(line: &String) -> Vec<String> {
+        let line_columns: Vec<String> = line.split(" ")
+                .map(|s| s.to_owned())
+                .collect();
+
+        let mut processed_line_columns: Vec<String> = Vec::new();
+        for column in line_columns {
+            if column == ":"{ break; }
+
+            processed_line_columns.push(column);
+        }
+
+        return processed_line_columns;
+    }
+
     fn tryGetDensity(vector: &Vec<String>) -> Result<Option<f64>, GenericError>{
         let mut density: Option<f64> = None;
         let vector_length = vector.len();
@@ -69,9 +84,7 @@ impl Reader{
             let current_line = line
                 .map_err(|_| GenericError::new(format!("Could not read line of file ({})", file_path).as_str(), file!(), &line!()))?;
             
-            let dimensions: Vec<String> = current_line.split(" ")
-                .map(|i| i.to_owned())
-                .collect();
+            let dimensions: Vec<String> = Reader::preProcessLine(&current_line);
 
             let density = Reader::tryGetDensity(&dimensions)?;
             if density.is_some(){ return Ok(true); }
