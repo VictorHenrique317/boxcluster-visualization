@@ -1,13 +1,21 @@
 #![allow(non_snake_case)]
 
-use crate::model::analysis::metrics::metric::Metric;
-use crate::{model::{analysis::{metrics::{empty_model_rss::EmptyModelRss, distances::Distances, coordinates::Coordinates, rss_evolution::RssEvolution}, intersections_predictions::IntersectionsPredictions}, identifier_mapper::IdentifierMapper}, database::{tensor::Tensor, pattern::Pattern}, common::generic_error::GenericError};
+use crate::model::analysis::metrics::intersection::intersection_metrics::IntersectionMetrics;
+use crate::model::analysis::metrics::intersection::intersections_indices::IntersectionsIndices;
+use crate::model::analysis::metrics::intersection::prediction_matrix::{self, PredictionMatrix};
+use crate::model::analysis::metrics::intersection::untouched_delta_rss::UntouchedDeltaRss;
+use crate::model::analysis::metrics::intersections_predictions::IntersectionsPredictions;
+use crate::{model::{analysis::metrics::{empty_model_rss::EmptyModelRss, distances::Distances, coordinates::Coordinates, rss_evolution::RssEvolution}, identifier_mapper::IdentifierMapper}, database::{tensor::Tensor, pattern::Pattern}, common::generic_error::GenericError};
 
 pub struct MetricsService{
     pub empty_model_rss: EmptyModelRss,
     pub rss_evolution: RssEvolution,
     pub distances: Distances,
     pub coordinates: Coordinates,
+
+    pub prediction_matrix: PredictionMatrix,
+    pub untouched_delta_rss: UntouchedDeltaRss,
+    pub intersections_indices: IntersectionsIndices,
 }
 
 impl MetricsService{
@@ -15,6 +23,14 @@ impl MetricsService{
         println!("Calculating metrics...");
 
         let intersections_predictions = IntersectionsPredictions::new(identifier_mapper)?;
+
+        let (prediction_matrix, 
+            untouched_delta_rss, 
+            intersections_indices) = IntersectionMetrics::calculate(
+                tensor,
+                identifier_mapper)?;
+        let mut prediction_matrix = prediction_matrix;
+
         let empty_model_rss = EmptyModelRss::new(tensor);
         let patterns: Vec<&Pattern> = identifier_mapper.getOrderedPatterns();
 
@@ -22,7 +38,10 @@ impl MetricsService{
             identifier_mapper,
             tensor,
             &empty_model_rss,
-            &patterns
+            &patterns,
+            &mut prediction_matrix,
+            &untouched_delta_rss,
+            &intersections_indices
         )?;
 
         let distances = Distances::new(
@@ -43,6 +62,9 @@ impl MetricsService{
                 rss_evolution: rss_evolution,
                 distances: distances,
                 coordinates: coordinates,
+                prediction_matrix: prediction_matrix,
+                untouched_delta_rss: untouched_delta_rss,
+                intersections_indices: intersections_indices,
              }
         );
     }
@@ -62,7 +84,10 @@ impl MetricsService{
                 identifier_mapper,
                 tensor,
                 &self.empty_model_rss,
-                &identifier_mapper.getOrderedPatternsFrom(visible_identifiers)
+                &identifier_mapper.getOrderedPatternsFrom(visible_identifiers),
+                &mut self.prediction_matrix,
+                &self.untouched_delta_rss,
+                &self.intersections_indices
             )?;
 
             self.rss_evolution = rss_evolution;

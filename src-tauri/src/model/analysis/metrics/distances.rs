@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 use std::{collections::HashMap, sync::{Arc, Mutex}};
 use rayon::prelude::{IntoParallelRefIterator, IndexedParallelIterator, ParallelIterator};
-use crate::{model::{identifier_mapper::IdentifierMapper, analysis::{intersections_predictions::IntersectionsPredictions, ordered_pair::OrderedPair}}, database::{tensor::Tensor, subtensor::Subtensor, pattern::Pattern}, common::{progress_bar, generic_error::GenericError}};
-use super::metric::Metric;
+use crate::{common::{generic_error::GenericError, progress_bar}, database::{pattern::Pattern, subtensor::Subtensor, tensor::Tensor}, model::{analysis::ordered_pair::OrderedPair, identifier_mapper::IdentifierMapper}};
+use super::{intersections_predictions::IntersectionsPredictions, metric::Metric};
 
 pub trait DistancesTrait {
     fn get(&self) -> &HashMap<u32, HashMap<u32, f64>>;

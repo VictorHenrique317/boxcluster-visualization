@@ -48,18 +48,18 @@ impl IntersectionsPredictions<'_>{
 
                     let possible_previous_prediction = intersections_predictions_lock.get_mut(&intersection_index); // EXPENSIVE
                     match possible_previous_prediction{
-                        None => {}
+                        None => {
+                            intersections_predictions_lock.insert(intersection_index.clone(), overlapper);
+                        }
                         Some(previous_prediction) => { // Multiple overlapping in one index
 
                             if overlapper.density > previous_prediction.density{ // Switch to current overlapper
                                 *previous_prediction = overlapper;
                             }
-
-                            continue;
                         }
                     };
 
-                    intersections_predictions_lock.insert(intersection_index.clone(), overlapper);
+                    
                 }
             }
 
