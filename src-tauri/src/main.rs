@@ -4,53 +4,16 @@
     windows_subsystem = "windows"
 )]
 
-use std::sync::MutexGuard;
+use std::{collections::HashMap, sync::MutexGuard};
 
-use boxcluster_visualization::{self, controller::states::states::*, database::{datapoint::{DataPoint, self}, pattern::Pattern, raw_pattern::RawPattern}, services::{application::application_service, dynamic_paginator_service::DynamicPaginatorService}};
+use boxcluster_visualization::{self, commands::paginator_commands::__cmd__getSoundingPattern, controller::states::states::*, database::{datapoint::{self, DataPoint}, pattern::Pattern, raw_pattern::RawPattern}, services::{application::application_service, dynamic_paginator_service::DynamicPaginatorService}};
 use tauri::State;
 use boxcluster_visualization::common::generic_error::GenericError;
+use boxcluster_visualization::commands::paginator_commands::getSoundingPattern;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 
 //////////////////////////// Paginator ////////////////////////////
-
-#[tauri::command]
-fn getSoundingPattern(paginator_service: State<PaginatorServiceState>, application_service: State<ApplicationServiceState>) 
-        -> Result<RawPattern, GenericError> {
-
-    println!("Calling getSoundingPattern...");
-
-    let paginator_service = match paginator_service.0.lock() {
-        Ok(paginator_service) => paginator_service,
-        Err(_) => {
-            let error = GenericError::new("Could not lock paginator service", file!(), &line!());
-            error.print();
-            return Err(error);
-        }
-    };
-
-    let application_service = match application_service.0.lock() {
-        Ok(application_service) => application_service,
-        Err(_) => {
-            let error = GenericError::new("Could not lock application service", file!(), &line!());
-            error.print();
-            return Err(error);
-        }
-    };
-
-    let identifier_mapper = match application_service.getIdentifierMapper() {
-        Ok(identifier_mapper) => identifier_mapper,
-        Err(error) => {
-            error.print();
-            return Err(error);
-        }
-    };
-
-    match paginator_service.getSoundingPattern(identifier_mapper, application_service.getTranslator()) {
-        Ok(pattern) => return Ok(pattern),
-        Err(error) => return Err(error),
-    }
-}
 
 #[tauri::command]
 fn refreshPageSize(paginator_service: State<PaginatorServiceState>, 
@@ -506,6 +469,28 @@ fn getPattern(application_service: State<ApplicationServiceState>, identifier: u
     }
 }
 
+#[tauri::command]
+fn getIntersectionPercentagesFor(application_service: State<ApplicationServiceState>, identifier: u32) -> Result<HashMap<u32, f64>, GenericError> {
+    println!("Calling getIntersectionPercentagesForPattern...");
+
+    let application_service = match application_service.0.lock() {
+        Ok(application_service) => application_service,
+        Err(_) => {
+            let error = GenericError::new("Could not lock application service", file!(), &line!());
+            error.print();
+            return Err(error);
+        }
+    };
+
+    match application_service.getIntersectionPercentagesFor(&identifier) {
+        Ok(percentages) => return Ok(percentages),
+        Err(error) => {
+            error.print();
+            return Err(error)
+        }
+    }
+}
+
 fn main() {
     tauri::Builder::default()
         .manage(ApplicationServiceState(Default::default()))
@@ -527,7 +512,8 @@ fn main() {
             getFullRssEvolution,
             getTruncatedRssEvolution,
             getDataPoints,
-            getPattern
+            getPattern,
+            getIntersectionPercentagesFor
             ])
         .run(tauri::generate_context!())
         .expect("Error while running tauri application");

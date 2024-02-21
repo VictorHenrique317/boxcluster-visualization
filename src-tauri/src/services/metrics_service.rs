@@ -1,9 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::model::analysis::metrics::intersection::intersection_metrics::IntersectionMetrics;
-use crate::model::analysis::metrics::intersection::intersections_indices::IntersectionsIndices;
-use crate::model::analysis::metrics::intersection::prediction_matrix::{self, PredictionMatrix};
-use crate::model::analysis::metrics::intersection::untouched_delta_rss::UntouchedDeltaRss;
+use crate::model::analysis::metrics::intersection::intersections_percentages::IntersectionsPercentages;
 use crate::model::analysis::metrics::intersections_predictions::IntersectionsPredictions;
 use crate::{model::{analysis::metrics::{empty_model_rss::EmptyModelRss, distances::Distances, coordinates::Coordinates, rss_evolution::RssEvolution}, identifier_mapper::IdentifierMapper}, database::{tensor::Tensor, pattern::Pattern}, common::generic_error::GenericError};
 
@@ -12,10 +10,7 @@ pub struct MetricsService{
     pub rss_evolution: RssEvolution,
     pub distances: Distances,
     pub coordinates: Coordinates,
-
-    pub prediction_matrix: PredictionMatrix,
-    pub untouched_delta_rss: UntouchedDeltaRss,
-    pub intersections_indices: IntersectionsIndices,
+    pub intersections_percentages: IntersectionsPercentages,
 }
 
 impl MetricsService{
@@ -26,8 +21,10 @@ impl MetricsService{
 
         let (prediction_matrix, 
             untouched_delta_rss, 
-            intersections_indices) = IntersectionMetrics::calculate(
+            intersections_indices,
+            intersections_percentages) = IntersectionMetrics::calculate(
                 tensor,
+                &identifier_mapper.getOrderedPatterns(),
                 identifier_mapper)?;
         let mut prediction_matrix = prediction_matrix;
 
@@ -62,32 +59,41 @@ impl MetricsService{
                 rss_evolution: rss_evolution,
                 distances: distances,
                 coordinates: coordinates,
-                prediction_matrix: prediction_matrix,
-                untouched_delta_rss: untouched_delta_rss,
-                intersections_indices: intersections_indices,
+                intersections_percentages: intersections_percentages,
              }
         );
     }
 
     pub fn update(&mut self, tensor: &Tensor, identifier_mapper: &IdentifierMapper, visible_identifiers: &Vec<u32>, lazy: &bool)
             -> Result<(), GenericError>{
+
+        let visible_patterns = identifier_mapper.getOrderedPatternsFrom(visible_identifiers);
         
         let coordinates = Coordinates::new(
             identifier_mapper,
             &self.distances.getView(identifier_mapper, visible_identifiers)?,
         )?;
-
         self.coordinates = coordinates;
+
+        let (prediction_matrix, 
+            untouched_delta_rss, 
+            intersections_indices,
+            intersections_percentages) = IntersectionMetrics::calculate(
+                tensor,
+                &visible_patterns,
+                identifier_mapper)?;
+        let mut prediction_matrix = prediction_matrix;
+        self.intersections_percentages = intersections_percentages;
 
         if !lazy{ // Re-calculate rss_evolution
             let rss_evolution = RssEvolution::new(
                 identifier_mapper,
                 tensor,
                 &self.empty_model_rss,
-                &identifier_mapper.getOrderedPatternsFrom(visible_identifiers),
-                &mut self.prediction_matrix,
-                &self.untouched_delta_rss,
-                &self.intersections_indices
+                &visible_patterns,
+                &mut prediction_matrix,
+                &untouched_delta_rss,
+                &intersections_indices
             )?;
 
             self.rss_evolution = rss_evolution;

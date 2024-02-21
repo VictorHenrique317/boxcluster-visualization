@@ -2,10 +2,11 @@ use std::{collections::{HashMap, HashSet}, sync::{Arc, Mutex}};
 
 use ndarray::{Dim, IxDynImpl};
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use tauri::utils::pattern;
 
 use crate::{common::generic_error::GenericError, database::{pattern::Pattern, tensor::Tensor}, model::identifier_mapper::IdentifierMapper};
 
-use super::{intersections_indices::IntersectionsIndices, prediction_matrix::PredictionMatrix, untouched_delta_rss::UntouchedDeltaRss};
+use super::{intersections_percentages::{self, IntersectionsPercentages}, intersections_indices::{self, IntersectionsIndices}, prediction_matrix::PredictionMatrix, untouched_delta_rss::UntouchedDeltaRss};
 
 pub struct IntersectionMetrics {}
 
@@ -14,15 +15,14 @@ impl IntersectionMetrics{
         return (actual_value - prediction).powi(2);
     }
 
-    pub fn calculate(tensor: &Tensor, identifier_mapper: &IdentifierMapper) 
-            -> Result<(PredictionMatrix, UntouchedDeltaRss, IntersectionsIndices), GenericError>{
+    pub fn calculate(tensor: &Tensor, patterns: &Vec<&Pattern>, identifier_mapper: &IdentifierMapper) 
+            -> Result<(PredictionMatrix, UntouchedDeltaRss, IntersectionsIndices, IntersectionsPercentages), GenericError>{
 
         let prediction_matrix: HashMap<Dim<IxDynImpl>, f64> = HashMap::new();
         let untouched_rss_s: HashMap<u32, (u32, f64)>= HashMap::new();
         let intersections_indices: HashMap<u32, HashMap<u32, Vec<Dim<IxDynImpl>>>> = HashMap::new();
-        let mut overlappings: HashMap<u32, HashSet<u32>> = HashMap::new();
-
-        let patterns: &Vec<&Pattern> = &identifier_mapper.getOrderedPatterns();
+        let intersections_percentages: HashMap<u32, HashMap<u32, f64>> = HashMap::new();
+        let mut overlappings: HashMap<u32, HashSet<u32>> = HashMap::new(); // This is a symmetric relation
 
         for pattern in patterns {
             let node = identifier_mapper.getRepresentation(&pattern.identifier)?.asDagNode()?;
@@ -45,22 +45,27 @@ impl IntersectionMetrics{
         let prediction_matrix: Arc<Mutex<HashMap<Dim<IxDynImpl>, f64>>> = Arc::new(Mutex::new(prediction_matrix));
         let untouched_rss_s: Arc<Mutex<HashMap<u32, (u32, f64)>>> = Arc::new(Mutex::new(untouched_rss_s));
         let intersections_indices: Arc<Mutex<HashMap<u32, HashMap<u32, Vec<Dim<IxDynImpl>>>>>> = Arc::new(Mutex::new(intersections_indices));
-        
+        let intersections_percentages: Arc<Mutex<HashMap<u32, HashMap<u32, f64>>>> = Arc::new(Mutex::new(intersections_percentages));
+
         patterns.par_iter().try_for_each(|pattern| -> Result<(), GenericError> {
 
             let mut pattern_intersections: HashMap<u32, Vec<Dim<IxDynImpl>>> = HashMap::new();
+            let mut pattern_intersections_percentages: HashMap<u32, f64> = HashMap::new();
             let mut all_intersection_indices: HashSet<Dim<IxDynImpl>> = HashSet::new();
+
+            let self_overlappings = overlappings.get(&pattern.identifier);
 
             for other_pattern in patterns {
                 if pattern.identifier == other_pattern.identifier { continue; } // Itself
-
-                let self_overlappings = overlappings.get(&pattern.identifier);
+                
                 match self_overlappings {
                     None => continue, // This pattern doesnt overlap any other pattern
                     Some(self_overlappings) => {
                         if !self_overlappings.contains(&other_pattern.identifier) { continue; } // These two do not overlap
                     },
                 };
+
+                // Here we know that pattern and other_pattern overlap
 
                 let intersection_indices: Vec<Dim<IxDynImpl>> = pattern.intersection(other_pattern)
                     .into_iter()
@@ -75,8 +80,13 @@ impl IntersectionMetrics{
                         .insert(index.clone(), tensor.density);
                 }
 
-                if !intersection_indices.is_empty() { // There are intersections
+                if !intersection_indices.is_empty() { // There are intersections between pattern and other_pattern
+                    let intersection_percentage = intersection_indices.len() as f64 / pattern.size as f64;
+                    
                     pattern_intersections.insert(other_pattern.identifier, intersection_indices);
+                    pattern_intersections_percentages.insert(other_pattern.identifier, intersection_percentage);
+                }else{
+                    unreachable!("There should be at least one intersection");
                 }
             }
 
@@ -85,6 +95,13 @@ impl IntersectionMetrics{
                     .as_mut()
                     .map_err(|_| GenericError::new("Could not lock intersections indices", file!(), &line!()))?
                     .insert(pattern.identifier, pattern_intersections);
+            }
+
+            if !pattern_intersections_percentages.is_empty(){ // This pattern has intersections with other patterns
+                intersections_percentages.lock()
+                    .as_mut()
+                    .map_err(|_| GenericError::new("Could not lock intersections percentages", file!(), &line!()))?
+                    .insert(pattern.identifier, pattern_intersections_percentages);
             }
 
             let prediction = &pattern.density;
@@ -129,6 +146,11 @@ impl IntersectionMetrics{
             .map_err(|_| GenericError::new("Could not lock intersections indices", file!(), &line!()))?
             .clone());
 
-        return Ok((prediction_matrix, untouched_rss_s, intersections_indices));
+        let pattern_intersections_percentages = IntersectionsPercentages::new(intersections_percentages.lock()
+            .as_mut()
+            .map_err(|_| GenericError::new("Could not lock intersections percentages", file!(), &line!()))?
+            .clone());
+
+        return Ok((prediction_matrix, untouched_rss_s, intersections_indices, pattern_intersections_percentages));
     }
 }

@@ -5,6 +5,7 @@ pub mod controller;
 pub mod services;
 pub mod model;
 pub mod database;
+pub mod commands;
 use std::{collections::HashMap, hash::Hash};
 use common::generic_error::GenericError;
 use nalgebra::{DMatrix, DVector, SVD};

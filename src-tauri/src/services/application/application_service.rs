@@ -59,6 +59,12 @@ impl ApplicationService{
         );
     }
 
+    pub fn getIntersectionsPercentages(&self) -> Result<HashMap<u32, HashMap<u32, f64>>, GenericError> {
+        return Ok(
+            self.application_state_service.getMetricsService()?.intersections_percentages.get().clone()
+        );
+    }
+
     pub fn getIdentifierMapper(&self) -> Result<&IdentifierMapper, GenericError> {
         return self.application_state_service.identifierMapper();
     }
@@ -150,5 +156,15 @@ impl ApplicationService{
             .collect()
         );
     }
+
+    pub fn getIntersectionPercentagesFor(&self, identifier: &u32) -> Result<HashMap<u32, f64>, GenericError>{
+        return Ok(
+            self.application_state_service.getMetricsService()?.intersections_percentages.get().get(identifier)
+            .ok_or(GenericError::new(format!("Identifier {} not found", identifier).as_str(), file!(), &line!()))?
+            .clone()
+        );
+    }
+
+    
 
 }
