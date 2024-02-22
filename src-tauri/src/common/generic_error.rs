@@ -55,4 +55,14 @@ impl GenericError {
     pub fn print(&self) {
         println!("{}", self.getErrorMessage().red());
     }
+
+    pub fn from<T, E: std::fmt::Debug>(result: Result<T, E>, message: &str, file: &str, line: &u32) -> Result<T, GenericError> {
+        match result {
+            Ok(value) => Ok(value),
+            Err(_) => {
+                let error = GenericError::new(message, file, line);
+                Err(error)
+            }
+        }
+    }
 }

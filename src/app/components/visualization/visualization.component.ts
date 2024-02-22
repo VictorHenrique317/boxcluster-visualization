@@ -229,7 +229,11 @@ export class VisualizationComponent implements AfterViewInit{
   private drawCircleLegend(){
     let min_pattern_size = Math.min(...this.datapoints.map(datapoint => Math.abs(datapoint.pattern_size)));
     let max_pattern_size = Math.max(...this.datapoints.map(datapoint => Math.abs(datapoint.pattern_size)));
-    let half_pattern_size = Math.round((max_pattern_size - min_pattern_size) / 2);
+    let mean_pattern_size = 0;
+    for(let i = 0; i < this.datapoints.length; i++){
+      mean_pattern_size += this.datapoints[i].pattern_size;
+    }
+    mean_pattern_size /= this.datapoints.length;
 
     let min_size = Math.min(...this.datapoints.map(datapoint => Math.abs(datapoint.size))) * this.zoom_level;
     let max_size = Math.max(...this.datapoints.map(datapoint => Math.abs(datapoint.size))) * this.zoom_level;
@@ -240,7 +244,7 @@ export class VisualizationComponent implements AfterViewInit{
             .domain([min_pattern_size, max_pattern_size])
             .range([min_size, max_size])
       )
-      .tickValues([min_pattern_size, half_pattern_size, max_pattern_size])
+      .tickValues([min_pattern_size, mean_pattern_size, max_pattern_size])
       .tickFormat((d, i, e) => `${d}${i === e.length - 1 ? " Cells" : ""}`)
       .tickSize(max_size); // defaults to 5
     
