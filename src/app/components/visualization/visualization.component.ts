@@ -85,7 +85,8 @@ export class VisualizationComponent implements AfterViewInit{
   private y_scale: any;
   
   private tooltip;
-  
+
+  protected intersection_mode: boolean = false;
 
   constructor(public dialog_service: DialogService, private cdr: ChangeDetectorRef){ }
   ngAfterViewInit(): void {
@@ -206,6 +207,7 @@ export class VisualizationComponent implements AfterViewInit{
         .attr('r', 0) // Start from radius 0
         .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
         .style('cursor', 'pointer') // Set cursor to pointer
+        .style('stroke', 'rgba(255, 0, 0, 1')
         .on('mouseover', (event, d) => { this.tooltip.show(d, event.currentTarget); })
         .on('mouseout', (event, d) => { this.tooltip.hide(d, event.currentTarget); })
         .on('click', (event, d) => { this.onDatapointClick('300ms', '300ms', d.identifier); })
@@ -330,6 +332,54 @@ export class VisualizationComponent implements AfterViewInit{
       this.dialog_service.openErrorDialog("Error while truncating datapoints.");
     });
   }
+
+  public toggleIntersectionMode(){
+    this.intersection_mode = !this.intersection_mode;
+    let circles = this.plot.selectAll('circle');
+  
+    let duration = 500;
+    if(this.intersection_mode == true){ // Activate intersection mode
+      this.svg.append('rect')
+        .attr('id', 'backgroundRect')
+        .attr('width', '100%')
+        .attr('height', '100%')
+        .attr('fill', 'rgba(0, 0, 0, 0)')
+        .lower()
+        .transition()
+        .duration(duration)
+        .attr('fill', 'rgba(0, 0, 0, 0.4)');  // End color
+  
+      circles
+        .on('mouseover', (event, d) => { console.log("a") })
+        .on('mouseout', (event, d) => { })
+        .on('click', (event, d) => {})
+        .transition()
+        .duration(duration);
+  
+      return;
+    }
+  
+    if(this.intersection_mode == false){ // Deactivate intersection mode
+      this.plot.style('stroke', 'none');
+      this.svg.select('#backgroundRect')
+        .transition()
+        .duration(duration)
+        .attr('fill', 'rgba(0, 0, 0, 0)')  // End color
+        .remove();
+  
+      circles
+        .on('mouseover', (event, d) => { this.tooltip.show(d, event.currentTarget); })
+        .on('mouseout', (event, d) => { this.tooltip.hide(d, event.currentTarget); })
+        .on('click', (event, d) => { this.onDatapointClick('300ms', '300ms', d.identifier); })
+        .transition()
+        .duration(duration)
+        .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`);
+  
+      return;
+    }
+  }
+  
+  
 
 
   // ========================= SVG FUNCTIONS ========================= //

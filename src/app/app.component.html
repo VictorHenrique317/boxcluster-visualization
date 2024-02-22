@@ -19,6 +19,12 @@
                 matTooltip="Truncate Model">
                 <mat-icon aria-hidden="false" aria-label="settings" fontIcon="show_chart"></mat-icon>
             </header>
+
+            <header class="main-option" id="intersection-mode-button" 
+                (click)="this.visualization_view.toggleIntersectionMode()"
+                matTooltip="Intersection mode">
+                <mat-icon aria-hidden="false" aria-label="settings" fontIcon="donut_small"></mat-icon>
+            </header>
         </div>
         
         <div id="content-cover" [hidden]="!rss_view_enabled"></div>
