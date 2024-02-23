@@ -102,6 +102,7 @@ export class AppComponent implements AfterViewInit{
   protected rss_view_enabled: boolean = null;
   
   @ViewChild('visualization_view') visualization_view: VisualizationComponent;
+  protected intersection_mode: boolean = false;
 
   public selected_directory: string = "";
   public tensor_path: string = "";
@@ -200,5 +201,10 @@ export class AppComponent implements AfterViewInit{
     }, 1100);
 
     this.visualization_view.onTruncation(event);
+ }
+
+ protected toggleIntersectionMode(){
+  this.intersection_mode = !this.intersection_mode;
+  this.visualization_view.toggleIntersectionMode();
  }
 }

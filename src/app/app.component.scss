@@ -190,3 +190,7 @@ body{
     z-index: 1;
     position: absolute;
 }
+
+.buttonToggled{
+    background-color: mat.get-color-from-palette($primary-palette, 800) !important;
+}

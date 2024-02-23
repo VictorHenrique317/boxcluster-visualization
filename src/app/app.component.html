@@ -1,7 +1,7 @@
 <body #app_body id="app_body">
     <aside #aside>
         <div id="main-options">
-            <header class="main-option" #model_selector matRipple [matRippleCentered]="true" 
+            <header class="main-option" #model_selector matRipple [matRippleCentered]="true"
                 (click)="openModelSelectionDialog('300ms', '300ms')"
                 matTooltip="Change model">
                 <mat-icon aria-hidden="false" aria-label="open_file" fontIcon="upload_file"></mat-icon>
@@ -20,8 +20,9 @@
                 <mat-icon aria-hidden="false" aria-label="settings" fontIcon="show_chart"></mat-icon>
             </header>
 
-            <header class="main-option" id="intersection-mode-button" 
-                (click)="this.visualization_view.toggleIntersectionMode()"
+            <header class="main-option buttonToggled" id="intersection-mode-button" 
+                [ngClass]="{'buttonToggled': this.intersection_mode}"
+                (click)="this.toggleIntersectionMode()"
                 matTooltip="Intersection mode">
                 <mat-icon aria-hidden="false" aria-label="settings" fontIcon="donut_small"></mat-icon>
             </header>

@@ -86,7 +86,7 @@ export class VisualizationComponent implements AfterViewInit{
   
   private tooltip;
 
-  protected intersection_mode: boolean = false;
+  private intersection_mode: boolean = false;
 
   constructor(public dialog_service: DialogService, private cdr: ChangeDetectorRef){ }
   ngAfterViewInit(): void {
@@ -265,6 +265,11 @@ export class VisualizationComponent implements AfterViewInit{
   }
 
   private drawColorLegend(){
+    let oldLegend = document.getElementById("color_legend");
+    if(oldLegend){
+        oldLegend.parentNode.removeChild(oldLegend);
+    }
+
     let svg_width = this.svg.attr('width');
     let legend_width = 320;
     const legend_x_padding = 10;
@@ -276,11 +281,12 @@ export class VisualizationComponent implements AfterViewInit{
       width: legend_width,
     })
 
-    this.svg.append('g')
-      .attr("transform", `translate(${legend_x}, 0)`)
-      .append(() => legend);
-    
-  }
+    let legendGroup = this.svg.append('g')
+      .attr('id', 'color_legend')
+      .attr("transform", `translate(${legend_x}, 0)`);
+      
+    legendGroup.node().appendChild(legend);
+}
 
   private async onDatapointClick(enterAnimationDuration: string, exitAnimationDuration: string, identifier: number): Promise<void> {
     let pattern;
@@ -333,39 +339,71 @@ export class VisualizationComponent implements AfterViewInit{
     });
   }
 
+
+  public isOnIntersectionMode(){
+    return this.intersection_mode;
+  }
   public toggleIntersectionMode(){
     this.intersection_mode = !this.intersection_mode;
     let circles = this.plot.selectAll('circle');
   
-    let duration = 500;
+    let duration = 300;
     if(this.intersection_mode == true){ // Activate intersection mode
-      this.svg.append('rect')
-        .attr('id', 'backgroundRect')
-        .attr('width', '100%')
-        .attr('height', '100%')
-        .attr('fill', 'rgba(0, 0, 0, 0)')
-        .lower()
-        .transition()
-        .duration(duration)
-        .attr('fill', 'rgba(0, 0, 0, 0.4)');  // End color
+      // this.svg.append('rect')
+      //   .attr('id', 'backgroundRect')
+      //   .attr('width', '100%')
+      //   .attr('height', '100%')
+      //   .attr('fill', 'rgba(0, 0, 0, 0)')
+      //   .attr('pointer-events', 'none')
+      //   .transition()
+      //   .duration(duration)
+      //   .attr('fill', 'rgba(0, 0, 0, 0.1)')
+      //   .transition()
+      //   .duration(duration)
+      //   .attr('fill', 'rgba(0, 0, 0, 0)')
+      //   .remove();
+
+        this.plot.selectAll('grid').remove()
   
-      circles
-        .on('mouseover', (event, d) => { console.log("a") })
-        .on('mouseout', (event, d) => { })
-        .on('click', (event, d) => {})
-        .transition()
-        .duration(duration);
-  
+        circles
+          .on('mouseover', (event, d) => { 
+            console.log("a")
+          })
+          .on('mouseout', (event, d) => { 
+            this.svg.select('#hoveredCircle').remove();
+          })
+          .on('click', (event, d) => {})
+          .transition()
+          .duration(duration)
+          .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
+          .style('stroke', 'rgba(255, 0, 0, 1)')
+          .style('stroke-dasharray', '1,1');
+
       return;
     }
   
     if(this.intersection_mode == false){ // Deactivate intersection mode
-      this.plot.style('stroke', 'none');
-      this.svg.select('#backgroundRect')
-        .transition()
-        .duration(duration)
-        .attr('fill', 'rgba(0, 0, 0, 0)')  // End color
-        .remove();
+      // this.plot.style('stroke', 'none');
+      // this.svg.select('#backgroundRect')
+      //   .transition()
+      //   .duration(duration)
+      //   .attr('fill', 'rgba(0, 0, 0, 0)')  // End color
+      //   .remove();
+
+      // this.svg.append('rect')
+      //   .attr('id', 'backgroundRect')
+      //   .attr('width', '100%')
+      //   .attr('height', '100%')
+      //   .attr('fill', 'rgba(0, 0, 0, 0)')
+      //   .attr('pointer-events', 'none')
+      //   .transition()
+      //   .duration(duration)
+      //   .attr('fill', 'rgba(0, 0, 0, 0.1)')
+      //   .transition()
+      //   .duration(duration)
+      //   .attr('fill', 'rgba(0, 0, 0, 0)')
+      //   .remove();
+
   
       circles
         .on('mouseover', (event, d) => { this.tooltip.show(d, event.currentTarget); })
@@ -373,11 +411,14 @@ export class VisualizationComponent implements AfterViewInit{
         .on('click', (event, d) => { this.onDatapointClick('300ms', '300ms', d.identifier); })
         .transition()
         .duration(duration)
-        .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`);
+        .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
+        .style('stroke', 'rgba(255, 0, 0, 1)')
+        .style('stroke-dasharray', '0,0');
   
       return;
     }
   }
+
   
   
 
@@ -449,12 +490,13 @@ export class VisualizationComponent implements AfterViewInit{
   private drawGridLines() {
     let makeXGridlines = () => { return d3.axisBottom(this.x_scale).ticks(this.number_of_gridlines) }
     let makeYGridlines = () => { return d3.axisLeft(this.y_scale).ticks(this.number_of_gridlines) }
-
+    let grey_tonality = 220;
+    let color = `rgb(${grey_tonality}, ${grey_tonality}, ${grey_tonality})`;
     // Add the X gridlines
     this.plot.append("g")			
       .attr("class", "grid")
       .attr("transform", "translate(0," + this.svg_height + ")")
-      .attr("color", "lightgrey")
+      .attr("color", color)
       .call(makeXGridlines()
           .tickSize(-this.svg_height)
           .tickFormat(() => "")
@@ -463,7 +505,7 @@ export class VisualizationComponent implements AfterViewInit{
     // Add the Y gridlines
     this.plot.append("g")			
       .attr("class", "grid")
-      .attr("color", "lightgrey")
+      .attr("color", color)
       .call(makeYGridlines()
           .tickSize(-1 * this.svg_width)
           // .tickSize(-300)
