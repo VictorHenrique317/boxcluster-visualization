@@ -339,80 +339,114 @@ export class VisualizationComponent implements AfterViewInit{
     });
   }
 
+  private highlightDatapoint(datapoint: DataPoint){
+    let circles = this.plot.selectAll('circle');
+    let duration = 300;
+    let circles_visibility = 0.2;
+
+    circles
+      .transition()
+      .duration(duration)
+      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a*circles_visibility})`)
+      .style('stroke', `rgba(255, 0, 0, ${circles_visibility})`)
+      .style('stroke-dasharray', '1,1');
+
+    circles
+      .filter(d => d.identifier == datapoint.identifier)
+      .transition()
+      .duration(duration)
+      .style('stroke', 'rgba(255, 0, 0, 1)')
+      .style('stroke-dasharray', '0,0');
+  }
+
+  private async showIntersections(datapoint: DataPoint, event){
+    this.highlightDatapoint(datapoint);
+
+    let intersections:any;
+    if(!environment.dev_mode){
+      intersections = await invoke("getIntersectionPercentagesFor", {identifier: datapoint.identifier})
+        .catch((error: any) => {
+          console.error(error);
+          this.dialog_service.openErrorDialog("Error while getting intersections.");
+        });
+    }else{
+      let rawdata = await fs.readTextFile(await resolveResource('resources/intersections.json'));
+      intersections = JSON.parse(rawdata);
+    }
+
+    for(const identifier in intersections){
+      let percentage = intersections[identifier];
+
+      let related_circle = this.plot.selectAll('circle');
+      related_circle = related_circle.filter(d => d.identifier == identifier);
+      
+      let transform = d3.zoomTransform(this.plot.node());
+      this.svg.append('line')
+        .attr('class', 'intersection_line')
+        .attr('pointer-events', 'none')
+        .attr('x1', transform.applyX(this.x_scale(datapoint.x)))  // Start position (x) of the line
+        .attr('y1', transform.applyY(this.y_scale(datapoint.y)))  // Start position (y) of the line
+        .attr('x2', transform.applyX(related_circle.attr('cx')))  // End position (x) of the line
+        .attr('y2', transform.applyY(related_circle.attr('cy')))  // End position (y) of the line
+        .attr('stroke', 'black')
+        .attr('stroke-width', 2);
+            
+    }
+  }
+
+
+  private removeHighlight(){
+    let circles = this.plot.selectAll('circle');
+    let duration = 300;
+
+    circles
+      .transition()
+      .duration(duration)
+      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
+      .style('stroke', `rgba(255, 0, 0, 1)`)
+      .style('stroke-dasharray', '1,1');
+
+    let intersection_lines = this.svg.selectAll('.intersection_line');
+    intersection_lines.remove();
+  }
+
+  private hiddeIntersections(){
+    this.removeHighlight();
+  }
 
   public isOnIntersectionMode(){
     return this.intersection_mode;
   }
+
   public toggleIntersectionMode(){
     this.intersection_mode = !this.intersection_mode;
     let circles = this.plot.selectAll('circle');
-  
+    
     let duration = 300;
     if(this.intersection_mode == true){ // Activate intersection mode
-      // this.svg.append('rect')
-      //   .attr('id', 'backgroundRect')
-      //   .attr('width', '100%')
-      //   .attr('height', '100%')
-      //   .attr('fill', 'rgba(0, 0, 0, 0)')
-      //   .attr('pointer-events', 'none')
-      //   .transition()
-      //   .duration(duration)
-      //   .attr('fill', 'rgba(0, 0, 0, 0.1)')
-      //   .transition()
-      //   .duration(duration)
-      //   .attr('fill', 'rgba(0, 0, 0, 0)')
-      //   .remove();
-
-        this.plot.selectAll('grid').remove()
-  
         circles
-          .on('mouseover', (event, d) => { 
-            console.log("a")
-          })
-          .on('mouseout', (event, d) => { 
-            this.svg.select('#hoveredCircle').remove();
-          })
+          .on('mouseover', (event, d) => { this.showIntersections(d, event) })
+          .on('mouseout', (event, d) => { this.hiddeIntersections(); })
           .on('click', (event, d) => {})
           .transition()
           .duration(duration)
-          .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
           .style('stroke', 'rgba(255, 0, 0, 1)')
           .style('stroke-dasharray', '1,1');
+
+        
+
+        
 
       return;
     }
   
-    if(this.intersection_mode == false){ // Deactivate intersection mode
-      // this.plot.style('stroke', 'none');
-      // this.svg.select('#backgroundRect')
-      //   .transition()
-      //   .duration(duration)
-      //   .attr('fill', 'rgba(0, 0, 0, 0)')  // End color
-      //   .remove();
-
-      // this.svg.append('rect')
-      //   .attr('id', 'backgroundRect')
-      //   .attr('width', '100%')
-      //   .attr('height', '100%')
-      //   .attr('fill', 'rgba(0, 0, 0, 0)')
-      //   .attr('pointer-events', 'none')
-      //   .transition()
-      //   .duration(duration)
-      //   .attr('fill', 'rgba(0, 0, 0, 0.1)')
-      //   .transition()
-      //   .duration(duration)
-      //   .attr('fill', 'rgba(0, 0, 0, 0)')
-      //   .remove();
-
-  
+    if(this.intersection_mode == false){ // Deactivate intersection mode);
       circles
         .on('mouseover', (event, d) => { this.tooltip.show(d, event.currentTarget); })
         .on('mouseout', (event, d) => { this.tooltip.hide(d, event.currentTarget); })
         .on('click', (event, d) => { this.onDatapointClick('300ms', '300ms', d.identifier); })
         .transition()
         .duration(duration)
-        .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
-        .style('stroke', 'rgba(255, 0, 0, 1)')
         .style('stroke-dasharray', '0,0');
   
       return;
