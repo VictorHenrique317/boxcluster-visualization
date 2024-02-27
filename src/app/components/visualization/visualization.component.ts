@@ -136,9 +136,6 @@ export class VisualizationComponent implements AfterViewInit{
 
     this.datapoints = datapoints;
     this.drawDataPoints();
-    
-
-    // this.onDatapointClick('300ms', '300ms', 1); // TODO: REMOVE
   }
 
   private scalingFunction(datapoints: Array<DataPoint>) {
@@ -236,6 +233,7 @@ export class VisualizationComponent implements AfterViewInit{
       mean_pattern_size += this.datapoints[i].pattern_size;
     }
     mean_pattern_size /= this.datapoints.length;
+    mean_pattern_size = Math.round(mean_pattern_size);
 
     let min_size = Math.min(...this.datapoints.map(datapoint => Math.abs(datapoint.size))) * this.zoom_level;
     let max_size = Math.max(...this.datapoints.map(datapoint => Math.abs(datapoint.size))) * this.zoom_level;
@@ -351,13 +349,15 @@ export class VisualizationComponent implements AfterViewInit{
       .style('stroke', `rgba(255, 0, 0, ${circles_visibility})`)
       .style('stroke-dasharray', '1,1');
 
-    let highligthed_circles = circles.filter(d => identifiers.includes(d.identifier));
+    let identifiers_set = new Set(identifiers);
+    let highligthed_circles = circles.filter(d => identifiers_set.has(d.identifier));
     highligthed_circles
+      .raise()
       .transition()
       .duration(duration)
       .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
       .style('stroke', `rgba(255, 0, 0, 1)`)
-      .style('stroke-dasharray', '0,0');
+      .style('stroke-dasharray', '10000,10000');
   }
 
   private async showIntersections(datapoint: DataPoint, event){
@@ -373,15 +373,11 @@ export class VisualizationComponent implements AfterViewInit{
       intersections = JSON.parse(rawdata);
     }
 
-    let highlighted_datapoints: Array<number> = Object.keys(intersections).map(Number);
-    highlighted_datapoints.push(datapoint.identifier);
-    this.highlightDatapoints(highlighted_datapoints);
-
+    let circles = new Map<number, DataPoint>(this.plot.selectAll('circle').data()
+      .map(d => [d.identifier, d]));
     for(const identifier in intersections){
       let percentage = intersections[identifier];
-
-      let related_circle = this.plot.selectAll('circle');
-      related_circle = related_circle.filter(d => d.identifier == identifier);
+      let stroke_width = 6 * percentage + 2; // 2 to 8
 
       let x1 = this.x_scale(datapoint.x);
       let y1 = this.y_scale(datapoint.y);
@@ -393,15 +389,20 @@ export class VisualizationComponent implements AfterViewInit{
         .attr('y1', this.y_scale(datapoint.y))  // Start position (y) of the line
         .attr('x2', this.x_scale(datapoint.x))  // Initially, end position (x) is the same as start position
         .attr('y2', this.y_scale(datapoint.y))  // Initially, end position (y) is the same as start position
-        .attr('stroke', 'black')
-        .attr('stroke-width', 2);
-
+        .attr('stroke', 'orange')
+        .attr('stroke-width', stroke_width);
+      
       // Transition to the actual end position over a certain duration
+      let related_circle = circles.get(parseInt(identifier));
       line.transition()
-        .duration(300)  // Duration of the transition in milliseconds
-        .attr('x2', related_circle.attr('cx'))  // Actual end position (x) of the line
-        .attr('y2', related_circle.attr('cy'));  // Actual end position (y) of the line
+        .duration(300)
+        .attr('x2', this.x_scale(related_circle.x))  // Actual end position (x) of the line
+        .attr('y2', this.y_scale(related_circle.y));  // Actual end position (y) of the line
     }
+
+    let highlighted_datapoints: Array<number> = Object.keys(intersections).map(Number);
+    highlighted_datapoints.push(datapoint.identifier);
+    this.highlightDatapoints(highlighted_datapoints);
   }
 
   private removeHighlight(){
@@ -415,14 +416,13 @@ export class VisualizationComponent implements AfterViewInit{
       .style('stroke', `rgba(255, 0, 0, 1)`)
       .style('stroke-dasharray', '1,1');
 
-      let intersection_lines = this.svg.selectAll('.intersection_line');
-
-      intersection_lines
-        .transition()
-        .duration(duration)
-        .attr('x2', d => d.x1)  // End position (x) becomes the start position
-        .attr('y2', d => d.y1)  // End position (y) becomes the start position
-        .remove();  // Remove the line after the transition
+    let intersection_lines = this.svg.selectAll('.intersection_line');
+    intersection_lines
+      .transition()
+      .duration(duration)
+      .attr('x2', d => d.x1)  // End position (x) becomes the start position
+      .attr('y2', d => d.y1)  // End position (y) becomes the start position
+      .remove();
   }
 
   private hideIntersections(){
@@ -448,11 +448,7 @@ export class VisualizationComponent implements AfterViewInit{
           .style('stroke', 'rgba(255, 0, 0, 1)')
           .style('stroke-dasharray', '1,1');
 
-        
-
-        
-
-      return;
+          return;
     }
   
     if(this.intersection_mode == false){ // Deactivate intersection mode);
