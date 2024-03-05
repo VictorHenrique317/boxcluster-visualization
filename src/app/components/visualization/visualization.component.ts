@@ -85,6 +85,7 @@ export class VisualizationComponent implements AfterViewInit{
   private y_scale: any;
   
   private tooltip;
+  private transition_duration = 300;
 
   private intersection_mode: boolean = false;
 
@@ -182,13 +183,13 @@ export class VisualizationComponent implements AfterViewInit{
         .data(scaled_datapoints, d => d.identifier); // Each datapoint has a unique identifier
   
     circles.exit()
-        .transition() // Add exit animation
-        .duration(1000) // Duration of the animation in milliseconds
+        .transition()
+        .duration(this.transition_duration)
         .attr('r', 0) // Reduce radius to 0
-        .remove(); // Remove datapoints that are not in the new dataset
+        .remove(); 
   
-    circles.transition() // Animate existing datapoints
-        .duration(1000) // Duration of the animation in milliseconds
+    circles.transition()
+        .duration(this.transition_duration) 
         .attr('cx', d => {
             const result = this.x_scale(parseFloat(d.x));
             return result;
@@ -207,9 +208,9 @@ export class VisualizationComponent implements AfterViewInit{
         .style('stroke', 'rgba(255, 0, 0, 1')
         .on('mouseover', (event, d) => { this.tooltip.show(d, event.currentTarget); })
         .on('mouseout', (event, d) => { this.tooltip.hide(d, event.currentTarget); })
-        .on('click', (event, d) => { this.onDatapointClick('300ms', '300ms', d.identifier); })
+        .on('click', (event, d) => { this.onDatapointClick(d.identifier); })
         .transition() // Transition to final state
-        .duration(1000) // Duration of the animation in milliseconds
+        .duration(this.transition_duration)
         .attr('r', d => d.size); // End with actual radius
     
     this.drawCircleLegend();
@@ -286,7 +287,7 @@ export class VisualizationComponent implements AfterViewInit{
     legendGroup.node().appendChild(legend);
 }
 
-  private async onDatapointClick(enterAnimationDuration: string, exitAnimationDuration: string, identifier: number): Promise<void> {
+  private async onDatapointClick(identifier: number): Promise<void> {
     let pattern;
     if(!environment.dev_mode){
       pattern = await this.getRawPattern(identifier);
@@ -337,14 +338,41 @@ export class VisualizationComponent implements AfterViewInit{
     });
   }
 
+  private connectDatapoints(center: DataPoint, others:any ){
+    let circles = new Map<number, DataPoint>(this.plot.selectAll('circle').data()
+      .map(d => [d.identifier, d]));
+    for(const identifier in others){
+      let percentage = others[identifier];
+      let stroke_width = 6 * percentage + 2; // 2 to 8
+
+      let x1 = this.x_scale(center.x);
+      let y1 = this.y_scale(center.y);
+      let line = this.plot.append('line')
+        .datum({x1: x1, y1: y1})  // Bind the original coordinates to the line
+        .attr('class', 'intersection_line')
+        .attr('pointer-events', 'none')
+        .attr('x1', this.x_scale(center.x))  // Start position (x) of the line
+        .attr('y1', this.y_scale(center.y))  // Start position (y) of the line
+        .attr('x2', this.x_scale(center.x))  // Initially, end position (x) is the same as start position
+        .attr('y2', this.y_scale(center.y))  // Initially, end position (y) is the same as start position
+        .attr('stroke', 'orange')
+        .attr('stroke-width', stroke_width);
+      
+      let related_circle = circles.get(parseInt(identifier));
+      line.transition()
+        .duration(this.transition_duration)
+        .attr('x2', this.x_scale(related_circle.x))  // Actual end position (x) of the line
+        .attr('y2', this.y_scale(related_circle.y));  // Actual end position (y) of the line
+    }
+  }
+
   private highlightDatapoints(identifiers: Array<number>){
     let circles = this.plot.selectAll('circle');
-    let duration = 300;
     let circles_visibility = 0.2;
 
     circles
       .transition()
-      .duration(duration)
+      .duration(this.transition_duration)
       .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a*circles_visibility})`)
       .style('stroke', `rgba(255, 0, 0, ${circles_visibility})`)
       .style('stroke-dasharray', '1,1');
@@ -354,7 +382,7 @@ export class VisualizationComponent implements AfterViewInit{
     highligthed_circles
       .raise()
       .transition()
-      .duration(duration)
+      .duration(this.transition_duration)
       .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
       .style('stroke', `rgba(255, 0, 0, 1)`)
       .style('stroke-dasharray', '10000,10000');
@@ -373,53 +401,65 @@ export class VisualizationComponent implements AfterViewInit{
       intersections = JSON.parse(rawdata);
     }
 
-    let circles = new Map<number, DataPoint>(this.plot.selectAll('circle').data()
-      .map(d => [d.identifier, d]));
-    for(const identifier in intersections){
-      let percentage = intersections[identifier];
-      let stroke_width = 6 * percentage + 2; // 2 to 8
-
-      let x1 = this.x_scale(datapoint.x);
-      let y1 = this.y_scale(datapoint.y);
-      let line = this.plot.append('line')
-        .datum({x1: x1, y1: y1})  // Bind the original coordinates to the line
-        .attr('class', 'intersection_line')
-        .attr('pointer-events', 'none')
-        .attr('x1', this.x_scale(datapoint.x))  // Start position (x) of the line
-        .attr('y1', this.y_scale(datapoint.y))  // Start position (y) of the line
-        .attr('x2', this.x_scale(datapoint.x))  // Initially, end position (x) is the same as start position
-        .attr('y2', this.y_scale(datapoint.y))  // Initially, end position (y) is the same as start position
-        .attr('stroke', 'orange')
-        .attr('stroke-width', stroke_width);
-      
-      // Transition to the actual end position over a certain duration
-      let related_circle = circles.get(parseInt(identifier));
-      line.transition()
-        .duration(300)
-        .attr('x2', this.x_scale(related_circle.x))  // Actual end position (x) of the line
-        .attr('y2', this.y_scale(related_circle.y));  // Actual end position (y) of the line
-    }
+    this.connectDatapoints(datapoint, intersections);
 
     let highlighted_datapoints: Array<number> = Object.keys(intersections).map(Number);
     highlighted_datapoints.push(datapoint.identifier);
     this.highlightDatapoints(highlighted_datapoints);
+
+    let hovered_datapoint = this.plot.selectAll('circle')
+      .filter(d => d.identifier == datapoint.identifier);
+      // .data()[0];
+
+    hovered_datapoint
+      .transition()
+      .duration(this.transition_duration)
+      .attr('r', datapoint.size * 4)
+      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, 1)`);
+
+    // Create a pie layout
+    let pie = d3.pie();
+      // .value(d => d.value);
+
+    let data: Array<number> = Object.values(intersections);
+    console.log(data)
+
+    // Compute the pie layout
+    let pieData = pie(data);
+
+    // Create an arc generator
+    let arc = d3.arc()
+      .innerRadius(0)
+      .outerRadius(datapoint.size * 4);
+
+    // Create a group element for the pie chart
+    let pieGroup = this.plot.append('g')
+      .attr('transform', `translate(${hovered_datapoint.attr('cx')}, ${hovered_datapoint.attr('cy')})`);
+
+    // Append a path for each segment of the pie chart
+    pieGroup.selectAll('path')
+      .data(pieData)
+      .enter()
+      .append('path')
+      .attr('d', arc)
+      .attr('fill', (d, i) => d3.interpolateRainbow(i / data.length));  // Use a different color for each segment
   }
 
   private removeHighlight(){
     let circles = this.plot.selectAll('circle');
-    let duration = 300;
 
     circles
       .transition()
-      .duration(duration)
+      .duration(this.transition_duration)
       .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
+      .attr('r', d => d.size)
       .style('stroke', `rgba(255, 0, 0, 1)`)
       .style('stroke-dasharray', '1,1');
 
     let intersection_lines = this.svg.selectAll('.intersection_line');
     intersection_lines
       .transition()
-      .duration(duration)
+      .duration(this.transition_duration)
       .attr('x2', d => d.x1)  // End position (x) becomes the start position
       .attr('y2', d => d.y1)  // End position (y) becomes the start position
       .remove();
@@ -437,14 +477,13 @@ export class VisualizationComponent implements AfterViewInit{
     this.intersection_mode = !this.intersection_mode;
     let circles = this.plot.selectAll('circle');
     
-    let duration = 300;
     if(this.intersection_mode == true){ // Activate intersection mode
         circles
           .on('mouseover', (event, d) => { this.showIntersections(d, event) })
           .on('mouseout', (event, d) => { this.hideIntersections(); })
           .on('click', (event, d) => {})
           .transition()
-          .duration(duration)
+          .duration(this.transition_duration)
           .style('stroke', 'rgba(255, 0, 0, 1)')
           .style('stroke-dasharray', '1,1');
 
@@ -455,9 +494,9 @@ export class VisualizationComponent implements AfterViewInit{
       circles
         .on('mouseover', (event, d) => { this.tooltip.show(d, event.currentTarget); })
         .on('mouseout', (event, d) => { this.tooltip.hide(d, event.currentTarget); })
-        .on('click', (event, d) => { this.onDatapointClick('300ms', '300ms', d.identifier); })
+        .on('click', (event, d) => { this.onDatapointClick(d.identifier); })
         .transition()
-        .duration(duration)
+        .duration(this.transition_duration)
         .style('stroke-dasharray', '0,0');
   
       return;
