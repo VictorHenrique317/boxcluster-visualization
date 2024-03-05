@@ -86,6 +86,7 @@ export class VisualizationComponent implements AfterViewInit{
   
   private tooltip;
   private transition_duration = 300;
+  private hovered_datapoint = null;
 
   private intersection_mode: boolean = false;
 
@@ -373,6 +374,14 @@ export class VisualizationComponent implements AfterViewInit{
     circles
       .transition()
       .duration(this.transition_duration)
+      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
+      .attr('r', d => d.size)
+      .style('stroke', `rgba(255, 0, 0, 1)`)
+      .style('stroke-dasharray', '1,1');
+
+    circles
+      .transition()
+      .duration(this.transition_duration)
       .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a*circles_visibility})`)
       .style('stroke', `rgba(255, 0, 0, ${circles_visibility})`)
       .style('stroke-dasharray', '1,1');
@@ -407,14 +416,15 @@ export class VisualizationComponent implements AfterViewInit{
     highlighted_datapoints.push(datapoint.identifier);
     this.highlightDatapoints(highlighted_datapoints);
 
-    let hovered_datapoint = this.plot.selectAll('circle')
+    let expansion_factor = 4;
+    this.hovered_datapoint = this.plot.selectAll('circle')
       .filter(d => d.identifier == datapoint.identifier);
       // .data()[0];
 
-    hovered_datapoint
+    this.hovered_datapoint
       .transition()
       .duration(this.transition_duration)
-      .attr('r', datapoint.size * 4)
+      .attr('r', datapoint.size * expansion_factor)
       .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, 1)`);
 
     // Create a pie layout
@@ -422,32 +432,43 @@ export class VisualizationComponent implements AfterViewInit{
       // .value(d => d.value);
 
     let data: Array<number> = Object.values(intersections);
+    let untouched_percentage = 1 - data.reduce((a, b) => a + b, 0);
+    data.push(untouched_percentage);
     console.log(data)
 
     // Compute the pie layout
-    let pieData = pie(data);
+    let pie_data = pie(data);
+
+    let original_arc = d3.arc()
+      .innerRadius(0)
+      .outerRadius(d => datapoint.size);
 
     // Create an arc generator
-    let arc = d3.arc()
+    let pie_chart_arc = d3.arc()
       .innerRadius(0)
-      .outerRadius(datapoint.size * 4);
+      .outerRadius(datapoint.size * expansion_factor);
 
     // Create a group element for the pie chart
-    let pieGroup = this.plot.append('g')
-      .attr('transform', `translate(${hovered_datapoint.attr('cx')}, ${hovered_datapoint.attr('cy')})`);
+    let pie_group = this.plot.append('g')
+      .attr('class', 'pie_chart')
+      .attr('transform', `translate(${this.hovered_datapoint.attr('cx')}, ${this.hovered_datapoint.attr('cy')})`);
 
     // Append a path for each segment of the pie chart
-    pieGroup.selectAll('path')
-      .data(pieData)
+    pie_group.selectAll('path')
+      .data(pie_data)
       .enter()
       .append('path')
-      .attr('d', arc)
+      .attr('pointer-events', 'none')
+      .attr('d', original_arc)
+      .attr('fill', 'red')
+      .transition()
+      .duration(this.transition_duration)
+      .attr('d', pie_chart_arc)
       .attr('fill', (d, i) => d3.interpolateRainbow(i / data.length));  // Use a different color for each segment
   }
 
   private removeHighlight(){
     let circles = this.plot.selectAll('circle');
-
     circles
       .transition()
       .duration(this.transition_duration)
@@ -456,6 +477,19 @@ export class VisualizationComponent implements AfterViewInit{
       .style('stroke', `rgba(255, 0, 0, 1)`)
       .style('stroke-dasharray', '1,1');
 
+    let circle_arc = d3.arc()
+      .innerRadius(0)
+      .outerRadius(d => this.hovered_datapoint.size);
+
+    let pie_chart = this.svg.selectAll('.pie_chart');
+    pie_chart.selectAll('path')
+      .transition()
+      .duration(this.transition_duration)
+      .attr('d', circle_arc)
+      .remove();  // Remove the paths after the transition
+
+    
+
     let intersection_lines = this.svg.selectAll('.intersection_line');
     intersection_lines
       .transition()
@@ -463,6 +497,8 @@ export class VisualizationComponent implements AfterViewInit{
       .attr('x2', d => d.x1)  // End position (x) becomes the start position
       .attr('y2', d => d.y1)  // End position (y) becomes the start position
       .remove();
+
+    this.hovered_datapoint = null;
   }
 
   private hideIntersections(){
