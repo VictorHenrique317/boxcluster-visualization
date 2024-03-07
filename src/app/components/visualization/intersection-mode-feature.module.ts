@@ -1,0 +1,204 @@
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { DataPoint } from 'src/app/models/datapoint';
+import { SvgFeatureModule } from './svg-feature.module';
+import * as d3 from 'd3';
+import { environment } from 'src/environments/environment';
+import { fs, invoke } from '@tauri-apps/api';
+import { DialogService } from 'src/app/services/dialog/dialog.service';
+import { resolveResource } from '@tauri-apps/api/path';
+
+@NgModule({
+  declarations: [],
+  imports: [
+    CommonModule
+  ]
+})
+export class IntersectionModeFeatureModule {
+  private hovered_datapoint: any;
+  private transition_duration: number = 300;
+
+  private svg_feature: SvgFeatureModule;
+  private dialog_service: DialogService;
+
+  private onDatapointClick: (identifier: number) => void;
+
+  constructor(svg_feature: SvgFeatureModule, dialog_service: DialogService) {
+    this.svg_feature = svg_feature;
+    this.dialog_service = dialog_service;
+  }
+
+  private connectDatapoints(center: DataPoint, others:any ){
+    let circles = new Map<number, DataPoint>(this.svg_feature.plot.selectAll('circle').data()
+      .map(d => [d.identifier, d]));
+    for(const identifier in others){
+      let percentage = others[identifier];
+      let stroke_width = 6 * percentage + 2; // 2 to 8
+
+      let x1 = this.svg_feature.xScale(center.x);
+      let y1 = this.svg_feature.yScale(center.y);
+      let line = this.svg_feature.plot.append('line')
+        .datum({x1: x1, y1: y1})  // Bind the original coordinates to the line
+        .attr('class', 'intersection_line')
+        .attr('pointer-events', 'none')
+        .attr('x1', this.svg_feature.xScale(center.x))  // Start position (x) of the line
+        .attr('y1', this.svg_feature.yScale(center.y))  // Start position (y) of the line
+        .attr('x2', this.svg_feature.xScale(center.x))  // Initially, end position (x) is the same as start position
+        .attr('y2', this.svg_feature.yScale(center.y))  // Initially, end position (y) is the same as start position
+        .attr('stroke', 'orange')
+        .attr('stroke-width', stroke_width);
+      
+      let related_circle = circles.get(parseInt(identifier));
+      line
+        .transition('mouseover')
+        .duration(this.transition_duration*2)
+        .attr('x2', this.svg_feature.xScale(related_circle.x))  // Actual end position (x) of the line
+        .attr('y2', this.svg_feature.yScale(related_circle.y));  // Actual end position (y) of the line
+    }
+  }
+
+  private highlightDatapoints(identifiers: Array<number>){
+    let circles = this.svg_feature.plot.selectAll('circle');
+    let circles_visibility = 0.2;
+
+    circles
+      .transition('mouseover')
+      .duration(this.transition_duration)
+      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a*circles_visibility})`)
+      .style('stroke', `rgba(255, 0, 0, ${circles_visibility})`);
+
+    let identifiers_set = new Set(identifiers);
+    let highligthed_circles = circles.filter(d => identifiers_set.has(d.identifier));
+    highligthed_circles
+      .raise()
+      .transition('mouseover')
+      .duration(this.transition_duration)
+      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
+      .style('stroke', `rgba(255, 0, 0, 1)`)
+      .style('stroke-dasharray', '10000,10000');
+  }
+
+  private createIntersectionChart(datapoint: DataPoint, intersections: any, chart_radius: number){
+    let pie = d3.pie();
+
+    let data: Array<number> = Object.values(intersections);
+    let untouched_percentage = 1 - data.reduce((a, b) => a + b, 0);
+    data.push(untouched_percentage);
+    console.log(data)
+
+    // Compute the pie layout
+    let pie_data = pie(data);
+
+    let original_arc = d3.arc()
+      .innerRadius(0)
+      .outerRadius(d => datapoint.size);
+
+    // Create an arc generator
+    let pie_chart_arc = d3.arc()
+      .innerRadius(0)
+      .outerRadius(chart_radius);
+
+    // Create a group element for the pie chart
+    let pie_group = this.svg_feature.plot.append('g')
+      .attr('class', 'pie_chart')
+      .attr('transform', `translate(${this.hovered_datapoint.attr('cx')}, ${this.hovered_datapoint.attr('cy')})`);
+
+    // Append a path for each segment of the pie chart
+    pie_group.selectAll('path')
+      .data(pie_data)
+      .enter()
+      .append('path')
+      .attr('pointer-events', 'none')
+      .attr('d', original_arc)
+      .attr('fill', 'red')
+      .transition('mouseover')
+      .duration(this.transition_duration)
+      .attr('d', pie_chart_arc)
+      .attr('fill', (d, i) => d3.interpolateRainbow(i / data.length));  // Use a different color for each segment
+  }
+
+  private async showIntersections(datapoint: DataPoint, event){
+    let intersections:any;
+    if(!environment.dev_mode){
+      intersections = await invoke("getIntersectionPercentagesFor", {identifier: datapoint.identifier})
+        .catch((error: any) => {
+          console.error(error);
+          this.dialog_service.openErrorDialog("Error while getting intersections.");
+        });
+    }else{
+      let rawdata = await fs.readTextFile(await resolveResource('resources/intersections.json'));
+      intersections = JSON.parse(rawdata);
+    }
+
+    let highlighted_datapoints: Array<number> = Object.keys(intersections).map(Number);
+    highlighted_datapoints.push(datapoint.identifier);
+    this.highlightDatapoints(highlighted_datapoints);
+
+    let expansion_factor = 4;
+    this.hovered_datapoint = this.svg_feature.plot.selectAll('circle')
+      .filter(d => d.identifier == datapoint.identifier);
+    this.hovered_datapoint
+      .attr('r', datapoint.size)
+      .transition('mouseover')
+      .duration(this.transition_duration)
+      .attr('r', datapoint.size * expansion_factor)
+      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, 1)`);
+
+    this.connectDatapoints(datapoint, intersections);
+
+    let chart_radius = datapoint.size * expansion_factor;
+    this.createIntersectionChart(datapoint, intersections, chart_radius);
+    
+  }
+
+  private removeHighlight(){
+    let intersection_lines = this.svg_feature.svg.selectAll('.intersection_line');
+    intersection_lines
+      .transition('mouseout')
+      .duration(this.transition_duration)
+      .attr('x2', d => d.x1)  // End position (x) becomes the start position
+      .attr('y2', d => d.y1)  // End position (y) becomes the start position
+      .remove();
+
+    let circles = this.svg_feature.plot.selectAll('circle');
+    circles
+      .transition('mouseout')
+      .duration(this.transition_duration)
+      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
+      .attr('r', d => d.size)
+      .style('stroke', `rgba(255, 0, 0, 1)`)
+      .style('stroke-dasharray', '1,1');
+
+    if(this.hovered_datapoint != null){
+      let circle_arc = d3.arc()
+      .innerRadius(0)
+      .outerRadius(d => this.hovered_datapoint.size);
+
+      let pie_chart = this.svg_feature.svg.selectAll('.pie_chart');
+      pie_chart.selectAll('path')
+        .transition('mouseout')
+        .duration(this.transition_duration)
+        .attr('d', circle_arc)
+        .remove();  // Remove the paths after the transition
+    }
+
+    this.hovered_datapoint = null;
+  }
+
+  private hideIntersections(){
+    this.removeHighlight();
+  }
+
+  public activateIntersectionMode(){
+    let circles = this.svg_feature.plot.selectAll('circle');
+    
+    circles
+      .on('click', (event, d) => { this.showIntersections(d, event) })
+      // .on('mouseover', (event, d) => { })
+      // .on('mouseout', (event, d) => { this.hideIntersections(); })
+      .transition()
+      .duration(this.transition_duration)
+      .style('stroke', 'rgba(255, 0, 0, 1)')
+      .style('stroke-dasharray', '1,1');
+  }
+}
