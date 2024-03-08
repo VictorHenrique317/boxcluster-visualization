@@ -179,7 +179,7 @@ export class RssViewComponent implements AfterViewInit{
 
   protected onSliderDrag(event: any) {
     let x = this.datapoints[this.pattern_number - 1].x;
-    this.svg.drawVerticalLine(x);
+    this.drawVerticalLine(x);
   }
 
   public onResize(event) {
@@ -266,10 +266,8 @@ export class RssViewComponent implements AfterViewInit{
   }
 
   private drawVerticalLine(x: number) {
-    // Remove any existing line
     this.plot.selectAll('#vertical-line').remove();
 
-    // Draw a new line
     this.plot.append('line')
         .attr('id', 'vertical-line')
         .attr('x1', this.x_scale(x))

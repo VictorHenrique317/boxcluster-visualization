@@ -68,8 +68,6 @@ export class SvgFeatureModule {
     this.cdr.detectChanges();
     
     this.zoom_level = this.initial_scale;
-
-    this.fetchDataPoints();
   }
 
   public createSvg(){
@@ -100,7 +98,7 @@ export class SvgFeatureModule {
     this.svg_height = height;
 
     this.createPlot();
-    this.drawDataPoints();
+    this.drawDataPoints(this.datapoints);
   }
 
   private createPlot(){
@@ -109,7 +107,6 @@ export class SvgFeatureModule {
     
     let panning_zoom = d3.zoom()
       .scaleExtent([1.4, 10]) // This control how much you can unzoom (x1) and zoom (x10)
-      // .translateExtent([[0, 0], [this.height, this.height/1.2]])
       .translateExtent([[0, 0], [this.svg_height, this.svg_height]])
       .on("start", (event, d) => { this.svg.attr("cursor", "grabbing"); })
       .on("zoom", (event) => { 
@@ -125,11 +122,9 @@ export class SvgFeatureModule {
 
     // Apply initial zoom level
     let x_translation_factor = 0.0;
-    // let y_translation_factor = 0.15;
     let y_translation_factor = 0.2;
     let initial_transform = d3.zoomIdentity
       .translate(-this.svg_width*(x_translation_factor), -this.svg_height*(y_translation_factor))
-      // .translate(-this.width*(x_translation_factor), 0)
       .scale(this.initial_scale);
     this.svg.call(panning_zoom.transform, initial_transform);
     
@@ -141,8 +136,8 @@ export class SvgFeatureModule {
     let makeYGridlines = () => { return d3.axisLeft(this.y_scale).ticks(this.number_of_gridlines) }
     let grey_tonality = 220;
     let color = `rgb(${grey_tonality}, ${grey_tonality}, ${grey_tonality})`;
-    // Add the X gridlines
-    this.plot.append("g")			
+    
+    this.plot.append("g") // Add the X gridlines
       .attr("class", "grid")
       .attr("transform", "translate(0," + this.svg_height + ")")
       .attr("color", color)
@@ -151,8 +146,7 @@ export class SvgFeatureModule {
           .tickFormat(() => "")
       )
 
-    // Add the Y gridlines
-    this.plot.append("g")			
+    this.plot.append("g") // Add the Y gridlines
       .attr("class", "grid")
       .attr("color", color)
       .call(makeYGridlines()
@@ -185,16 +179,12 @@ export class SvgFeatureModule {
       .tickFormat((d, i, e) => `${d}${i === e.length - 1 ? " Cells" : ""}`)
       .tickSize(max_size); // defaults to 5
     
-    const svg_width = this.svg.attr('width');
-    const svg_height = this.svg.attr('height');
     const legend_x_padding = 10;
     const legend_y_padding = 10;
   
-    // Remove the old legend if it exists
     this.svg.select("#circle_legend").remove();
-  
     this.svg.append("g")
-      .attr('id', 'circle_legend') // Add a unique id to the legend
+      .attr('id', 'circle_legend')
       .attr('transform', `translate(${legend_x_padding}, ${legend_y_padding})`)
       .call(legend);
   }
@@ -229,26 +219,13 @@ export class SvgFeatureModule {
     let max_module = Math.max(x_max_module, y_max_module);
 
     let scaled_datapoints: Array<DataPoint> = datapoints;
-    // let screen_coverage = 0.05;
     let screen_coverage = 0.5;
     datapoints.forEach(datapoint => {
-        // if(max_module > -0.5 && max_module < 0.5){
-        //   max_module = 1;
-        // }
-
         let result_x = datapoint.x / x_max_module;
         let result_y = datapoint.y / y_max_module;
 
-      if (isNaN(result_x) || !isFinite(result_x)) {
-          result_x = datapoint.x;
-      }
-
-      if (isNaN(result_y) || !isFinite(result_y)) {
-          result_y = datapoint.y;
-      }
-
-        // datapoint.x /= x_max_module * ((1-screen_coverage) + 1);
-        // datapoint.y /= y_max_module * ((1-screen_coverage) + 1);
+      if (isNaN(result_x) || !isFinite(result_x)) { result_x = datapoint.x; }
+      if (isNaN(result_y) || !isFinite(result_y)) { result_y = datapoint.y; }
 
         datapoint.x = result_x / ((1-screen_coverage) + 1);
         datapoint.y = result_y / ((1-screen_coverage) + 1);
@@ -257,20 +234,22 @@ export class SvgFeatureModule {
     return scaled_datapoints;
   }
 
-  public drawDataPoints() {
+  public drawDataPoints(datapoints: Array<DataPoint>) {
+    if(datapoints == undefined || datapoints == null){ return; }
     if(this.plot == undefined){ return; }
-    if(this.datapoints == undefined){ return; }
+    
+    this.datapoints = datapoints;
 
     this.plot.call(this.tooltip);
 
     let scaled_datapoints = this.scalingFunction(this.datapoints);
     const circles = this.plot.selectAll('circle')
-        .data(scaled_datapoints, d => d.identifier); // Each datapoint has a unique identifier
+        .data(scaled_datapoints, d => d.identifier);
 
     circles.exit()
         .transition()
         .duration(this.transition_duration)
-        .attr('r', 0) // Reduce radius to 0
+        .attr('r', 0)
         .remove(); 
 
     circles.transition()
@@ -287,41 +266,27 @@ export class SvgFeatureModule {
             return result;
         })
         .attr('cy', d => this.y_scale(parseFloat(d.y)))
-        .attr('r', 0) // Start from radius 0
+        .attr('r', 0)
         .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
-        .style('cursor', 'pointer') // Set cursor to pointer
+        .style('cursor', 'pointer')
         .style('stroke', 'rgba(255, 0, 0, 1')
         .on('mouseover', (event, d) => { this.tooltip.show(d, event.currentTarget); })
         .on('mouseout', (event, d) => { this.tooltip.hide(d, event.currentTarget); })
         .on('click', (event, d) => { this.onDatapointClick(d.identifier); })
-        .transition() // Transition to final state
+        .transition()
         .duration(this.transition_duration)
-        .attr('r', d => d.size); // End with actual radius
+        .attr('r', d => d.size);
     
     this.drawCircleLegend();
     this.drawColorLegend();
   }
 
-  public async fetchDataPoints(){
-    console.log("Invoking getDataPoints");
-    
-    let datapoints;
-    if(!environment.dev_mode){
-      datapoints = await invoke("getDataPoints").catch((error: any) => {
-        console.error(error);
-        this.dialog_service.openErrorDialog("Error while fetching data points.");
-      });
-
-    } else if (environment.dev_mode){
-      let rawdata = await fs.readTextFile(await resolveResource('resources/datapoints2.json'));
-      datapoints = JSON.parse(rawdata);
-    }
-
-    console.log("Received datapoints:");
-    console.log(datapoints);
-
-    this.datapoints = datapoints;
-    this.drawDataPoints();
+  public resetDatapointEvents(){
+    let circles = this.plot.selectAll('circle'); 
+    circles
+        .on('mouseover', (event, d) => { this.tooltip.show(d, event.currentTarget); })
+        .on('mouseout', (event, d) => { this.tooltip.hide(d, event.currentTarget); })
+        .on('click', (event, d) => { this.onDatapointClick(d.identifier); });
   }
 
   private async getRawPattern(identifier: number){
@@ -355,6 +320,10 @@ export class SvgFeatureModule {
 
   public yScale(y: number){
     return this.y_scale(y);
+  }
+
+  public getDrawnDataPoints(){
+    return this.datapoints;
   }
 
 }

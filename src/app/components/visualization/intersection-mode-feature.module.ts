@@ -15,13 +15,12 @@ import { resolveResource } from '@tauri-apps/api/path';
   ]
 })
 export class IntersectionModeFeatureModule {
+  private intersection_mode:boolean = false;
   private hovered_datapoint: any;
   private transition_duration: number = 300;
 
   private svg_feature: SvgFeatureModule;
   private dialog_service: DialogService;
-
-  private onDatapointClick: (identifier: number) => void;
 
   constructor(svg_feature: SvgFeatureModule, dialog_service: DialogService) {
     this.svg_feature = svg_feature;
@@ -189,16 +188,32 @@ export class IntersectionModeFeatureModule {
     this.removeHighlight();
   }
 
-  public activateIntersectionMode(){
-    let circles = this.svg_feature.plot.selectAll('circle');
+  public isOnIntersectionMode(){
+    return this.intersection_mode;
+  }
+
+  public toggleIntersectionMode(){
+    this.intersection_mode = !this.intersection_mode;
     
-    circles
-      .on('click', (event, d) => { this.showIntersections(d, event) })
-      // .on('mouseover', (event, d) => { })
-      // .on('mouseout', (event, d) => { this.hideIntersections(); })
-      .transition()
-      .duration(this.transition_duration)
-      .style('stroke', 'rgba(255, 0, 0, 1)')
-      .style('stroke-dasharray', '1,1');
+    let circles = this.svg_feature.plot.selectAll('circle'); 
+    if(!this.intersection_mode){ // Activate intersection mode   
+      circles
+        .on('click', (event, d) => { this.showIntersections(d, event) })
+        // .on('mouseover', (event, d) => { })
+        // .on('mouseout', (event, d) => { this.hideIntersections(); })
+        .transition()
+        .duration(this.transition_duration)
+        .style('stroke', 'rgba(255, 0, 0, 1)')
+        .style('stroke-dasharray', '1,1');
+    }
+
+    else if(this.intersection_mode){ // Deactivate intersection mode
+      this.svg_feature.resetDatapointEvents();
+
+      circles
+        .transition()
+        .duration(this.transition_duration)
+        .style('stroke-dasharray', '10000,10000');
+    }
   }
 }

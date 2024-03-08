@@ -69,227 +69,48 @@ import { SvgFeatureModule } from "./svg-feature.module";
 
 export class VisualizationComponent implements AfterViewInit{
   @ViewChild('body') body: ElementRef<HTMLBodyElement>;
-  
-  private datapoints: Array<DataPoint>;
-
   @ViewChild('vizualization_div') visualization_div: ElementRef<HTMLDivElement>;
-  private svg: any;
-  private plot: any;
-
-  private zoom_level: number;
-  private initial_scale: number = 1.4;
-  private number_of_gridlines: number = 40;
-  private y_correction = 0;
-  
-  private svg_width: number;
-  private svg_height: number;
-  private x_scale: any;
-  private y_scale: any;
-  
-  private tooltip;
-  private transition_duration = 300;
-  private hovered_datapoint = null;
-
-  private intersection_mode: boolean = false;
 
   private svg_feature: SvgFeatureModule;
+  private intersection_mode_feature: IntersectionModeFeatureModule;
 
   constructor(public dialog_service: DialogService, private cdr: ChangeDetectorRef){ }
 
-  ngAfterViewInit(): void {
+  async ngAfterViewInit() {
     console.log("Initializing visualization component");
+
     let svg_width = this.body.nativeElement.clientWidth;
     let svg_height = this.body.nativeElement.clientHeight;
-
+    
     this.svg_feature = new SvgFeatureModule(this.dialog_service, this.cdr);
     this.svg_feature.init(this.visualization_div, svg_width, svg_height);
+    
+    let datapoints = await this.fetchDataPoints();
+    this.svg_feature.drawDataPoints(datapoints);
+
+    this.intersection_mode_feature = new IntersectionModeFeatureModule(this.svg_feature, this.dialog_service);
   }
 
-  // public async updateDataPoints(){
-  //   console.log("Invoking getDataPoints");
+  private async fetchDataPoints(): Promise<Array<DataPoint>>{
+    console.log("Invoking getDataPoints");
     
-  //   let datapoints;
-  //   if(!environment.dev_mode){
-  //     datapoints = await invoke("getDataPoints").catch((error: any) => {
-  //       console.error(error);
-  //       this.dialog_service.openErrorDialog("Error while fetching data points.");
-  //     });
+    let datapoints;
+    if(!environment.dev_mode){
+      datapoints = await invoke("getDataPoints").catch((error: any) => {
+        console.error(error);
+        this.dialog_service.openErrorDialog("Error while fetching data points.");
+      });
 
-  //   } else if (environment.dev_mode){
-  //     let rawdata = await fs.readTextFile(await resolveResource('resources/datapoints2.json'));
-  //     datapoints = JSON.parse(rawdata);
-  //   }
+    } else if (environment.dev_mode){
+      let rawdata = await fs.readTextFile(await resolveResource('resources/datapoints2.json'));
+      datapoints = JSON.parse(rawdata);
+    }
 
-  //   console.log("Received datapoints:");
-  //   console.log(datapoints);
+    console.log("Received datapoints:");
+    console.log(datapoints);
 
-  //   this.datapoints = datapoints;
-  //   this.drawDataPoints();
-  // }
-
-//   private scalingFunction(datapoints: Array<DataPoint>) {
-//     let x_max_module = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.x)));
-//     let y_max_module = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.y)));
-//     let max_module = Math.max(x_max_module, y_max_module);
-
-//     let scaled_datapoints: Array<DataPoint> = datapoints;
-//     // let screen_coverage = 0.05;
-//     let screen_coverage = 0.5;
-//     datapoints.forEach(datapoint => {
-//         // if(max_module > -0.5 && max_module < 0.5){
-//         //   max_module = 1;
-//         // }
-
-//         let result_x = datapoint.x / x_max_module;
-//         let result_y = datapoint.y / y_max_module;
-
-//       if (isNaN(result_x) || !isFinite(result_x)) {
-//           result_x = datapoint.x;
-//       }
-
-//       if (isNaN(result_y) || !isFinite(result_y)) {
-//           result_y = datapoint.y;
-//       }
-
-//         // datapoint.x /= x_max_module * ((1-screen_coverage) + 1);
-//         // datapoint.y /= y_max_module * ((1-screen_coverage) + 1);
-
-//         datapoint.x = result_x / ((1-screen_coverage) + 1);
-//         datapoint.y = result_y / ((1-screen_coverage) + 1);
-//     });
-
-//     return scaled_datapoints;
-//   }
-
-//   private drawDataPoints() {
-//     if(this.plot == undefined){ return; }
-
-//     this.plot.call(this.tooltip);
-  
-//     let scaled_datapoints = this.scalingFunction(this.datapoints);
-//     const circles = this.plot.selectAll('circle')
-//         .data(scaled_datapoints, d => d.identifier); // Each datapoint has a unique identifier
-  
-//     circles.exit()
-//         .transition()
-//         .duration(this.transition_duration)
-//         .attr('r', 0) // Reduce radius to 0
-//         .remove(); 
-  
-//     circles.transition()
-//         .duration(this.transition_duration) 
-//         .attr('cx', d => {
-//             const result = this.x_scale(parseFloat(d.x));
-//             return result;
-//         })
-//         .attr('cy', d => this.y_scale(parseFloat(d.y)));
-  
-//     circles.enter().append('circle') // Add new datapoints with animation
-//         .attr('cx', d => {
-//             const result = this.x_scale(parseFloat(d.x));
-//             return result;
-//         })
-//         .attr('cy', d => this.y_scale(parseFloat(d.y)))
-//         .attr('r', 0) // Start from radius 0
-//         .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
-//         .style('cursor', 'pointer') // Set cursor to pointer
-//         .style('stroke', 'rgba(255, 0, 0, 1')
-//         .on('mouseover', (event, d) => { this.tooltip.show(d, event.currentTarget); })
-//         .on('mouseout', (event, d) => { this.tooltip.hide(d, event.currentTarget); })
-//         .on('click', (event, d) => { this.onDatapointClick(d.identifier); })
-//         .transition() // Transition to final state
-//         .duration(this.transition_duration)
-//         .attr('r', d => d.size); // End with actual radius
-    
-//     this.drawCircleLegend();
-//     this.drawColorLegend();
-//   }
-
-//   private async getRawPattern(identifier: number){
-//     let pattern = await invoke("getPattern", {identifier: identifier}).catch((error: any) => {
-//       console.error(error);
-//       this.dialog_service.openErrorDialog("Error while fetching pattern.");
-//     });
-
-//     return pattern;
-//   }
-
-//   private drawCircleLegend(){
-//     let min_pattern_size = Math.min(...this.datapoints.map(datapoint => Math.abs(datapoint.pattern_size)));
-//     let max_pattern_size = Math.max(...this.datapoints.map(datapoint => Math.abs(datapoint.pattern_size)));
-//     let mean_pattern_size = 0;
-//     for(let i = 0; i < this.datapoints.length; i++){
-//       mean_pattern_size += this.datapoints[i].pattern_size;
-//     }
-//     mean_pattern_size /= this.datapoints.length;
-//     mean_pattern_size = Math.round(mean_pattern_size);
-
-//     let min_size = Math.min(...this.datapoints.map(datapoint => Math.abs(datapoint.size))) * this.zoom_level;
-//     let max_size = Math.max(...this.datapoints.map(datapoint => Math.abs(datapoint.size))) * this.zoom_level;
-
-//     let legend = legendCircle(null)
-//       .scale(
-//         d3.scaleLinear()
-//             .domain([min_pattern_size, max_pattern_size])
-//             .range([min_size, max_size])
-//       )
-//       .tickValues([min_pattern_size, mean_pattern_size, max_pattern_size])
-//       .tickFormat((d, i, e) => `${d}${i === e.length - 1 ? " Cells" : ""}`)
-//       .tickSize(max_size); // defaults to 5
-    
-//     const svg_width = this.svg.attr('width');
-//     const svg_height = this.svg.attr('height');
-//     const legend_x_padding = 10;
-//     const legend_y_padding = 10;
-  
-//     // Remove the old legend if it exists
-//     this.svg.select("#circle_legend").remove();
-  
-//     this.svg.append("g")
-//       .attr('id', 'circle_legend') // Add a unique id to the legend
-//       .attr('transform', `translate(${legend_x_padding}, ${legend_y_padding})`)
-//       .call(legend);
-//   }
-
-//   private drawColorLegend(){
-//     let oldLegend = document.getElementById("color_legend");
-//     if(oldLegend){
-//         oldLegend.parentNode.removeChild(oldLegend);
-//     }
-
-//     let svg_width = this.svg.attr('width');
-//     let legend_width = 320;
-//     const legend_x_padding = 10;
-
-//     let legend_x = svg_width - (legend_width + legend_x_padding);
-
-//     let legend = Legend(d3.scaleLinear([0, 1], ["rgba(255,0,0,0)", "red"]), {
-//       title: "Density",
-//       width: legend_width,
-//     })
-
-//     let legendGroup = this.svg.append('g')
-//       .attr('id', 'color_legend')
-//       .attr("transform", `translate(${legend_x}, 0)`);
-      
-//     legendGroup.node().appendChild(legend);
-// }
-
-//   private async onDatapointClick(identifier: number): Promise<void> {
-//     let pattern;
-//     if(!environment.dev_mode){
-//       pattern = await this.getRawPattern(identifier);
-
-//     }else if(environment.dev_mode){
-//       let rawdata = await fs.readTextFile(await resolveResource('resources/pattern.json'));
-//       pattern = JSON.parse(rawdata);
-//     }
-
-//     let dialog_data = {
-//       pattern: pattern
-//     }
-//     this.dialog_service.open(DatapointInfoDialogComponent, '500px', '590px', dialog_data);
-//   }
+    return datapoints;
+  }
 
   public onResize(event) {
     let width = this.body.nativeElement.clientWidth;
@@ -298,226 +119,29 @@ export class VisualizationComponent implements AfterViewInit{
     this.svg_feature.resizeSvg(width, height);
   }
 
-  public onTruncation(event){
+  public async onTruncation(event){
     let new_size = event - 1; // -1 because the first point is the null model rss
     console.log("Truncating datapoints to only: " + new_size);
 
-    if(environment.dev_mode) {
-      this.svg_feature.fetchDataPoints(); // Reseting to all original datapoints in dev mode
-
-      let new_datapoints = [];
-
-      for(let i = 0; i < new_size; i++){
-        new_datapoints.push(this.datapoints[i]);
-      }
-
-      this.datapoints = new_datapoints; // Truncation
-      if(this.svg != undefined){ this.svg_feature.drawDataPoints(); } // Updating the svg
-      return;
-    }
-
-    invoke("truncateModel", {newSize: new_size}).then((datapoint_changes: any) => { // This performs the truncation
-      this.svg_feature.fetchDataPoints();
-
-    }).catch((error: any) => {
-      console.error(error);
-      this.dialog_service.openErrorDialog("Error while truncating datapoints.");
-    });
-  }
-
-  private connectDatapoints(center: DataPoint, others:any ){
-    let circles = new Map<number, DataPoint>(this.plot.selectAll('circle').data()
-      .map(d => [d.identifier, d]));
-    for(const identifier in others){
-      let percentage = others[identifier];
-      let stroke_width = 6 * percentage + 2; // 2 to 8
-
-      let x1 = this.x_scale(center.x);
-      let y1 = this.y_scale(center.y);
-      let line = this.plot.append('line')
-        .datum({x1: x1, y1: y1})  // Bind the original coordinates to the line
-        .attr('class', 'intersection_line')
-        .attr('pointer-events', 'none')
-        .attr('x1', this.x_scale(center.x))  // Start position (x) of the line
-        .attr('y1', this.y_scale(center.y))  // Start position (y) of the line
-        .attr('x2', this.x_scale(center.x))  // Initially, end position (x) is the same as start position
-        .attr('y2', this.y_scale(center.y))  // Initially, end position (y) is the same as start position
-        .attr('stroke', 'orange')
-        .attr('stroke-width', stroke_width);
-      
-      let related_circle = circles.get(parseInt(identifier));
-      line
-        .transition('mouseover')
-        .duration(this.transition_duration*2)
-        .attr('x2', this.x_scale(related_circle.x))  // Actual end position (x) of the line
-        .attr('y2', this.y_scale(related_circle.y));  // Actual end position (y) of the line
-    }
-  }
-
-  private highlightDatapoints(identifiers: Array<number>){
-    let circles = this.plot.selectAll('circle');
-    let circles_visibility = 0.2;
-
-    circles
-      .transition('mouseover')
-      .duration(this.transition_duration)
-      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a*circles_visibility})`)
-      .style('stroke', `rgba(255, 0, 0, ${circles_visibility})`);
-
-    let identifiers_set = new Set(identifiers);
-    let highligthed_circles = circles.filter(d => identifiers_set.has(d.identifier));
-    highligthed_circles
-      .raise()
-      .transition('mouseover')
-      .duration(this.transition_duration)
-      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
-      .style('stroke', `rgba(255, 0, 0, 1)`)
-      .style('stroke-dasharray', '10000,10000');
-  }
-
-  private createIntersectionChart(datapoint: DataPoint, intersections: any, chart_radius: number){
-    let pie = d3.pie();
-
-    let data: Array<number> = Object.values(intersections);
-    let untouched_percentage = 1 - data.reduce((a, b) => a + b, 0);
-    data.push(untouched_percentage);
-    console.log(data)
-
-    // Compute the pie layout
-    let pie_data = pie(data);
-
-    let original_arc = d3.arc()
-      .innerRadius(0)
-      .outerRadius(d => datapoint.size);
-
-    // Create an arc generator
-    let pie_chart_arc = d3.arc()
-      .innerRadius(0)
-      .outerRadius(chart_radius);
-
-    // Create a group element for the pie chart
-    let pie_group = this.plot.append('g')
-      .attr('class', 'pie_chart')
-      .attr('transform', `translate(${this.hovered_datapoint.attr('cx')}, ${this.hovered_datapoint.attr('cy')})`);
-
-    // Append a path for each segment of the pie chart
-    pie_group.selectAll('path')
-      .data(pie_data)
-      .enter()
-      .append('path')
-      .attr('pointer-events', 'none')
-      .attr('d', original_arc)
-      .attr('fill', 'red')
-      .transition('mouseover')
-      .duration(this.transition_duration)
-      .attr('d', pie_chart_arc)
-      .attr('fill', (d, i) => d3.interpolateRainbow(i / data.length));  // Use a different color for each segment
-  }
-
-  private async showIntersections(datapoint: DataPoint, event){
-    let intersections:any;
+    let truncated_datapoints;
     if(!environment.dev_mode){
-      intersections = await invoke("getIntersectionPercentagesFor", {identifier: datapoint.identifier})
-        .catch((error: any) => {
-          console.error(error);
-          this.dialog_service.openErrorDialog("Error while getting intersections.");
-        });
-    }else{
-      let rawdata = await fs.readTextFile(await resolveResource('resources/intersections.json'));
-      intersections = JSON.parse(rawdata);
+      await invoke("truncateModel", {newSize: new_size}).catch((error: any) => {
+        console.error(error);
+        this.dialog_service.openErrorDialog("Error while truncating datapoints.");
+      });
+  
+      truncated_datapoints = await this.fetchDataPoints();
+    }
+    else if(environment.dev_mode) {
+      let datapoints = await this.fetchDataPoints(); // Getting all original datapoints in dev mode
+      truncated_datapoints = datapoints.slice(0, new_size);
     }
 
-    let highlighted_datapoints: Array<number> = Object.keys(intersections).map(Number);
-    highlighted_datapoints.push(datapoint.identifier);
-    this.highlightDatapoints(highlighted_datapoints);
-
-    let expansion_factor = 4;
-    this.hovered_datapoint = this.plot.selectAll('circle')
-      .filter(d => d.identifier == datapoint.identifier);
-    this.hovered_datapoint
-      .attr('r', datapoint.size)
-      .transition('mouseover')
-      .duration(this.transition_duration)
-      .attr('r', datapoint.size * expansion_factor)
-      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, 1)`);
-
-    this.connectDatapoints(datapoint, intersections);
-
-    let chart_radius = datapoint.size * expansion_factor;
-    this.createIntersectionChart(datapoint, intersections, chart_radius);
-    
-  }
-
-  private removeHighlight(){
-    let intersection_lines = this.svg.selectAll('.intersection_line');
-    intersection_lines
-      .transition('mouseout')
-      .duration(this.transition_duration)
-      .attr('x2', d => d.x1)  // End position (x) becomes the start position
-      .attr('y2', d => d.y1)  // End position (y) becomes the start position
-      .remove();
-
-    let circles = this.plot.selectAll('circle');
-    circles
-      .transition('mouseout')
-      .duration(this.transition_duration)
-      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
-      .attr('r', d => d.size)
-      .style('stroke', `rgba(255, 0, 0, 1)`)
-      .style('stroke-dasharray', '1,1');
-
-    if(this.hovered_datapoint != null){
-      let circle_arc = d3.arc()
-      .innerRadius(0)
-      .outerRadius(d => this.hovered_datapoint.size);
-
-      let pie_chart = this.svg.selectAll('.pie_chart');
-      pie_chart.selectAll('path')
-        .transition('mouseout')
-        .duration(this.transition_duration)
-        .attr('d', circle_arc)
-        .remove();  // Remove the paths after the transition
-    }
-
-    this.hovered_datapoint = null;
-  }
-
-  private hideIntersections(){
-    this.removeHighlight();
-  }
-
-  public isOnIntersectionMode(){
-    return this.intersection_mode;
+    this.svg_feature.drawDataPoints(truncated_datapoints);
   }
 
   public toggleIntersectionMode(){
-    // this.intersection_mode = !this.intersection_mode;
-    // let circles = this.plot.selectAll('circle');
-    
-    // if(this.intersection_mode == true){ // Activate intersection mode
-    //     circles
-    //       .on('click', (event, d) => { this.showIntersections(d, event) })
-    //       .on('mouseover', (event, d) => { })
-    //       .on('mouseout', (event, d) => { this.hideIntersections(); })
-    //       .transition()
-    //       .duration(this.transition_duration)
-    //       .style('stroke', 'rgba(255, 0, 0, 1)')
-    //       .style('stroke-dasharray', '1,1');
-
-    //       return;
-    // }
-  
-    // if(this.intersection_mode == false){ // Deactivate intersection mode);
-    //   circles
-    //     .on('mouseover', (event, d) => { this.tooltip.show(d, event.currentTarget); })
-    //     .on('mouseout', (event, d) => { this.tooltip.hide(d, event.currentTarget); })
-    //     .on('click', (event, d) => { this.onDatapointClick(d.identifier); })
-    //     .transition()
-    //     .duration(this.transition_duration)
-    //     .style('stroke-dasharray', '10000,10000');
-  
-    //   return;
-    // }
+    this.intersection_mode_feature.toggleIntersectionMode();
   }
 
   // ========================= SVG FUNCTIONS ========================= //
