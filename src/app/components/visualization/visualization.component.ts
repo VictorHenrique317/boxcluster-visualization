@@ -143,9 +143,4 @@ export class VisualizationComponent implements AfterViewInit{
   public toggleIntersectionMode(){
     this.intersection_mode_feature.toggleIntersectionMode();
   }
-
-  // ========================= SVG FUNCTIONS ========================= //
-  
-
-  // ========================= SVG FUNCTIONS ========================= //
 }

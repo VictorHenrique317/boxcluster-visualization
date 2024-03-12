@@ -74,7 +74,8 @@ export class SvgFeatureModule {
     let svg = d3.select(this.visualization_div.nativeElement)
       .append('svg')
         .attr('width', this.svg_width)
-        .attr('height',this.svg_height);
+        .attr('height',this.svg_height)
+        .on('dblclick', () => {  });
 
     return svg;
   }
@@ -103,7 +104,9 @@ export class SvgFeatureModule {
 
   private createPlot(){
     if(this.plot != undefined){ this.svg.select("#plot").remove(); }
-    this.plot = this.svg.append("g").attr("id", "plot");
+    this.plot = this.svg.append("g")
+      .attr("id", "plot")
+      .on('dblclick', () => {  });
     
     let panning_zoom = d3.zoom()
       .scaleExtent([1.4, 10]) // This control how much you can unzoom (x1) and zoom (x10)
@@ -324,6 +327,14 @@ export class SvgFeatureModule {
 
   public getDrawnDataPoints(){
     return this.datapoints;
+  }
+
+  public getSvgWidth(){
+    return this.svg_width;
+  }
+
+  public getSvgHeight(){
+    return this.svg_height;
   }
 
 }

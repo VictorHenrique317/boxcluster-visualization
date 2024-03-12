@@ -16,7 +16,7 @@ import { resolveResource } from '@tauri-apps/api/path';
 })
 export class IntersectionModeFeatureModule {
   private intersection_mode:boolean = false;
-  private hovered_datapoint: any;
+  private clicked_datapoint: any;
   private transition_duration: number = 300;
 
   private svg_feature: SvgFeatureModule;
@@ -83,7 +83,6 @@ export class IntersectionModeFeatureModule {
     let data: Array<number> = Object.values(intersections);
     let untouched_percentage = 1 - data.reduce((a, b) => a + b, 0);
     data.push(untouched_percentage);
-    console.log(data)
 
     // Compute the pie layout
     let pie_data = pie(data);
@@ -100,7 +99,7 @@ export class IntersectionModeFeatureModule {
     // Create a group element for the pie chart
     let pie_group = this.svg_feature.plot.append('g')
       .attr('class', 'pie_chart')
-      .attr('transform', `translate(${this.hovered_datapoint.attr('cx')}, ${this.hovered_datapoint.attr('cy')})`);
+      .attr('transform', `translate(${this.clicked_datapoint.attr('cx')}, ${this.clicked_datapoint.attr('cy')})`);
 
     // Append a path for each segment of the pie chart
     pie_group.selectAll('path')
@@ -133,10 +132,11 @@ export class IntersectionModeFeatureModule {
     highlighted_datapoints.push(datapoint.identifier);
     this.highlightDatapoints(highlighted_datapoints);
 
+    this.clicked_datapoint = this.svg_feature.plot.selectAll('circle')
+          .filter(d => d.identifier == datapoint.identifier);
+
     let expansion_factor = 4;
-    this.hovered_datapoint = this.svg_feature.plot.selectAll('circle')
-      .filter(d => d.identifier == datapoint.identifier);
-    this.hovered_datapoint
+    this.clicked_datapoint
       .attr('r', datapoint.size)
       .transition('mouseover')
       .duration(this.transition_duration)
@@ -153,6 +153,7 @@ export class IntersectionModeFeatureModule {
   private removeHighlight(){
     let intersection_lines = this.svg_feature.svg.selectAll('.intersection_line');
     intersection_lines
+      .lower()
       .transition('mouseout')
       .duration(this.transition_duration)
       .attr('x2', d => d.x1)  // End position (x) becomes the start position
@@ -168,10 +169,10 @@ export class IntersectionModeFeatureModule {
       .style('stroke', `rgba(255, 0, 0, 1)`)
       .style('stroke-dasharray', '1,1');
 
-    if(this.hovered_datapoint != null){
+    if(this.clicked_datapoint != null){
       let circle_arc = d3.arc()
       .innerRadius(0)
-      .outerRadius(d => this.hovered_datapoint.size);
+      .outerRadius(d => this.clicked_datapoint.size);
 
       let pie_chart = this.svg_feature.svg.selectAll('.pie_chart');
       pie_chart.selectAll('path')
@@ -181,7 +182,7 @@ export class IntersectionModeFeatureModule {
         .remove();  // Remove the paths after the transition
     }
 
-    this.hovered_datapoint = null;
+    this.clicked_datapoint = null;
   }
 
   private hideIntersections(){
@@ -196,20 +197,47 @@ export class IntersectionModeFeatureModule {
     this.intersection_mode = !this.intersection_mode;
     
     let circles = this.svg_feature.plot.selectAll('circle'); 
-    if(!this.intersection_mode){ // Activate intersection mode   
+    if(this.intersection_mode){ // Activate intersection mode
+      this.svg_feature.plot.append('rect')
+        .attr('id', 'overlay')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', this.svg_feature.getSvgWidth())
+        .attr('height', this.svg_feature.getSvgHeight())
+        .style('fill', 'rgba(0, 0, 0, 0)')
+        .lower()
+        .on('click', (event, d) => { this.hideIntersections(); });
+
       circles
-        .on('click', (event, d) => { this.showIntersections(d, event) })
+        .on('click', (event, d) => {
+          let old_clicked_datapoint: DataPoint = null;
+          if(this.clicked_datapoint != null || this.clicked_datapoint != undefined){
+            old_clicked_datapoint = this.clicked_datapoint.node().__data__;
+          }
+
+          this.hideIntersections();
+
+          if(old_clicked_datapoint == null){
+            // No datapoint was clicked before, show intersections
+            this.showIntersections(d, event);
+
+          }else if(old_clicked_datapoint.identifier != d.identifier){
+            // Did not click the same datapoint, show intersections
+            this.showIntersections(d, event)
+          }
+         })
         // .on('mouseover', (event, d) => { })
-        // .on('mouseout', (event, d) => { this.hideIntersections(); })
+        // .on('mouseout', (event, d) => { this.hideIntersections(); }).
         .transition()
         .duration(this.transition_duration)
         .style('stroke', 'rgba(255, 0, 0, 1)')
         .style('stroke-dasharray', '1,1');
     }
 
-    else if(this.intersection_mode){ // Deactivate intersection mode
-      this.svg_feature.resetDatapointEvents();
+    else if(!this.intersection_mode){ // Deactivate intersection mode
+      this.svg_feature.plot.selectAll('#overlay').remove();
 
+      this.svg_feature.resetDatapointEvents();
       circles
         .transition()
         .duration(this.transition_duration)
