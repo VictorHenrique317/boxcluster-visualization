@@ -7,6 +7,7 @@ import { environment } from 'src/environments/environment';
 import { fs, invoke } from '@tauri-apps/api';
 import { DialogService } from 'src/app/services/dialog/dialog.service';
 import { resolveResource } from '@tauri-apps/api/path';
+import { race } from 'rxjs';
 
 @NgModule({
   declarations: [],
@@ -27,11 +28,11 @@ export class IntersectionModeFeatureModule {
     this.dialog_service = dialog_service;
   }
 
-  private connectDatapoints(center: DataPoint, others:any ){
+  private connectDatapoints(center: DataPoint, others:Map<number, number>, intersections_colors: Map<number, string>){
     let circles = new Map<number, DataPoint>(this.svg_feature.plot.selectAll('circle').data()
       .map(d => [d.identifier, d]));
-    for(const identifier in others){
-      let percentage = others[identifier];
+
+    for(let [identifier, percentage] of others.entries()){
       let stroke_width = 6 * percentage + 2; // 2 to 8
 
       let x1 = this.svg_feature.xScale(center.x);
@@ -44,10 +45,10 @@ export class IntersectionModeFeatureModule {
         .attr('y1', this.svg_feature.yScale(center.y))  // Start position (y) of the line
         .attr('x2', this.svg_feature.xScale(center.x))  // Initially, end position (x) is the same as start position
         .attr('y2', this.svg_feature.yScale(center.y))  // Initially, end position (y) is the same as start position
-        .attr('stroke', 'orange')
+        .attr('stroke', intersections_colors.get(identifier))
         .attr('stroke-width', stroke_width);
       
-      let related_circle = circles.get(parseInt(identifier));
+      let related_circle = circles.get(identifier);
       line
         .transition('mouseover')
         .duration(this.transition_duration*2)
@@ -61,6 +62,7 @@ export class IntersectionModeFeatureModule {
     let circles_visibility = 0.2;
 
     circles
+      .raise()
       .transition('mouseover')
       .duration(this.transition_duration)
       .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a*circles_visibility})`)
@@ -77,31 +79,43 @@ export class IntersectionModeFeatureModule {
       .style('stroke-dasharray', '10000,10000');
   }
 
-  private createIntersectionChart(datapoint: DataPoint, intersections: any, chart_radius: number){
+  private createIntesectionColorMapping(intersections: Map<number, number>): Map<number, string>{
+    let colors = ["#240A34", "#891652", "#EABE6C", "#FFEDD8",
+                  "#6420AA", "#FF3EA5", "#FF7ED4", "#FFB5DA"]
+
+    let intersections_colors: Map<number, string> = new Map();
+    let i = 0;
+    for(const [identifier, percentage] of intersections.entries()){
+      intersections_colors.set(identifier, colors[i % colors.length]);
+      i++;
+    }
+
+    return intersections_colors;
+  }
+
+  private createIntersectionChart(datapoint: DataPoint, intersections: Map<number, number>, chart_radius: number, 
+    intersections_colors: Map<number, string>): Map<number, string>{
     let pie = d3.pie();
 
-    let data: Array<number> = Object.values(intersections);
+    let data: Array<number> = Array.from(intersections.values());
     let untouched_percentage = 1 - data.reduce((a, b) => a + b, 0);
     data.push(untouched_percentage);
-
-    // Compute the pie layout
     let pie_data = pie(data);
-
+    
     let original_arc = d3.arc()
       .innerRadius(0)
       .outerRadius(d => datapoint.size);
-
-    // Create an arc generator
     let pie_chart_arc = d3.arc()
       .innerRadius(0)
       .outerRadius(chart_radius);
 
-    // Create a group element for the pie chart
     let pie_group = this.svg_feature.plot.append('g')
       .attr('class', 'pie_chart')
       .attr('transform', `translate(${this.clicked_datapoint.attr('cx')}, ${this.clicked_datapoint.attr('cy')})`);
 
     // Append a path for each segment of the pie chart
+    let reverse_intersections = new Map<number, number>();
+    for(const [key, value] of intersections.entries()){ reverse_intersections.set(value, key); }
     pie_group.selectAll('path')
       .data(pie_data)
       .enter()
@@ -112,25 +126,46 @@ export class IntersectionModeFeatureModule {
       .transition('mouseover')
       .duration(this.transition_duration)
       .attr('d', pie_chart_arc)
-      .attr('fill', (d, i) => d3.interpolateRainbow(i / data.length));  // Use a different color for each segment
+      .attr('fill', (d, i) => {
+        console.log(reverse_intersections)
+        console.log(d.value)
+        let intersection_identifier = reverse_intersections.get(d.value);
+        let color = intersections_colors.get(intersection_identifier);
+
+        console.log(intersection_identifier)
+        console.log(color)
+
+        return color;
+      });
+
+    return intersections_colors;
   }
 
   private async showIntersections(datapoint: DataPoint, event){
-    let intersections:any;
+    let raw_data;
     if(!environment.dev_mode){
-      intersections = await invoke("getIntersectionPercentagesFor", {identifier: datapoint.identifier})
+      raw_data = await invoke("getIntersectionPercentagesFor", {identifier: datapoint.identifier})
         .catch((error: any) => {
           console.error(error);
           this.dialog_service.openErrorDialog("Error while getting intersections.");
         });
+
     }else{
-      let rawdata = await fs.readTextFile(await resolveResource('resources/intersections.json'));
-      intersections = JSON.parse(rawdata);
+      raw_data = await fs.readTextFile(await resolveResource('resources/intersections.json'));
+      raw_data = JSON.parse(raw_data);
+    }
+
+    let intersections = new Map<number, number>();
+    for (let key in raw_data) {
+        intersections.set(Number(key), Number(raw_data[key]));
     }
 
     let highlighted_datapoints: Array<number> = Object.keys(intersections).map(Number);
     highlighted_datapoints.push(datapoint.identifier);
     this.highlightDatapoints(highlighted_datapoints);
+
+    let intersections_colors = this.createIntesectionColorMapping(intersections);
+    this.connectDatapoints(datapoint, intersections, intersections_colors);
 
     this.clicked_datapoint = this.svg_feature.plot.selectAll('circle')
           .filter(d => d.identifier == datapoint.identifier);
@@ -143,11 +178,8 @@ export class IntersectionModeFeatureModule {
       .attr('r', datapoint.size * expansion_factor)
       .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, 1)`);
 
-    this.connectDatapoints(datapoint, intersections);
-
     let chart_radius = datapoint.size * expansion_factor;
-    this.createIntersectionChart(datapoint, intersections, chart_radius);
-    
+    this.createIntersectionChart(datapoint, intersections, chart_radius, intersections_colors);
   }
 
   private removeHighlight(){
