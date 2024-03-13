@@ -50,6 +50,7 @@ impl IntersectionMetrics{
         patterns.par_iter().try_for_each(|pattern| -> Result<(), GenericError> {
 
             let mut pattern_intersections: HashMap<u32, Vec<Dim<IxDynImpl>>> = HashMap::new();
+            let MAX_PATTERN_INTERSECTIONS = 6;
             let mut pattern_intersections_percentages: HashMap<u32, f64> = HashMap::new();
             let mut all_intersection_indices: HashSet<Dim<IxDynImpl>> = HashSet::new();
 
@@ -97,12 +98,26 @@ impl IntersectionMetrics{
                     .insert(pattern.identifier, pattern_intersections);
             }
 
-            if !pattern_intersections_percentages.is_empty(){ // This pattern has intersections with other patterns
-                intersections_percentages.lock()
-                    .as_mut()
-                    .map_err(|_| GenericError::new("Could not lock intersections percentages", file!(), &line!()))?
-                    .insert(pattern.identifier, pattern_intersections_percentages);
+            if pattern_intersections_percentages.len() > MAX_PATTERN_INTERSECTIONS{ // TODO: Revisar, podem existir valores iguais e linha 111 quebra
+                // This truncates pattern_intersections_percentages up to (MAX_PATTERN_INTERSECTIONS - 1) elements
+                // and inserts the sum of the excess elements on it after
+                let mut sorted_pattern_intersections_percentages: Vec<f64> = pattern_intersections_percentages.values().cloned().collect();
+                sorted_pattern_intersections_percentages.sort_by(|a, b| b.partial_cmp(a).unwrap()); // Decreasing order
+
+                let excess_percentages = sorted_pattern_intersections_percentages.split_off(MAX_PATTERN_INTERSECTIONS - 1);
+                let excess_percentages_sum = excess_percentages.iter().sum::<f64>();
+
+                // Retain in pattern_intersections_percentages only the entries in which the value is in sorted_pattern_intersections_percentages
+                pattern_intersections_percentages.retain(|key, value| sorted_pattern_intersections_percentages.contains(value));
+                pattern_intersections_percentages.insert(0, excess_percentages_sum);
             }
+            let total_intersection_percentage = pattern_intersections_percentages.values().sum::<f64>();
+            let untouched_percentage = 1.0 - total_intersection_percentage;
+            pattern_intersections_percentages.insert(pattern.identifier, untouched_percentage);
+            intersections_percentages.lock()
+                .as_mut()
+                .map_err(|_| GenericError::new("Could not lock intersections percentages", file!(), &line!()))?
+                .insert(pattern.identifier, pattern_intersections_percentages);
 
             let prediction = &pattern.density;
             let mut untouched_size: u32 = 0;

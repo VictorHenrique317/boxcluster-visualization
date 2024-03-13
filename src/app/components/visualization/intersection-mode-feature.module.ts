@@ -28,11 +28,13 @@ export class IntersectionModeFeatureModule {
     this.dialog_service = dialog_service;
   }
 
-  private connectDatapoints(center: DataPoint, others:Map<number, number>, intersections_colors: Map<number, string>){
+  private connectDatapoints(center: DataPoint, intersections:Map<number, number>, intersections_colors: Map<number, string>){
     let circles = new Map<number, DataPoint>(this.svg_feature.plot.selectAll('circle').data()
       .map(d => [d.identifier, d]));
 
-    for(let [identifier, percentage] of others.entries()){
+    for(let [identifier, percentage] of intersections.entries()){
+      if(identifier == 0){ continue; } // itself
+
       let stroke_width = 6 * percentage + 2; // 2 to 8
 
       let x1 = this.svg_feature.xScale(center.x);
@@ -80,16 +82,27 @@ export class IntersectionModeFeatureModule {
   }
 
   private createIntesectionColorMapping(intersections: Map<number, number>): Map<number, string>{
-    let colors = ["#240A34", "#891652", "#EABE6C", "#FFEDD8",
-                  "#6420AA", "#FF3EA5", "#FF7ED4", "#FFB5DA"]
+    // https://colorhunt.co/palette/6420aaff3ea5ff7ed4ffb5da
+    // https://colorhunt.co/palette/22577a38a3a557cc9980ed99
+    // "#240A34", "#891652", "#EABE6C", "#FFEDD8"
+    let colors = ["#eb4da3", "#a614b3", "#8a4aed", "#1731e8", "#3ea6ed", "#0c8e81"]
+
+    let sorted_intersections = new Map(Array.from(intersections.entries()).sort((a, b) => b[1] - a[1]));
 
     let intersections_colors: Map<number, string> = new Map();
     let i = 0;
-    for(const [identifier, percentage] of intersections.entries()){
+    for(const [identifier, percentage] of sorted_intersections.entries()){
+      if(identifier == 0){
+        intersections_colors.set(identifier, "#d71610");
+        continue;
+      }
+
       intersections_colors.set(identifier, colors[i % colors.length]);
       i++;
     }
 
+    console.log(sorted_intersections)
+    console.log(intersections_colors)
     return intersections_colors;
   }
 
@@ -98,8 +111,6 @@ export class IntersectionModeFeatureModule {
     let pie = d3.pie();
 
     let data: Array<number> = Array.from(intersections.values());
-    let untouched_percentage = 1 - data.reduce((a, b) => a + b, 0);
-    data.push(untouched_percentage);
     let pie_data = pie(data);
     
     let original_arc = d3.arc()
@@ -127,13 +138,9 @@ export class IntersectionModeFeatureModule {
       .duration(this.transition_duration)
       .attr('d', pie_chart_arc)
       .attr('fill', (d, i) => {
-        console.log(reverse_intersections)
-        console.log(d.value)
+
         let intersection_identifier = reverse_intersections.get(d.value);
         let color = intersections_colors.get(intersection_identifier);
-
-        console.log(intersection_identifier)
-        console.log(color)
 
         return color;
       });
@@ -160,7 +167,12 @@ export class IntersectionModeFeatureModule {
         intersections.set(Number(key), Number(raw_data[key]));
     }
 
-    let highlighted_datapoints: Array<number> = Object.keys(intersections).map(Number);
+    let untouched_percentage = 1 - Array.from(intersections.values()).reduce((a, b) => a + b, 0);
+    if(untouched_percentage > 0){
+      intersections.set(0, untouched_percentage);
+    }
+
+    let highlighted_datapoints: Array<number> = Array.from(intersections.keys());
     highlighted_datapoints.push(datapoint.identifier);
     this.highlightDatapoints(highlighted_datapoints);
 
