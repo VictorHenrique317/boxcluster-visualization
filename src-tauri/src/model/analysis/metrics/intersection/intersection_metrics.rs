@@ -98,22 +98,27 @@ impl IntersectionMetrics{
                     .insert(pattern.identifier, pattern_intersections);
             }
 
-            if pattern_intersections_percentages.len() > MAX_PATTERN_INTERSECTIONS{ // TODO: Revisar, podem existir valores iguais e linha 111 quebra
+            if pattern_intersections_percentages.len() > MAX_PATTERN_INTERSECTIONS{
                 // This truncates pattern_intersections_percentages up to (MAX_PATTERN_INTERSECTIONS - 1) elements
                 // and inserts the sum of the excess elements on it after
-                let mut sorted_pattern_intersections_percentages: Vec<f64> = pattern_intersections_percentages.values().cloned().collect();
-                sorted_pattern_intersections_percentages.sort_by(|a, b| b.partial_cmp(a).unwrap()); // Decreasing order
+                let mut sorted_pattern_intersections_indices: Vec<u32> = pattern_intersections_percentages.keys().cloned().collect();
+                sorted_pattern_intersections_indices.sort_by(|a, b| { // Decreasing order, based on the intersection percentage
+                    pattern_intersections_percentages.get(b).partial_cmp(&pattern_intersections_percentages.get(a)).unwrap()});
 
-                let excess_percentages = sorted_pattern_intersections_percentages.split_off(MAX_PATTERN_INTERSECTIONS - 1);
-                let excess_percentages_sum = excess_percentages.iter().sum::<f64>();
+                let excess_indices = sorted_pattern_intersections_indices.split_off(MAX_PATTERN_INTERSECTIONS - 1);
+                let excess_percentages_sum = excess_indices.iter()
+                    .map(|index| pattern_intersections_percentages.get(index).unwrap())
+                    .sum::<f64>();
 
-                // Retain in pattern_intersections_percentages only the entries in which the value is in sorted_pattern_intersections_percentages
-                pattern_intersections_percentages.retain(|key, value| sorted_pattern_intersections_percentages.contains(value));
+                // Retain in pattern_intersections_percentages only the entries in which the key is in sorted_pattern_intersections_indices
+                pattern_intersections_percentages.retain(|key, _| sorted_pattern_intersections_indices.contains(key));
                 pattern_intersections_percentages.insert(0, excess_percentages_sum);
             }
+
             let total_intersection_percentage = pattern_intersections_percentages.values().sum::<f64>();
             let untouched_percentage = 1.0 - total_intersection_percentage;
             pattern_intersections_percentages.insert(pattern.identifier, untouched_percentage);
+            
             intersections_percentages.lock()
                 .as_mut()
                 .map_err(|_| GenericError::new("Could not lock intersections percentages", file!(), &line!()))?

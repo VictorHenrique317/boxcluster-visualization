@@ -33,7 +33,8 @@ export class IntersectionModeFeatureModule {
       .map(d => [d.identifier, d]));
 
     for(let [identifier, percentage] of intersections.entries()){
-      if(identifier == 0){ continue; } // itself
+      if(identifier == this.clicked_datapoint.identifier){ continue; } // itself
+      if(identifier == 0){ continue; } // Excess intersections
 
       let stroke_width = 6 * percentage + 2; // 2 to 8
 
@@ -82,9 +83,6 @@ export class IntersectionModeFeatureModule {
   }
 
   private createIntesectionColorMapping(intersections: Map<number, number>): Map<number, string>{
-    // https://colorhunt.co/palette/6420aaff3ea5ff7ed4ffb5da
-    // https://colorhunt.co/palette/22577a38a3a557cc9980ed99
-    // "#240A34", "#891652", "#EABE6C", "#FFEDD8"
     let colors = ["#eb4da3", "#a614b3", "#8a4aed", "#1731e8", "#3ea6ed", "#0c8e81"]
 
     let sorted_intersections = new Map(Array.from(intersections.entries()).sort((a, b) => b[1] - a[1]));
@@ -92,17 +90,16 @@ export class IntersectionModeFeatureModule {
     let intersections_colors: Map<number, string> = new Map();
     let i = 0;
     for(const [identifier, percentage] of sorted_intersections.entries()){
-      if(identifier == 0){
+      if(identifier == this.clicked_datapoint.identifier){
         intersections_colors.set(identifier, "#d71610");
         continue;
       }
 
+      if(i > colors.length - 1){ console.warn("Not enough colors for intersections.");}
       intersections_colors.set(identifier, colors[i % colors.length]);
       i++;
     }
 
-    console.log(sorted_intersections)
-    console.log(intersections_colors)
     return intersections_colors;
   }
 
@@ -167,13 +164,7 @@ export class IntersectionModeFeatureModule {
         intersections.set(Number(key), Number(raw_data[key]));
     }
 
-    let untouched_percentage = 1 - Array.from(intersections.values()).reduce((a, b) => a + b, 0);
-    if(untouched_percentage > 0){
-      intersections.set(0, untouched_percentage);
-    }
-
     let highlighted_datapoints: Array<number> = Array.from(intersections.keys());
-    highlighted_datapoints.push(datapoint.identifier);
     this.highlightDatapoints(highlighted_datapoints);
 
     let intersections_colors = this.createIntesectionColorMapping(intersections);
