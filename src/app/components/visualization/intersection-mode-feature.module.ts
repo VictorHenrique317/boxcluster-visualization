@@ -146,6 +146,9 @@ export class IntersectionModeFeatureModule {
   }
 
   private async showIntersections(datapoint: DataPoint, event){
+    this.clicked_datapoint = this.svg_feature.plot.selectAll('circle')
+          .filter(d => d.identifier == datapoint.identifier);
+          
     let raw_data;
     if(!environment.dev_mode){
       raw_data = await invoke("getIntersectionPercentagesFor", {identifier: datapoint.identifier})
@@ -164,14 +167,16 @@ export class IntersectionModeFeatureModule {
         intersections.set(Number(key), Number(raw_data[key]));
     }
 
+    if(environment.dev_mode){
+      let untouched_percetange = 1 - Array.from(intersections.values()).reduce((a, b) => a + b, 0);
+      intersections.set(this.clicked_datapoint.identifier, untouched_percetange);
+    }
+
     let highlighted_datapoints: Array<number> = Array.from(intersections.keys());
     this.highlightDatapoints(highlighted_datapoints);
 
     let intersections_colors = this.createIntesectionColorMapping(intersections);
     this.connectDatapoints(datapoint, intersections, intersections_colors);
-
-    this.clicked_datapoint = this.svg_feature.plot.selectAll('circle')
-          .filter(d => d.identifier == datapoint.identifier);
 
     let expansion_factor = 4;
     this.clicked_datapoint
