@@ -60,7 +60,7 @@ export class IntersectionModeFeatureModule {
     }
   }
 
-  private highlightDatapoints(identifiers: Array<number>){
+  private highlightDatapoints(identifiers: Array<number>, intersections_colors: Map<number, string>){
     let circles = this.svg_feature.plot.selectAll('circle');
     let circles_visibility = 0.2;
 
@@ -77,8 +77,10 @@ export class IntersectionModeFeatureModule {
       .raise()
       .transition('mouseover')
       .duration(this.transition_duration)
-      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
-      .style('stroke', `rgba(255, 0, 0, 1)`)
+      // .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
+      .attr('fill', d => intersections_colors.get(d.identifier))
+      // .style('stroke', `rgba(255, 0, 0, 1)`)
+      .style('stroke', d=> intersections_colors.get(d.identifier))
       .style('stroke-dasharray', '10000,10000');
   }
 
@@ -90,11 +92,12 @@ export class IntersectionModeFeatureModule {
     let intersections_colors: Map<number, string> = new Map();
     let i = 0;
     for(const [identifier, percentage] of sorted_intersections.entries()){
-      if(identifier == this.clicked_datapoint.identifier){
+      if(identifier == this.clicked_datapoint.node().__data__.identifier){
         intersections_colors.set(identifier, "#d71610");
         continue;
       }
 
+      console.log(this.clicked_datapoint.node().__data__.identifier, identifier)
       if(i > colors.length - 1){ console.warn("Not enough colors for intersections.");}
       intersections_colors.set(identifier, colors[i % colors.length]);
       i++;
@@ -145,55 +148,58 @@ export class IntersectionModeFeatureModule {
     return intersections_colors;
   }
 
-  private async showIntersections(datapoint: DataPoint, event){
-    this.clicked_datapoint = this.svg_feature.plot.selectAll('circle')
-          .filter(d => d.identifier == datapoint.identifier);
-          
+  private async showIntersections(datapoint: DataPoint, event){ // TODO: Arrumar variavel clicked_datapoint
     let raw_data;
     if(!environment.dev_mode){
-      raw_data = await invoke("getIntersectionPercentagesFor", {identifier: datapoint.identifier})
+      this.clicked_datapoint = this.svg_feature.plot.selectAll('circle')
+          .filter(d => d.identifier == datapoint.identifier);
+
+      raw_data = await invoke("getIntersectionPercentagesFor", {identifier: this.clicked_datapoint.identifier})
         .catch((error: any) => {
           console.error(error);
           this.dialog_service.openErrorDialog("Error while getting intersections.");
         });
-
+      
     }else{
-      raw_data = await fs.readTextFile(await resolveResource('resources/intersections.json'));
+      this.clicked_datapoint = this.svg_feature.plot.selectAll('circle')
+          .filter(d => d.identifier == 14)
+
+      console.log(this.clicked_datapoint)
+
+      raw_data = await fs.readTextFile(await resolveResource('resources/intersections2.json'));
       raw_data = JSON.parse(raw_data);
     }
+
+    console.log("Fetched intersections for datapoint: " + this.clicked_datapoint.node().__data__.identifier);
+    console.log(raw_data);
 
     let intersections = new Map<number, number>();
     for (let key in raw_data) {
         intersections.set(Number(key), Number(raw_data[key]));
     }
 
-    if(environment.dev_mode){
-      let untouched_percetange = 1 - Array.from(intersections.values()).reduce((a, b) => a + b, 0);
-      intersections.set(this.clicked_datapoint.identifier, untouched_percetange);
-    }
+    let intersections_colors = this.createIntesectionColorMapping(intersections);
 
     let highlighted_datapoints: Array<number> = Array.from(intersections.keys());
-    this.highlightDatapoints(highlighted_datapoints);
-
-    let intersections_colors = this.createIntesectionColorMapping(intersections);
-    this.connectDatapoints(datapoint, intersections, intersections_colors);
+    this.highlightDatapoints(highlighted_datapoints, intersections_colors);
+    
+    this.connectDatapoints(this.clicked_datapoint.node().__data__, intersections, intersections_colors);
 
     let expansion_factor = 4;
     this.clicked_datapoint
-      .attr('r', datapoint.size)
+      .attr('r', this.clicked_datapoint.node().__data__.size)
       .transition('mouseover')
       .duration(this.transition_duration)
-      .attr('r', datapoint.size * expansion_factor)
+      .attr('r', this.clicked_datapoint.node().__data__.size * expansion_factor)
       .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, 1)`);
 
-    let chart_radius = datapoint.size * expansion_factor;
-    this.createIntersectionChart(datapoint, intersections, chart_radius, intersections_colors);
+    let chart_radius = this.clicked_datapoint.node().__data__.size * expansion_factor;
+    this.createIntersectionChart(this.clicked_datapoint.node().__data__, intersections, chart_radius, intersections_colors);
   }
 
-  private removeHighlight(){
+  private hideIntersections(){
     let intersection_lines = this.svg_feature.svg.selectAll('.intersection_line');
     intersection_lines
-      .lower()
       .transition('mouseout')
       .duration(this.transition_duration)
       .attr('x2', d => d.x1)  // End position (x) becomes the start position
@@ -225,10 +231,6 @@ export class IntersectionModeFeatureModule {
     this.clicked_datapoint = null;
   }
 
-  private hideIntersections(){
-    this.removeHighlight();
-  }
-
   public isOnIntersectionMode(){
     return this.intersection_mode;
   }
@@ -238,6 +240,7 @@ export class IntersectionModeFeatureModule {
     
     let circles = this.svg_feature.plot.selectAll('circle'); 
     if(this.intersection_mode){ // Activate intersection mode
+      console.log("Intersection mode activated.");
       this.svg_feature.plot.append('rect')
         .attr('id', 'overlay')
         .attr('x', 0)
@@ -266,8 +269,6 @@ export class IntersectionModeFeatureModule {
             this.showIntersections(d, event)
           }
          })
-        // .on('mouseover', (event, d) => { })
-        // .on('mouseout', (event, d) => { this.hideIntersections(); }).
         .transition()
         .duration(this.transition_duration)
         .style('stroke', 'rgba(255, 0, 0, 1)')
@@ -275,7 +276,10 @@ export class IntersectionModeFeatureModule {
     }
 
     else if(!this.intersection_mode){ // Deactivate intersection mode
+      console.log("Intersection mode deactivated.");
       this.svg_feature.plot.selectAll('#overlay').remove();
+
+      this.hideIntersections();
 
       this.svg_feature.resetDatapointEvents();
       circles

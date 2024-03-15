@@ -26,7 +26,7 @@ import { open } from '@tauri-apps/api/dialog';
 import { RssViewComponent } from "./components/main_options/rss-view/rss-view.component";
 import { provideRouter, Router, RouterOutlet} from "@angular/router";
 import { environment } from "src/environments/environment";
-import {MatSidenavModule} from '@angular/material/sidenav'
+import {MatSidenav, MatSidenavModule} from '@angular/material/sidenav'
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FileSelectionDialogComponent } from './components/main_options/file-selection-dialog/file-selection-dialog.component';
@@ -34,89 +34,53 @@ import { take } from "rxjs/operators";
 import { DialogService } from "./services/dialog/dialog.service";
 import { ErrorDialogComponent } from "./components/error-dialog/error-dialog.component";
 
+export enum MainOption {
+  MODEL_SELECTOR,
+  SETTINGS,
+  TRUNCATE_MODEL,
+  INTERSECTION_MODE
+};
+
 @Component({
     selector: "app-root",
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss'],
     standalone: true,
-    imports: [
-        RouterOutlet,
-        CommonModule,
-        VisualizationComponent,
-        RssViewComponent,
-        PatternSummaryComponent,
-        DynamicPaginatorComponent,
-        MatSlideToggleModule,
-        MatTabsModule,
-        MatButtonToggleModule,
-        MatDividerModule,
-        MatListModule,
-        MatSelectModule,
-        MatSlideToggleModule,
-        MatCheckboxModule,
-        MatMenuModule,
-        MatButtonModule,
-        MatRippleModule,
-        MatPaginatorModule,
-        MatSidenavModule,
-        MatIconModule,
-        MatTooltipModule,
-    ],
+    imports: [RouterOutlet, CommonModule, VisualizationComponent, RssViewComponent, PatternSummaryComponent,
+        DynamicPaginatorComponent, MatSlideToggleModule, MatTabsModule, MatButtonToggleModule, MatDividerModule,
+        MatListModule, MatSelectModule, MatSlideToggleModule, MatCheckboxModule, MatMenuModule, MatButtonModule,
+        MatRippleModule, MatPaginatorModule, MatSidenavModule, MatIconModule,MatTooltipModule],
     animations: [
       trigger('slideInOut', [
-        state('void', style({
-          transform: 'translateX(-100%)',
-          opacity: 0
-        })),
-        state('in', style({
-          transform: 'translateX(0)',
-          opacity: 1
-        })),
-        state('out', style({
-          transform: 'translateX(-100%)',
-          opacity: 0
-        })),
-        transition('void => in', [
-          animate('0.5s ease-in-out')
-        ]),
-        transition('in => out', [
-          animate('0.5s ease-in-out')
-        ]),
-        transition('out => in', [
-          animate('0.5s ease-in-out')
-        ])
+        state('void', style({ transform: 'translateX(-100%)', opacity: 0})),
+        state('in', style({ transform: 'translateX(0)', opacity: 1 })),
+        state('out', style({ transform: 'translateX(-100%)', opacity: 0 })),
+        transition('void => in', [ animate('0.5s ease-in-out') ]),
+        transition('in => out', [ animate('0.5s ease-in-out') ]),
+        transition('out => in', [ animate('0.5s ease-in-out') ])
       ])
     ]
     
 })
 
 export class AppComponent implements AfterViewInit{
-  @ViewChild("app_body") app_body: ElementRef<HTMLBodyElement>;
+  protected MainOption = MainOption;
+  protected settings_enabled: boolean = false;
+  protected truncate_model_enabled: boolean;
+  protected intersection_mode_enabled: boolean = false;
+
   @ViewChild("aside") aside: ElementRef<HTMLElement>;
-  
-  @ViewChild("model_selector") model_selector: ElementRef<HTMLElement>;
-
-  @ViewChild("drawer_content") drawer_content: ElementRef<HTMLElement>;
-
-  @ViewChild('rss_view') rss_view: RssViewComponent;
-  protected rss_view_enabled: boolean = null;
-  
-  @ViewChild('visualization_view') visualization_view: VisualizationComponent;
-  protected intersection_mode: boolean = false;
-
-  public selected_directory: string = "";
-  public tensor_path: string = "";
-  public tensor_name: string = "";
-  public patterns_path: string = "";
-
-  public upload_file_mode = "tensor";
-  public model_loaded = false;
   public matList_height: number;
 
-  length = 50;
-  pageSize = 10;
-  pageIndex = 0;
-
+  @ViewChild("sidenav") sidenav: MatSidenav;
+  @ViewChild("model_selector") model_selector: ElementRef<HTMLElement>;
+  public tensor_path: string = "";
+  public patterns_path: string = "";
+  public model_loaded = false;
+  @ViewChild('rss_view') rss_view: RssViewComponent;
+  
+  @ViewChild('visualization_view') visualization_view: VisualizationComponent;
+  
   constructor(private cdr: ChangeDetectorRef, private dialog_service: DialogService){}
 
   ngAfterViewInit(){
@@ -126,8 +90,6 @@ export class AppComponent implements AfterViewInit{
       this.model_loaded = true;
       this.cdr.detectChanges();
     }
-
-    // this.dialog_service.open(ErrorDialogComponent, ErrorDialogComponent.WIDTH, ErrorDialogComponent.HEIGHT, {error_message: "This is a test error message."}); // TODO: Remove
   }
 
   private reloadApplication(){
@@ -140,19 +102,14 @@ export class AppComponent implements AfterViewInit{
 
   private handleModelChange(event: any){
     console.log("Handling model change");
-
-    if (event.tensor_path == null || event.patterns_path == null){
-      return;
-    }
+    if (event.tensor_path == null || event.patterns_path == null){ return; }
 
     this.model_loaded = false;
-    // if(event.tensor_path != this.tensor_path){ // Change tensor and patterns
     this.tensor_path = event.tensor_path;
     this.patterns_path = event.patterns_path;
     
     invoke("initApplication", {tensorPath: this.tensor_path, patternsPath: this.patterns_path}).then((result: any) =>{
       this.model_loaded = true;
-
       this.reloadApplication();
 
     }).catch((error: any) => {
@@ -161,7 +118,32 @@ export class AppComponent implements AfterViewInit{
     });
   }
 
-  protected openModelSelectionDialog(enterAnimationDuration: string, exitAnimationDuration: string): void {
+  protected toggleMainOption(option: MainOption){
+    this.deactivateMainOptionsExcept(option);
+
+    switch(option){
+      case MainOption.MODEL_SELECTOR:
+        this.openModelSelection();
+        break;
+      case MainOption.SETTINGS:
+        this.toggleSettings();
+        break;
+      case MainOption.TRUNCATE_MODEL:
+        this.toggleTruncateModel();
+        break;
+      case MainOption.INTERSECTION_MODE:
+        this.toggleIntersectionMode();
+        break;
+    }
+  }
+
+  private deactivateMainOptionsExcept(option: MainOption){
+    if(this.settings_enabled && option != MainOption.SETTINGS){ this.toggleSettings(); }
+    if(this.truncate_model_enabled && option != MainOption.TRUNCATE_MODEL){ this.toggleTruncateModel(); }
+    if(this.intersection_mode_enabled && option != MainOption.INTERSECTION_MODE){ this.toggleIntersectionMode(); }
+  }
+
+  private openModelSelection(): void {
     let dialog_data = {
       tensor_path: this.tensor_path,
       patterns_path: this.patterns_path
@@ -171,26 +153,25 @@ export class AppComponent implements AfterViewInit{
       this.handleModelChange.bind(this));
   }
 
-  protected toggleRssView(){
-    if(this.rss_view_enabled == null){ return; }
+  private toggleSettings(){
+    this.settings_enabled = !this.settings_enabled;
+    this.sidenav.toggle();
+  }
+  
+  private toggleTruncateModel(){
+    if(this.truncate_model_enabled == undefined){ return; }
 
-    // if(this.rss_view_enabled) {
-    //   this.rss_view_enabled = false;
-    //   this.renderer.addClass(this.drawer_content.nativeElement, "faded");
-    // }
-
-    // else if(!this.rss_view_enabled) {
-    //   this.rss_view_enabled = true;
-    //   this.renderer.removeClass(this.drawer_content.nativeElement, "faded");
-    // }
-
-    this.rss_view_enabled = !this.rss_view_enabled;
-
+    this.truncate_model_enabled = !this.truncate_model_enabled;
     this.cdr.detectChanges();
   }
 
+  private toggleIntersectionMode(){
+    this.intersection_mode_enabled = !this.intersection_mode_enabled;
+    this.visualization_view.toggleIntersectionMode();
+   }
+
   protected disableRssView(){
-    this.rss_view_enabled = false;
+    this.truncate_model_enabled = false;
     this.cdr.detectChanges();
   }
 
@@ -201,10 +182,5 @@ export class AppComponent implements AfterViewInit{
     }, 1100);
 
     this.visualization_view.onTruncation(event);
- }
-
- protected toggleIntersectionMode(){
-  this.intersection_mode = !this.intersection_mode;
-  this.visualization_view.toggleIntersectionMode();
  }
 }

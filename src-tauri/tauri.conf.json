@@ -58,7 +58,8 @@
         "resources/rss_evolution.json",
         "resources/page_patterns.json",
         "resources/pattern.json",
-        "resources/intersections.json"
+        "resources/intersections.json",
+        "resources/intersections2.json"
       ],
       "shortDescription": "",
       "targets": "all",
