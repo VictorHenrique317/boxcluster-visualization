@@ -17,7 +17,7 @@ import { race } from 'rxjs';
 })
 export class IntersectionModeFeatureModule {
   private intersection_mode:boolean = false;
-  private clicked_datapoint: any;
+  private clicked_datapoint_data: DataPoint;
   private transition_duration: number = 300;
 
   private svg_feature: SvgFeatureModule;
@@ -33,7 +33,7 @@ export class IntersectionModeFeatureModule {
       .map(d => [d.identifier, d]));
 
     for(let [identifier, percentage] of intersections.entries()){
-      if(identifier == this.clicked_datapoint.identifier){ continue; } // itself
+      if(identifier == this.clicked_datapoint_data.identifier){ continue; } // itself
       if(identifier == 0){ continue; } // Excess intersections
 
       let stroke_width = 6 * percentage + 2; // 2 to 8
@@ -92,21 +92,21 @@ export class IntersectionModeFeatureModule {
     let intersections_colors: Map<number, string> = new Map();
     let i = 0;
     for(const [identifier, percentage] of sorted_intersections.entries()){
-      if(identifier == this.clicked_datapoint.node().__data__.identifier){
+      if(identifier == this.clicked_datapoint_data.identifier){
         intersections_colors.set(identifier, "#d71610");
         continue;
       }
 
-      console.log(this.clicked_datapoint.node().__data__.identifier, identifier)
       if(i > colors.length - 1){ console.warn("Not enough colors for intersections.");}
       intersections_colors.set(identifier, colors[i % colors.length]);
       i++;
     }
 
+    console.log(intersections_colors)
     return intersections_colors;
   }
 
-  private createIntersectionChart(datapoint: DataPoint, intersections: Map<number, number>, chart_radius: number, 
+  private createIntersectionChart(circle: any, intersections: Map<number, number>, chart_radius: number, 
     intersections_colors: Map<number, string>): Map<number, string>{
     let pie = d3.pie();
 
@@ -115,14 +115,14 @@ export class IntersectionModeFeatureModule {
     
     let original_arc = d3.arc()
       .innerRadius(0)
-      .outerRadius(d => datapoint.size);
+      .outerRadius(d => this.clicked_datapoint_data.size);
     let pie_chart_arc = d3.arc()
       .innerRadius(0)
       .outerRadius(chart_radius);
 
     let pie_group = this.svg_feature.plot.append('g')
       .attr('class', 'pie_chart')
-      .attr('transform', `translate(${this.clicked_datapoint.attr('cx')}, ${this.clicked_datapoint.attr('cy')})`);
+      .attr('transform', `translate(${circle.attr('cx')}, ${circle.attr('cy')})`);
 
     // Append a path for each segment of the pie chart
     let reverse_intersections = new Map<number, number>();
@@ -148,53 +148,52 @@ export class IntersectionModeFeatureModule {
     return intersections_colors;
   }
 
-  private async showIntersections(datapoint: DataPoint, event){ // TODO: Arrumar variavel clicked_datapoint
+  private async showIntersections(datapoint: DataPoint, event){
     let raw_data;
+    let clicked_circle: any;
     if(!environment.dev_mode){
-      this.clicked_datapoint = this.svg_feature.plot.selectAll('circle')
-          .filter(d => d.identifier == datapoint.identifier);
+      clicked_circle = this.svg_feature.plot.selectAll('circle')
+        .filter(d => d.identifier == datapoint.identifier);
 
-      raw_data = await invoke("getIntersectionPercentagesFor", {identifier: this.clicked_datapoint.identifier})
+      this.clicked_datapoint_data = clicked_circle.node().__data__;
+
+      raw_data = await invoke("getIntersectionPercentagesFor", {identifier: this.clicked_datapoint_data.identifier})
         .catch((error: any) => {
           console.error(error);
           this.dialog_service.openErrorDialog("Error while getting intersections.");
-        });
+      });
       
     }else{
-      this.clicked_datapoint = this.svg_feature.plot.selectAll('circle')
-          .filter(d => d.identifier == 14)
+      clicked_circle = this.svg_feature.plot.selectAll('circle')
+          // .filter(d => d.identifier == 14);
+          .filter(d => d.identifier == datapoint.identifier);
 
-      console.log(this.clicked_datapoint)
+      this.clicked_datapoint_data = clicked_circle.node().__data__;
 
       raw_data = await fs.readTextFile(await resolveResource('resources/intersections2.json'));
       raw_data = JSON.parse(raw_data);
     }
 
-    console.log("Fetched intersections for datapoint: " + this.clicked_datapoint.node().__data__.identifier);
+    console.log("Fetched intersections for datapoint: " + this.clicked_datapoint_data.identifier);
     console.log(raw_data);
 
     let intersections = new Map<number, number>();
-    for (let key in raw_data) {
-        intersections.set(Number(key), Number(raw_data[key]));
-    }
+    for (let key in raw_data) { intersections.set(Number(key), Number(raw_data[key])); }
 
     let intersections_colors = this.createIntesectionColorMapping(intersections);
 
-    let highlighted_datapoints: Array<number> = Array.from(intersections.keys());
-    this.highlightDatapoints(highlighted_datapoints, intersections_colors);
-    
-    this.connectDatapoints(this.clicked_datapoint.node().__data__, intersections, intersections_colors);
+    this.highlightDatapoints(Array.from(intersections.keys()), intersections_colors);
+    this.connectDatapoints(this.clicked_datapoint_data, intersections, intersections_colors);
 
     let expansion_factor = 4;
-    this.clicked_datapoint
-      .attr('r', this.clicked_datapoint.node().__data__.size)
+    clicked_circle
+      .attr('r', this.clicked_datapoint_data.size)
       .transition('mouseover')
       .duration(this.transition_duration)
-      .attr('r', this.clicked_datapoint.node().__data__.size * expansion_factor)
+      .attr('r', this.clicked_datapoint_data.size * expansion_factor)
       .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, 1)`);
-
-    let chart_radius = this.clicked_datapoint.node().__data__.size * expansion_factor;
-    this.createIntersectionChart(this.clicked_datapoint.node().__data__, intersections, chart_radius, intersections_colors);
+    let chart_radius = this.clicked_datapoint_data.size * expansion_factor;
+    this.createIntersectionChart(clicked_circle, intersections, chart_radius, intersections_colors);
   }
 
   private hideIntersections(){
@@ -215,10 +214,10 @@ export class IntersectionModeFeatureModule {
       .style('stroke', `rgba(255, 0, 0, 1)`)
       .style('stroke-dasharray', '1,1');
 
-    if(this.clicked_datapoint != null){
+    if(this.clicked_datapoint_data != null){
       let circle_arc = d3.arc()
       .innerRadius(0)
-      .outerRadius(d => this.clicked_datapoint.size);
+      .outerRadius(d => this.clicked_datapoint_data.size);
 
       let pie_chart = this.svg_feature.svg.selectAll('.pie_chart');
       pie_chart.selectAll('path')
@@ -228,7 +227,7 @@ export class IntersectionModeFeatureModule {
         .remove();  // Remove the paths after the transition
     }
 
-    this.clicked_datapoint = null;
+    this.clicked_datapoint_data = null;
   }
 
   public isOnIntersectionMode(){
@@ -254,8 +253,8 @@ export class IntersectionModeFeatureModule {
       circles
         .on('click', (event, d) => {
           let old_clicked_datapoint: DataPoint = null;
-          if(this.clicked_datapoint != null || this.clicked_datapoint != undefined){
-            old_clicked_datapoint = this.clicked_datapoint.node().__data__;
+          if(this.clicked_datapoint_data != null || this.clicked_datapoint_data != undefined){
+            old_clicked_datapoint = this.clicked_datapoint_data;
           }
 
           this.hideIntersections();
