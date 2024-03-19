@@ -112,7 +112,7 @@ body{
             background-color: rgba(0, 0, 0, 1); 
         }
 
-        #content{
+        .sidenav-content{
             height: 90vh;
             background-color: mat.get-color-from-palette($primary-palette, 900);
 

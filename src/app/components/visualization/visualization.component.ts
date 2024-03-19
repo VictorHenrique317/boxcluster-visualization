@@ -27,6 +27,7 @@ import { legendCircle } from 'src/js/circle_legend.js';
 import { Legend } from 'src/js/color_legend.js';
 import { IntersectionModeFeatureModule } from 'src/app/components/visualization/intersection-mode-feature.module';
 import { SvgFeatureModule } from "./svg-feature.module";
+import {MatButtonModule} from '@angular/material/button';
 
 @Component({
     selector: 'app-visualization',
@@ -63,7 +64,8 @@ import { SvgFeatureModule } from "./svg-feature.module";
         MatCardModule,
         PortalModule,
         RssViewComponent,
-        DataPointTooltipComponent
+        DataPointTooltipComponent,
+        MatButtonModule
     ]
 })
 
@@ -72,9 +74,13 @@ export class VisualizationComponent implements AfterViewInit{
   @ViewChild('vizualization_div') visualization_div: ElementRef<HTMLDivElement>;
 
   private svg_feature: SvgFeatureModule;
-  private intersection_mode_feature: IntersectionModeFeatureModule;
+  protected intersection_mode_feature: IntersectionModeFeatureModule;
 
   constructor(public dialog_service: DialogService, private cdr: ChangeDetectorRef){ }
+
+  ngOnInit(): void {
+    this.intersection_mode_feature = new IntersectionModeFeatureModule(null, null);
+  }
 
   async ngAfterViewInit() {
     console.log("Initializing visualization component");

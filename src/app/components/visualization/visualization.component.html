@@ -1,5 +1,9 @@
 <body #body (window:resize)="onResize($event)">
     <section>
         <div #vizualization_div id="vizualization_div"></div>
+
+        <div class="floatable" id="intersection_details" *ngIf="intersection_mode_feature.getClickedDatapoint()">
+            <button mat-raised-button (click)="intersection_mode_feature.showIntersectionDetails()"> Show details </button>
+        </div>
     </section>
 </body>

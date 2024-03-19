@@ -102,15 +102,15 @@ export class IntersectionModeFeatureModule {
       i++;
     }
 
-    console.log(intersections_colors)
     return intersections_colors;
   }
 
   private createIntersectionChart(circle: any, intersections: Map<number, number>, chart_radius: number, 
     intersections_colors: Map<number, string>): Map<number, string>{
-    let pie = d3.pie();
+    let pie = d3.pie()
+      .value((d: any) => d.value);
 
-    let data: Array<number> = Array.from(intersections.values());
+    let data: Array<any> = Array.from(intersections, ([key, value]) => ({key, value}));
     let pie_data = pie(data);
     
     let original_arc = d3.arc()
@@ -124,9 +124,6 @@ export class IntersectionModeFeatureModule {
       .attr('class', 'pie_chart')
       .attr('transform', `translate(${circle.attr('cx')}, ${circle.attr('cy')})`);
 
-    // Append a path for each segment of the pie chart
-    let reverse_intersections = new Map<number, number>();
-    for(const [key, value] of intersections.entries()){ reverse_intersections.set(value, key); }
     pie_group.selectAll('path')
       .data(pie_data)
       .enter()
@@ -137,11 +134,8 @@ export class IntersectionModeFeatureModule {
       .transition('mouseover')
       .duration(this.transition_duration)
       .attr('d', pie_chart_arc)
-      .attr('fill', (d, i) => {
-
-        let intersection_identifier = reverse_intersections.get(d.value);
-        let color = intersections_colors.get(intersection_identifier);
-
+      .attr('fill', (d: any) => {
+        let color = intersections_colors.get(d.data.key);
         return color;
       });
 
@@ -286,5 +280,13 @@ export class IntersectionModeFeatureModule {
         .duration(this.transition_duration)
         .style('stroke-dasharray', '10000,10000');
     }
+  }
+
+  public getClickedDatapoint(){
+    return this.clicked_datapoint_data;
+  }
+
+  public showIntersectionDetails(){
+    
   }
 }

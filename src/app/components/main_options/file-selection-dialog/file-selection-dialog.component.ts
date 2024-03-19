@@ -12,6 +12,8 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 })
 export class FileSelectionDialogComponent {
   @Output() modelChange: EventEmitter<any> = new EventEmitter();
+
+  private last_opened_folder: string = "";
   
   private tensor_path: string = "";
   protected tensor_name: string = "";
@@ -45,19 +47,23 @@ export class FileSelectionDialogComponent {
 
   public async selectTensor(){
     const options = {
-      multiple: false
+      multiple: false,
+      defaultPath: this.last_opened_folder
     };
     const selected = await open(options);
     if (selected === null) { return; } // No tensor selected
-    
+  
     this.tensor_path = selected.toString();
     this.setNames();
     if (this.tensor_path == ""){ return; } // No tensor selected
-}
 
+    this.last_opened_folder = this.tensor_path;
+  }
+  
   public async selectPatterns(){
     const options = {
-      multiple: false
+      multiple: false,
+      defaultPath: this.last_opened_folder
     };
     const selected = await open(options);
     if (selected === null) { return; } // No patterns selected
@@ -65,6 +71,8 @@ export class FileSelectionDialogComponent {
     this.patterns_path = selected.toString();
     this.setNames();
     if (this.patterns_path == ""){ return; } // No patterns selected
+
+    this.last_opened_folder = this.patterns_path;
   }
 
   protected submit() {
