@@ -8,7 +8,7 @@ pub struct IntersectionsDetails{
     pub total_untouched_percentage: f64,
     pub total_intersection_percentage: f64,
 
-    pub intersections: HashMap<u32, (f64, Vec<String>)>, // Identifier, (percentage, values)
+    pub intersections: HashMap<u32, (f64, Vec<String>)>, // Identifier, (percentage, raw_dims)
 }
 
 impl IntersectionsDetails{

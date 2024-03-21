@@ -168,19 +168,25 @@ impl ApplicationService{
         let total_untouched_percentage = intersection_percentages.get(identifier)
             .expect("Should have a total untouched percentage, even if its 0").clone();
         let total_intersection_percentage = 1.0 - total_untouched_percentage;
+        
+        let current_pattern = self.getIdentifierMapper()?.getIdentifier(identifier)?.asPattern()?;
+        let intersections_indices: Result<HashMap<u32, (f64, Vec<String>)>, GenericError> = intersection_percentages.into_iter()
+            .filter(|(other_identifier, _)| *other_identifier != *identifier)
+            .map(|(other_identifier, percentage)| {
 
-        let intersections: HashMap<u32, (f64, Vec<String>)> = intersection_percentages.into_iter()
-            .map(|(identifier, percentage)| {
-                let pattern = self.getIdentifierMapper()?.getIdentifier(&identifier)
-                    .expect("Identifier should exist");
-                let values = pattern.asRawPattern(self.io_service.getTranslator())
-                    .expect("Should be able to get raw pattern"); // TODO: Terminar
+                let other_pattern = self.getIdentifierMapper()?.getIdentifier(&other_identifier)?.asPattern()?;
+                let intersection_indices = current_pattern.intersection(other_pattern);
+                let raw_intersections_values = self.getTranslator().untranslateLineDims(&intersection_indices)?;
 
-                return (identifier, (percentage, values));
+                return Ok((other_identifier, (percentage, raw_intersections_values)));
             })
             .collect();
-
-        return Ok(intersection_percentages);
+        let intersections_indices = intersections_indices?;
+        
+        let intersections_details = IntersectionsDetails::new(*identifier, 
+            total_untouched_percentage, total_intersection_percentage, intersections_indices);
+        
+        return Ok(intersections_details);
     }
 
     
