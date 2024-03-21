@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use tauri::State;
-use crate::{common::generic_error::GenericError, controller::states::states::{ApplicationServiceState, PaginatorServiceState}, database::{datapoint::DataPoint, raw_pattern::RawPattern}};
+use crate::{common::generic_error::GenericError, controller::states::states::{ApplicationServiceState, PaginatorServiceState}, database::{datapoint::DataPoint, intersections_details::IntersectionsDetails, raw_pattern::RawPattern}};
 
 #[tauri::command]
 pub fn initApplication(application_service: State<ApplicationServiceState>, tensor_path: String, patterns_path: String) 
@@ -79,9 +79,9 @@ pub fn getPattern(application_service: State<ApplicationServiceState>, identifie
 }
 
 #[tauri::command]
-pub fn getIntersectionPercentagesFor(application_service: State<ApplicationServiceState>, identifier: u32) -> Result<HashMap<u32, f64>, GenericError> {
-    println!("Calling getIntersectionPercentagesForPattern...");
+pub fn getIntersectionDetails(application_service: State<ApplicationServiceState>, identifier: u32) -> Result<IntersectionsDetails, GenericError> {
+    println!("Calling getIntersectionDetails...");
 
     let application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
-    return application_service.getIntersectionPercentagesFor(&identifier);
+    return application_service.getIntersectionsDetails(&identifier);
 }

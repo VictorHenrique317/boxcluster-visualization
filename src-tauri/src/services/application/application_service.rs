@@ -2,7 +2,7 @@
 use std::{collections::HashMap, time::Instant};
 use plotters::data;
 
-use crate::{services::{io_service::IoService, plot_service::PlotService}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper, io::translator::Translator}, database::{datapoint::DataPoint, pattern::Pattern, raw_pattern::RawPattern}, common::generic_error::GenericError};
+use crate::{common::generic_error::GenericError, database::{datapoint::DataPoint, intersections_details::IntersectionsDetails, pattern::Pattern, raw_pattern::RawPattern}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper, io::translator::Translator}, services::{io_service::IoService, plot_service::PlotService}};
 use super::application_state_service::ApplicationStateService;
 
 pub struct ApplicationService{
@@ -157,13 +157,28 @@ impl ApplicationService{
         );
     }
 
-    pub fn getIntersectionPercentagesFor(&self, identifier: &u32) -> Result<HashMap<u32, f64>, GenericError>{
+    pub fn getIntersectionsDetails(&self, identifier: &u32) -> Result<IntersectionsDetails, GenericError>{
         let intersection_percentages: HashMap<u32, f64> = match self.application_state_service.getMetricsService()?
             .intersections_percentages.get().get(identifier){
 
             Some(intersection_percentages) => intersection_percentages.clone(),
             None => HashMap::new(),
         };
+
+        let total_untouched_percentage = intersection_percentages.get(identifier)
+            .expect("Should have a total untouched percentage, even if its 0").clone();
+        let total_intersection_percentage = 1.0 - total_untouched_percentage;
+
+        let intersections: HashMap<u32, (f64, Vec<String>)> = intersection_percentages.into_iter()
+            .map(|(identifier, percentage)| {
+                let pattern = self.getIdentifierMapper()?.getIdentifier(&identifier)
+                    .expect("Identifier should exist");
+                let values = pattern.asRawPattern(self.io_service.getTranslator())
+                    .expect("Should be able to get raw pattern"); // TODO: Terminar
+
+                return (identifier, (percentage, values));
+            })
+            .collect();
 
         return Ok(intersection_percentages);
     }

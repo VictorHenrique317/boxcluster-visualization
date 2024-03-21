@@ -32,7 +32,7 @@ fn main() {
             getTruncatedRssEvolution,
             getDataPoints,
             getPattern,
-            getIntersectionPercentagesFor
+            getIntersectionDetailsFor
             ])
         .run(tauri::generate_context!())
         .expect("Error while running tauri application");

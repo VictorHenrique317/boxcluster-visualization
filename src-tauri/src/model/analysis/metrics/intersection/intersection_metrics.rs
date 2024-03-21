@@ -117,6 +117,9 @@ impl IntersectionMetrics{
 
             let total_intersection_percentage = pattern_intersections_percentages.values().sum::<f64>();
             let untouched_percentage = 1.0 - total_intersection_percentage;
+            if untouched_percentage < 0.0 || untouched_percentage > 1.0 {
+                unreachable!("Untouched percentage should be between 0 and 1");
+            }
             pattern_intersections_percentages.insert(pattern.identifier, untouched_percentage);
             
             intersections_percentages.lock()
