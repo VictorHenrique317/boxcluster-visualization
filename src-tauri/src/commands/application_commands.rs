@@ -83,5 +83,5 @@ pub fn getIntersectionDetails(application_service: State<ApplicationServiceState
     println!("Calling getIntersectionDetails...");
 
     let application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
-    return application_service.getIntersectionsDetails(&identifier);
+    return application_service.getIntersectionDetails(&identifier);
 }

@@ -15,5 +15,6 @@
 - [x] Fazer o programa aceitar arquivos com padrões que possuem dados adicionais
 
 ## Checklist ??? -> ??? - v0.3.0
-- [] Implementar o modo que mostra a interseção no hovering do mouse
+- [x] Implementar o modo que mostra a interseção no hovering do mouse
+- [] Implementar o modo que mostra detalhes da interseção
 - [] Integrar movimentação no dag e números flutuantes

@@ -1,0 +1,10 @@
+{   
+    "identifier": 1,
+    "total_untouched_percentage": 0.68,
+    "total_intersection_percentage": 0.32,
+    "intersections": {
+        "2": [0.1, [["Palmeiras","Ponte_Preta","NivinhaFla","MANCHETEREVISTA","LeandroDiasNF","1","4","6"]]],
+        "3": [0.2, [["Palmeiras","Flamengo","NivinhaFla","olavodc","aguedescartoon","3","7"]]],
+        "4": [0.3, [["Santos","Botafogo","Ponte_Preta","Fluminense","Ronaldo601","2"]]]
+    }
+}

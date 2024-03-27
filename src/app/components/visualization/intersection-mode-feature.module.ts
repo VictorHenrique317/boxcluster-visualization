@@ -8,6 +8,8 @@ import { fs, invoke } from '@tauri-apps/api';
 import { DialogService } from 'src/app/services/dialog/dialog.service';
 import { resolveResource } from '@tauri-apps/api/path';
 import { race } from 'rxjs';
+import { IntersectionDetailsDialogComponent } from './intersection-details-dialog/intersection-details-dialog.component';
+import { IntersectionDetails } from 'src/app/models/intersection_details';
 
 @NgModule({
   declarations: [],
@@ -286,7 +288,43 @@ export class IntersectionModeFeatureModule {
     return this.clicked_datapoint_data;
   }
 
-  public showIntersectionDetails(){
-    
+  public async showIntersectionDetails(){
+    if(this.clicked_datapoint_data == null){
+      console.warn("No clicked datapoint to show details.");
+      return;
+    }
+
+    let data: any;
+    if(!environment.dev_mode){
+      data = await invoke("getIntersectionDetails", {identifier: this.clicked_datapoint_data.identifier})
+
+    }else if(environment.dev_mode){
+      let rawdata = await fs.readTextFile(await resolveResource('resources/intersection_details.json'));
+      data = JSON.parse(rawdata);
+    }
+
+    let intersections: Map<number, [number, Array<Array<string>>]> = new Map();
+    for (let key in data.intersections) { 
+      let value = data.intersections[key];
+      let percentage = value[0];
+      let dims_intersections = value[1];
+      intersections.set(Number(key), [percentage, dims_intersections]);
+    }
+
+    let intersection_details: IntersectionDetails = new IntersectionDetails(
+      data.identifier,
+      data.total_untouched_percentage,
+      data.total_intersection_percentage,
+      intersections
+    );
+
+    let dialog_data = {
+      intersection_details: intersection_details
+    }
+
+    this.dialog_service.open(IntersectionDetailsDialogComponent, 
+      IntersectionDetailsDialogComponent.WIDTH, 
+      IntersectionDetailsDialogComponent.HEIGHT, 
+      dialog_data);
   }
 }

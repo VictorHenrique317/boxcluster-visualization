@@ -8,12 +8,12 @@ pub struct IntersectionsDetails{
     pub total_untouched_percentage: f64,
     pub total_intersection_percentage: f64,
 
-    pub intersections: HashMap<u32, (f64, Vec<String>)>, // Identifier, (percentage, raw_dims)
+    pub intersections: HashMap<u32, (f64, Vec<Vec<String>>)>, // Identifier, (percentage, raw_dims)
 }
 
 impl IntersectionsDetails{
     pub fn new(identifier: u32, total_untouched_percentage: f64, total_intersection_percentage: f64, 
-                intersections: HashMap<u32, (f64, Vec<String>)>) -> IntersectionsDetails{
+                intersections: HashMap<u32, (f64, Vec<Vec<String>>)>) -> IntersectionsDetails{
         
         return IntersectionsDetails{
             identifier: identifier,

@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 use std::{collections::HashMap, time::Instant};
+use itertools::Itertools;
 use plotters::data;
 
 use crate::{common::generic_error::GenericError, database::{datapoint::DataPoint, intersections_details::IntersectionsDetails, pattern::Pattern, raw_pattern::RawPattern}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper, io::translator::Translator}, services::{io_service::IoService, plot_service::PlotService}};
@@ -157,7 +158,7 @@ impl ApplicationService{
         );
     }
 
-    pub fn getIntersectionsDetails(&self, identifier: &u32) -> Result<IntersectionsDetails, GenericError>{
+    pub fn getIntersectionDetails(&self, identifier: &u32) -> Result<IntersectionsDetails, GenericError>{
         let intersection_percentages: HashMap<u32, f64> = match self.application_state_service.getMetricsService()?
             .intersections_percentages.get().get(identifier){
 
@@ -170,21 +171,28 @@ impl ApplicationService{
         let total_intersection_percentage = 1.0 - total_untouched_percentage;
         
         let current_pattern = self.getIdentifierMapper()?.getIdentifier(identifier)?.asPattern()?;
-        let intersections_indices: Result<HashMap<u32, (f64, Vec<String>)>, GenericError> = intersection_percentages.into_iter()
+        let all_dims_intersections: Result<HashMap<u32, (f64, Vec<Vec<String>>)>, GenericError> = intersection_percentages.into_iter()
             .filter(|(other_identifier, _)| *other_identifier != *identifier)
             .map(|(other_identifier, percentage)| {
 
                 let other_pattern = self.getIdentifierMapper()?.getIdentifier(&other_identifier)?.asPattern()?;
-                let intersection_indices = current_pattern.intersection(other_pattern);
-                let raw_intersections_values = self.getTranslator().untranslateLineDims(&intersection_indices)?;
+                
+                let dims_intersections = current_pattern.dimIntersection(&other_pattern)?;
+                let dims_intersections = self.getTranslator()
+                    .untranslateLineDims(&dims_intersections)?.iter()
+                    .map(|line| {
+                        let values: Vec<String> = line.split(",").map(|dim| dim.to_string()).collect_vec();
+                        return values;
+                    })
+                    .collect();
 
-                return Ok((other_identifier, (percentage, raw_intersections_values)));
+                return Ok((other_identifier, (percentage, dims_intersections)));
             })
             .collect();
-        let intersections_indices = intersections_indices?;
+        let all_dims_intersections = all_dims_intersections?;
         
         let intersections_details = IntersectionsDetails::new(*identifier, 
-            total_untouched_percentage, total_intersection_percentage, intersections_indices);
+            total_untouched_percentage, total_intersection_percentage, all_dims_intersections);
         
         return Ok(intersections_details);
     }

@@ -314,7 +314,10 @@ export class SvgFeatureModule {
     let dialog_data = {
       pattern: pattern
     }
-    this.dialog_service.open(DatapointInfoDialogComponent, '500px', '590px', dialog_data);
+    this.dialog_service.open(DatapointInfoDialogComponent, 
+      DatapointInfoDialogComponent.WIDTH, 
+      DatapointInfoDialogComponent.HEIGHT, 
+      dialog_data);
   }
 
   public xScale(x: number){

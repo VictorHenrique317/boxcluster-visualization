@@ -32,6 +32,9 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
   styleUrls: ['./datapoint-info-dialog.component.scss']
 })
 export class DatapointInfoDialogComponent {
+  public static WIDTH = '500px';
+  public static HEIGHT = '590px';
+
   protected pattern;
   
   @ViewChild(MatSort) sort: MatSort;

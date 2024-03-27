@@ -19,7 +19,8 @@
           "$RESOURCE/resources/*",
           "$RESOURCE/resources/rss_evolution.json",
           "$RESOURCE/resources/page_patterns.json",
-          "$RESOURCE/resources/datapoints2.json"
+          "$RESOURCE/resources/datapoints2.json",
+          "$RESOURCE/resources/intersection_details.json"
         ]
       },
       "all": true,
@@ -59,7 +60,8 @@
         "resources/page_patterns.json",
         "resources/pattern.json",
         "resources/intersections.json",
-        "resources/intersections2.json"
+        "resources/intersections2.json",
+        "resources/intersection_details.json"
       ],
       "shortDescription": "",
       "targets": "all",

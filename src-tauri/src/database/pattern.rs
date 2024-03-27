@@ -231,6 +231,29 @@ impl Pattern {
         return intersections;
     }
 
+    pub fn dimIntersection(&self, other: &Pattern) -> Result<Vec<Vec<usize>>, GenericError> {
+        let mut intersections: Vec<Vec<usize>> = Vec::new();
+
+        for (dim, self_dim) in self.dims_values.iter().enumerate(){
+            let other_dim = other.dims_values.get(dim)
+                .ok_or(GenericError::new(&format!("Pattern {} has less dimensions than pattern {}", self.identifier, other.identifier), file!(), &line!()))?;
+
+            let mut intersection: Vec<usize> = Vec::new();
+
+            for self_value in self_dim.iter(){
+                if other_dim.contains(self_value){
+                    intersection.push(*self_value);
+                }
+            }
+
+            if intersection.is_empty(){ return Ok(Vec::new()); } // Intersection has to occur in every dim
+
+            intersections.push(intersection);
+        }
+
+        return Ok(intersections);
+    }
+
     pub fn union(&self, pattern: &Pattern) -> Vec<Vec<usize>> {
         let indices: HashSet<Vec<usize>> = self.indices.iter().cloned().collect();
         let unions = indices
