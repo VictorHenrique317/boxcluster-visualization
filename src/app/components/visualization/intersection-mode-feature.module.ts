@@ -306,15 +306,15 @@ export class IntersectionModeFeatureModule {
     let intersections: Map<number, [number, Array<Array<string>>]> = new Map();
     for (let key in data.intersections) { 
       let value = data.intersections[key];
-      let percentage = value[0];
+      let percentage = Math.round(value[0]*100)/100;
       let dims_intersections = value[1];
       intersections.set(Number(key), [percentage, dims_intersections]);
     }
 
     let intersection_details: IntersectionDetails = new IntersectionDetails(
       data.identifier,
-      data.total_untouched_percentage,
-      data.total_intersection_percentage,
+      Math.round(data.total_untouched_percentage * 100)/100,
+      Math.round(data.total_intersection_percentage * 100)/100,
       intersections
     );
 

@@ -1,42 +1,49 @@
 <body>
     <body>
         <header>
-            <h1>Intersection details for patterns {{pattern.identifier}} and {{}}</h1>
-            <span>Size: {{pattern.size}}</span> <br>
-            <span>Density: {{pattern.density}}</span>
+            <h1>Intersection details for patterns {{identifier}}</h1>
+            <span>Total un-intersected percentage: {{total_untouched_percentage}}</span> <br>
+            <span>Total intersected percentage: {{total_intersection_percentage}}</span>
         </header>
     
         <section>
-        <mat-tab-group id="tab-group" (selectedIndexChange)="onTabChange($event)" animationDuration="0ms">
-                <div class *ngFor="let dim_values of pattern.dims_values; let id = index">
-                    <mat-tab label="DIM{{id+1}}">
-                        
-                        <div class="tab-wrapper">    
-                            <div class="table-container" >
-                                <table mat-table [dataSource]="data_source" matSort>
-                                
-                                    <!-- Column -->
-                                    <ng-container matColumnDef="values">
-                                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Values ({{ data_source_length}})</th>
-                                    <td mat-cell *matCellDef="let row"> {{row}} </td>
-                                    </ng-container>
-                                
-                                    <tr mat-header-row *matHeaderRowDef="displayed_columns"></tr>
-                                    <tr mat-row *matRowDef="let row; columns: displayed_columns;"></tr>
-                                
-                                    <!-- Row shown when there is no matching data. -->
-                                    <tr class="mat-row" *matNoDataRow>
-                                    <td class="mat-cell" colspan="4">No value matching the filter "{{input.value}}"</td>
-                                    </tr>
-                                </table>
-                                
-                                <!-- <mat-paginator [length]="data_source.data.length" [pageSize]="6" aria-label="Select page"></mat-paginator> -->
-                            </div>
-    
-                        </div>
-                    </mat-tab>
-                </div>
-              </mat-tab-group>          
+            <table id="intersectors_table" mat-table [dataSource]="intersectors_data_source" matSort>
+                            
+                <!-- Column -->
+                <ng-container matColumnDef="intersections">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Intersections ({{ intersectors_data_source.data.length}})</th>
+                <td mat-cell *matCellDef="let row"> {{row}} </td>
+                </ng-container>
+            
+                <tr mat-header-row *matHeaderRowDef="intersectors_displayed_columns"></tr>
+                <tr mat-row *matRowDef="let row; columns: intersectors_displayed_columns;"></tr>
+                
+            </table>
+
+            <table id="intersector_table" mat-table [dataSource]="intersector_data_source" matSort>
+                            
+                <!-- Columns -->
+                <ng-container matColumnDef="tuple">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Tuples ({{ intersector_data_source.data.length}})</th>
+                <td mat-cell *matCellDef="let row"> {{row}} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="dim">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Tuples ({{ intersector_data_source.data.length}})</th>
+                <td mat-cell *matCellDef="let row"> {{row}} </td>
+                </ng-container>
+            
+                <tr mat-header-row *matHeaderRowDef="intersector_displayed_columns"></tr>
+                <tr
+                    mat-row
+                    (click)="selectIntersector(row)"
+                    *matRowDef="let row; columns: intersector_displayed_columns;"
+                ></tr>
+                
+            </table>
+            <!-- <div *ngFor="let entry of intersections | keyvalue">
+                Pattern {{entry.key}} intersection represents {{entry.value[0]*100}}% of current pattern area
+            </div> -->
         </section>
         
         <footer></footer>
