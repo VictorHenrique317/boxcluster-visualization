@@ -40,32 +40,37 @@ export class IntersectionDetailsDialogComponent {
 
   protected intersector_id: number;
 
-
-
   constructor(public dialogRef: MatDialogRef<IntersectionDetailsDialogComponent>, 
       @Inject(MAT_DIALOG_DATA) public data: {intersection_details: IntersectionDetails}, private cdr: ChangeDetectorRef){
 
     this.identifier = data.intersection_details.identifier;
     this.total_untouched_percentage = data.intersection_details.total_untouched_percentage;
     this.total_intersection_percentage = data.intersection_details.total_intersection_percentage;
-    this.intersections = data.intersection_details.intersections;
+
+    let sorted_intersections: Map<number, [number, Array<Array<string>>]> = new Map([...data.intersection_details.intersections.entries()]
+    .sort((a, b) => {
+      return a[1][0] - b[1][0];
+    }));
+    this.intersections = sorted_intersections;
 
     let data_source: Array<Array<number>> = Array.from(this.intersections.keys(), key => [key])
     this.intersectors_data_source = new MatTableDataSource(data_source);
   }
 
-  ngOnInit(): void {
+  ngOnInit(): void { 
     console.log("Initializing intersection details dialog");
+    
+  }
 
-    let sorted_intersections: Map<number, [number, Array<Array<string>>]> = new Map([...this.intersections.entries()].sort((a, b) => {
-      return a[1][0] - b[1][0];
-    }));
-    this.intersections = sorted_intersections;
+  ngAfterViewInit(){
+    let first_intersector = this.intersections.keys().next().value;
+    this.selectIntersector(first_intersector); // Selects the first intersector
   }
 
   protected selectIntersector(intersector_id: number){
-    this.intersector_id = parseInt(intersector_id[0]);
+    this.intersector_id = intersector_id;
 
+    console.log(this.intersections.get(this.intersector_id));
     let intersected_dims: Array<Array<string>> = this.intersections.get(this.intersector_id)[1];
 
     let i = 0;
