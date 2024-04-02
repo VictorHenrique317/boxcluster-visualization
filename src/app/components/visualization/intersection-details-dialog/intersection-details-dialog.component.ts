@@ -7,8 +7,8 @@ import {MatTableDataSource, MatTableModule} from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 
 export interface IntersectedTuple{
-    tuple: String;
-    dim: String;
+    dim_value: String;
+    dim_number: String;
 }
 
 @Component({
@@ -35,7 +35,7 @@ export class IntersectionDetailsDialogComponent {
   protected intersectors_displayed_columns: string[] = ['intersections'];
   protected intersectors_data_source: MatTableDataSource<Array<number>>;
 
-  protected intersector_displayed_columns: string[] = ['tuple', 'dim']
+  protected intersector_displayed_columns: string[] = ['dim_value', 'dim_number']
   protected intersector_data_source: MatTableDataSource<IntersectedTuple[]>;
 
   protected intersector_id: number;
@@ -73,11 +73,12 @@ export class IntersectionDetailsDialogComponent {
     intersected_dims.forEach(dim => {
       let values: Array<String> = dim.flat();
       for (let j = 0; j < values.length; j++){
-        intersector_data_source.push({tuple: values[j], dim: 'DIM' + i});
+        intersector_data_source.push({dim_value: values[j], dim_number: 'DIM' + (i+1)});
       }
       i++;
     });
 
     this.intersector_data_source = new MatTableDataSource(Array.from(intersector_data_source, x => [x]));
+    console.log(this.intersector_data_source)
   }
 }
