@@ -3,7 +3,7 @@
 
 body{
     margin: 0 0 0 0;
-    padding: 1em 0 1em 0;
+    padding: 0 0 0 0;
 
     width: 100%;
     height: 100%;
@@ -12,28 +12,60 @@ body{
     flex-direction: column;
     align-items: center;
 
-    background-color: red;
+    overflow: hidden;
 
     header{
-        padding: 0 0 1em 0;
+        width: 100%;
+        height: fit-content;
+
+        padding: 1em 1em 1em 4em;
+
+        // background-color: blue;
     }
 
     section{
         width: 100%;
-        height: 100%;
+        height: 90%;
+
+        padding: 1em 1em 1em 2em;
 
         display: flex;
         flex-direction: row;
         align-items: flex-start;
         justify-content: center;
-        background-color: blue;
+        // background-color: yellow;
+
+        overflow: hidden;
 
         #intersectors_table_wrapper{
-            width: 50%;
+            width: 20%;
+            max-height: 100%;
+            overflow: auto;
+
+            padding: 0 5% 0 0;
+            
+            table{
+                .mat-column-intersections{
+                    text-align: center;
+                }
+            }
         }
 
         #intersector_table_wrapper{
-            width: 50%;
+            width: 70%;
+            overflow: auto;
+
+            table{
+                .mat-column-dim-number{
+                    width: 5em;
+                    
+                    text-align: center;
+                }
+
+                .mat-column-dim-values{
+                    width: 5em;
+                }
+            }
         }
     }
 }

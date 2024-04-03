@@ -5,10 +5,11 @@ import { IntersectionDetails } from 'src/app/models/intersection_details';
 import {MatSort, MatSortModule} from '@angular/material/sort';
 import {MatTableDataSource, MatTableModule} from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
+import {MatIconModule} from '@angular/material/icon';
 
 export interface IntersectedTuple{
-    dim_value: String;
     dim_number: String;
+    dim_values: Array<String>;
 }
 
 @Component({
@@ -16,6 +17,7 @@ export interface IntersectedTuple{
   standalone: true,
   imports: [
     CommonModule,
+    MatIconModule,
     MatTabsModule,
     MatSortModule,
     MatTableModule
@@ -25,6 +27,7 @@ export interface IntersectedTuple{
 })
 export class IntersectionDetailsDialogComponent {
   public static WIDTH = '500px';
+  // public static HEIGHT = '350px';
   public static HEIGHT = '590px';
   
   protected identifier: number;
@@ -35,7 +38,9 @@ export class IntersectionDetailsDialogComponent {
   protected intersectors_displayed_columns: string[] = ['intersections'];
   protected intersectors_data_source: MatTableDataSource<Array<number>>;
 
-  protected intersector_displayed_columns: string[] = ['dim_value', 'dim_number']
+  protected intersector_displayed_columns: string[] = ['dim-number', 'dim-values']
+  protected intersector_displayed_columns_with_expand = [...this.intersector_displayed_columns, 'expand'];
+  protected expanded_element: IntersectedTuple | null;
   protected intersector_data_source: MatTableDataSource<IntersectedTuple[]>;
 
   protected intersector_id: number;
@@ -65,6 +70,7 @@ export class IntersectionDetailsDialogComponent {
   ngAfterViewInit(){
     let first_intersector = this.intersections.keys().next().value;
     this.selectIntersector(first_intersector); // Selects the first intersector
+    this.cdr.detectChanges();
   }
 
   protected selectIntersector(intersector_id: number){
@@ -77,13 +83,11 @@ export class IntersectionDetailsDialogComponent {
     let intersector_data_source: Array<IntersectedTuple> = [];
     intersected_dims.forEach(dim => {
       let values: Array<String> = dim.flat();
-      for (let j = 0; j < values.length; j++){
-        intersector_data_source.push({dim_value: values[j], dim_number: 'DIM' + (i+1)});
-      }
+      intersector_data_source.push({dim_number: 'DIM' + (i+1), dim_values: values });
+
       i++;
     });
 
     this.intersector_data_source = new MatTableDataSource(Array.from(intersector_data_source, x => [x]));
-    console.log(this.intersector_data_source)
   }
 }
