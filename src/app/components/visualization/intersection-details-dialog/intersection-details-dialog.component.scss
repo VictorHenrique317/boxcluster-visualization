@@ -54,6 +54,7 @@ body{
         #intersector_table_wrapper{
             width: 70%;
             overflow: auto;
+            
 
             table{
                 max-width: 100%;
@@ -64,8 +65,8 @@ body{
                 }
 
                 .mat-column-dim_values{
-                    background-color: red;
-                    width: 10em;
+                    // overflow: auto;
+                    
                 }
 
                 tr.data-row:not(.expanded-row):hover {
@@ -87,6 +88,10 @@ body{
                 .detail {
                     overflow: hidden;
                     display: flex;
+
+                    background-color: red;
+                    width: 10em;
+                    word-break: break-all;
                 }
                 
                 .detail-value {
