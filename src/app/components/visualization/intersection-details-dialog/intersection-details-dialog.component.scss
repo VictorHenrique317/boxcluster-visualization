@@ -56,14 +56,45 @@ body{
             overflow: auto;
 
             table{
-                .mat-column-dim-number{
+                max-width: 100%;
+
+                .mat-column-dim_number{ // concertar 
                     width: 5em;
-                    
                     text-align: center;
                 }
 
-                .mat-column-dim-values{
-                    width: 5em;
+                .mat-column-dim_values{
+                    background-color: red;
+                    width: 10em;
+                }
+
+                tr.data-row:not(.expanded-row):hover {
+                    background: whitesmoke;
+                }
+                
+                tr.data-row:not(.expanded-row):active {
+                    background: #efefef;
+                }
+
+                .data-row td {
+                    border-bottom-width: 0;
+                }
+
+                tr.detail-row {
+                    height: 0;
+                }
+                
+                .detail {
+                    overflow: hidden;
+                    display: flex;
+                }
+                
+                .detail-value {
+                    padding: 16px;
+                }
+                
+                .detail-value-attribution {
+                    opacity: 0.5;
                 }
             }
         }
