@@ -30,17 +30,21 @@
             <!-- Declares a table. The multiTemplateDataRows attribute allows multiple <ng-container> elements per row -->
             <table mat-table [dataSource]="intersector_data_source" multiTemplateDataRows>
                 <!-- Creates a column for each item in the array.  -->
-                <ng-container *ngFor="let column of intersector_displayed_columns; trackBy: trackColumn" matColumnDef="{{column}}">
-                    <th mat-header-cell *matHeaderCellDef> {{column}} </th>
+                <ng-container *ngFor="let column of intersector_displayed_columns; trackBy: trackColumn" matColumnDef="{{column}}" sticky>
+                    <th mat-header-cell *matHeaderCellDef> {{getColumnName(column)}} </th>
                     <td mat-cell *matCellDef="let element"> {{element[column]}} </td>
                 </ng-container>
-                
+
                 <!-- Defines an additional column for the expand/collapse button. The button changes its icon based on whether the
                 current row is expanded or not -->
                 <ng-container matColumnDef="expand">
                     <th mat-header-cell *matHeaderCellDef aria-label="row actions">&nbsp;</th>
                     <td mat-cell *matCellDef="let element">
-                    <button mat-icon-button aria-label="expand row" (click)="(expanded_element = expanded_element === element ? null : element); $event.stopPropagation()">
+                    <button mat-icon-button aria-label="expand row" 
+                        (click)="(expanded_element = expanded_element === element ? null : element); 
+                        $event.stopPropagation()"
+                        [hidden]="!element.needs_expand">
+                        
                         <mat-icon *ngIf="expanded_element === element">keyboard_arrow_up</mat-icon>
                         <mat-icon *ngIf="expanded_element !== element">keyboard_arrow_down</mat-icon>
 

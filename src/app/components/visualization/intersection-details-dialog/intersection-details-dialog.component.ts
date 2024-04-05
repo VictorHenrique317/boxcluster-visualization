@@ -10,7 +10,10 @@ import { animate, state, style, transition, trigger } from '@angular/animations'
 
 export interface IntersectedTuple {
   dim_number: String;
+  dim_values_preview: Array<String>;
   dim_values: Array<String>;
+
+  needs_expand: boolean;
 }
 
 @Component({
@@ -47,11 +50,16 @@ export class IntersectionDetailsDialogComponent {
   protected intersectors_displayed_columns: string[] = ['intersections'];
   protected intersectors_data_source: MatTableDataSource<Array<number>>;
 
-  
-  protected intersector_displayed_columns = ['dim_number', 'dim_values'];
+  protected intersector_data_source: IntersectedTuple[];
+  protected intersector_displayed_columns = ['dim_number', 'dim_values_preview'];
+  protected intersector_displayed_columns_names: Map<String, String> = new Map([
+    ['dim_number', 'Dim'],
+    ['dim_values_preview', 'Dim preview']
+  ]);
   protected intersector_displayed_columns_with_expand = [...this.intersector_displayed_columns, 'expand'];
   protected expanded_element: IntersectedTuple | null;
-  protected intersector_data_source: IntersectedTuple[];
+  private max_dim_values_preview_length = 22;
+  
   // protected intersector_data_source: MatTableDataSource<IntersectedTuple[]>;
   
   // expandedElement: IntersectedTuple | null
@@ -90,6 +98,10 @@ export class IntersectionDetailsDialogComponent {
     return column;
   }
 
+  protected getColumnName(column: String): String {
+    return this.intersector_displayed_columns_names.get(column);
+  }
+
   protected selectIntersector(intersector_id: number){
     this.intersector_id = intersector_id;
 
@@ -100,8 +112,25 @@ export class IntersectionDetailsDialogComponent {
     let intersector_data_source: IntersectedTuple[] = [];
     intersected_dims.forEach(dim => {
       let values: Array<String> = dim.flat();
+      let all_values_length = 0;
+      values.forEach(value => {
+        all_values_length += value.length;
+        all_values_length += 1; // For the comma
+      });
 
-      intersector_data_source.push({dim_number: 'DIM' + (i+1), dim_values: values });
+      let needs_expand: boolean;
+      let dim_values_preview: Array<String> = [];
+      if(all_values_length <= this.max_dim_values_preview_length){
+        dim_values_preview = values;
+        needs_expand = false;
+      }else{
+        dim_values_preview.push("{" + values.length + " values...}");
+        needs_expand = true;
+      }
+
+      intersector_data_source.push(
+        {dim_number: 'DIM' + (i+1), dim_values_preview: dim_values_preview, dim_values: values, needs_expand: needs_expand}
+        );
       i++;
     });
 

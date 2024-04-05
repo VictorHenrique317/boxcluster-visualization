@@ -12,7 +12,7 @@ body{
     flex-direction: column;
     align-items: center;
 
-    overflow: hidden;
+    // overflow: hidden;
 
     header{
         width: 100%;
@@ -35,7 +35,7 @@ body{
         justify-content: center;
         // background-color: yellow;
 
-        overflow: hidden;
+        // overflow: hidden;
 
         #intersectors_table_wrapper{
             width: 20%;
@@ -54,19 +54,16 @@ body{
         #intersector_table_wrapper{
             width: 70%;
             overflow: auto;
-            
 
             table{
                 max-width: 100%;
 
                 .mat-column-dim_number{ // concertar 
-                    width: 5em;
                     text-align: center;
                 }
 
-                .mat-column-dim_values{
-                    // overflow: auto;
-                    
+                .mat-column-dim_values_preview{
+                    text-align: center;
                 }
 
                 tr.data-row:not(.expanded-row):hover {
@@ -81,16 +78,25 @@ body{
                     border-bottom-width: 0;
                 }
 
+                .mat-column-expand{
+                    button{
+                        // width: 2em;
+                        mat-icon{
+                            // font-size: 1em;
+                        }
+                    }
+                    
+                }
+
                 tr.detail-row {
                     height: 0;
                 }
                 
                 .detail {
-                    overflow: hidden;
                     display: flex;
 
-                    background-color: red;
-                    width: 10em;
+                    // background-color: red;
+                    width: 100%;
                     word-break: break-all;
                 }
                 
