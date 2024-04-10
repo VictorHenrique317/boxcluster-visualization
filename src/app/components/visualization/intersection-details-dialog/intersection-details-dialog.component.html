@@ -1,8 +1,8 @@
 <body>
     <header>
         <h1>Intersection details for patterns {{identifier}}</h1>
-        <span>Total un-intersected percentage: {{total_untouched_percentage}}</span> <br>
-        <span>Total intersected percentage: {{total_intersection_percentage}}</span>
+        <span>Total un-intersected percentage: {{total_untouched_percentage*100}}%</span> <br>
+        <span>Total intersected percentage: {{total_intersection_percentage*100}}%</span>
     </header>
 
     <section>
@@ -16,9 +16,10 @@
                 </ng-container>
             
                 <tr mat-header-row *matHeaderRowDef="intersectors_displayed_columns; sticky: true"></tr>
-                <tr
+                <tr class="intersectors_data_row"
                     mat-row
                     (click)="selectIntersector(row[0])"
+                    [class.selected-row]="this.intersector_id === row[0]"
                     *matRowDef="let row; columns: intersectors_displayed_columns;"
                 ></tr>
                 
@@ -71,8 +72,9 @@
                 <!-- Defines the data rows. When a row is clicked, it toggles the expanded state of the row -->
                 <tr mat-row *matRowDef="let element; columns: intersector_displayed_columns_with_expand;"
                     class="data-row"
+                    [style.cursor]="element.needs_expand ? 'pointer' : 'default'"
                     [class.expanded-row]="expanded_element === element"
-                    (click)="expanded_element = expanded_element === element ? null : element">
+                    (click)="expandRow(element)">
                 </tr>
                 <!-- Defines the expanded detail row. -->
                 <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>

@@ -43,10 +43,22 @@ body{
             overflow: auto;
 
             padding: 0 5% 0 0;
+
+            cursor: pointer;
             
             table{
+                user-select: none;
+
                 .mat-column-intersections{
                     text-align: center;
+                }
+
+                th{ // Table header
+                    cursor: default;
+                }
+
+                .intersectors_data_row:hover{
+                    background: whitesmoke;
                 }
             }
         }
@@ -54,16 +66,26 @@ body{
         #intersector_table_wrapper{
             width: 70%;
             overflow: auto;
+            
 
             table{
                 max-width: 100%;
 
-                .mat-column-dim_number{ // concertar 
+                .mat-column-dim_number{ 
                     text-align: center;
                 }
 
                 .mat-column-dim_values_preview{
                     text-align: center;
+                }
+
+                th{ // Table header
+                    user-select: none;
+                    cursor: default;
+                }
+
+                tr.data-row{
+                    // Selector for the rows
                 }
 
                 tr.data-row:not(.expanded-row):hover {
@@ -97,7 +119,7 @@ body{
 
                     // background-color: red;
                     width: 100%;
-                    word-break: break-all;
+                    word-break: normal;
                 }
                 
                 .detail-value {
@@ -110,4 +132,12 @@ body{
             }
         }
     }
+}
+
+.expanded-row{
+    
+}
+
+.selected-row{
+    background: whitesmoke;
 }

@@ -49,6 +49,7 @@ export class IntersectionDetailsDialogComponent {
 
   protected intersectors_displayed_columns: string[] = ['intersections'];
   protected intersectors_data_source: MatTableDataSource<Array<number>>;
+  protected intersector_id: number;
 
   protected intersector_data_source: IntersectedTuple[];
   protected intersector_displayed_columns = ['dim_number', 'dim_values_preview'];
@@ -58,13 +59,13 @@ export class IntersectionDetailsDialogComponent {
   ]);
   protected intersector_displayed_columns_with_expand = [...this.intersector_displayed_columns, 'expand'];
   protected expanded_element: IntersectedTuple | null;
-  private max_dim_values_preview_length = 22;
+  private max_dim_values_preview_length = 26;
   
   // protected intersector_data_source: MatTableDataSource<IntersectedTuple[]>;
   
   // expandedElement: IntersectedTuple | null
 
-  protected intersector_id: number;
+  
 
   constructor(public dialogRef: MatDialogRef<IntersectionDetailsDialogComponent>, 
       @Inject(MAT_DIALOG_DATA) public data: {intersection_details: IntersectionDetails}, private cdr: ChangeDetectorRef){
@@ -111,16 +112,19 @@ export class IntersectionDetailsDialogComponent {
     let i = 0;
     let intersector_data_source: IntersectedTuple[] = [];
     intersected_dims.forEach(dim => {
-      let values: Array<String> = dim.flat();
+      let values: Array<String> = [];
       let all_values_length = 0;
-      values.forEach(value => {
+
+      dim.flat().forEach(value => {
         all_values_length += value.length;
         all_values_length += 1; // For the comma
+        all_values_length += 1; // For the space
+        values.push(" " + value);
       });
 
       let needs_expand: boolean;
       let dim_values_preview: Array<String> = [];
-      if(all_values_length <= this.max_dim_values_preview_length){
+      if(all_values_length <= this.max_dim_values_preview_length - 2){ // -2 for the last comma and space
         dim_values_preview = values;
         needs_expand = false;
       }else{
@@ -136,4 +140,14 @@ export class IntersectionDetailsDialogComponent {
 
     this.intersector_data_source = intersector_data_source;
   }
+
+  protected expandRow(element: IntersectedTuple): void {
+    if(element.needs_expand === false){
+      this.expanded_element = null;
+      return;
+    }
+
+    this.expanded_element = this.expanded_element === element ? null : element;
+  }
+  
 }
