@@ -95,8 +95,6 @@ export class VisualizationComponent implements AfterViewInit{
     this.svg_feature.drawDataPoints(datapoints);
 
     this.intersection_mode_feature = new IntersectionModeFeatureModule(this.svg_feature, this.dialog_service);
-
-    this.intersection_mode_feature.showIntersectionDetails(); // TODO: Remover
   }
 
   private async fetchDataPoints(): Promise<Array<DataPoint>>{

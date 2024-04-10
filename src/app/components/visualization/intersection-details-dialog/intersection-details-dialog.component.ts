@@ -39,8 +39,8 @@ export interface IntersectedTuple {
 export class IntersectionDetailsDialogComponent {
   public static WIDTH = '500px';
   // public static HEIGHT = '350px';
-  public static HEIGHT = '700px'; // CERTO
-  // public static HEIGHT = '590px'; // CERTO
+  public static HEIGHT = '600px';
+  // public static HEIGHT = '590px'; 
   
   protected identifier: number;
   protected total_untouched_percentage: number;

@@ -28,8 +28,6 @@ export class IntersectionModeFeatureModule {
   constructor(svg_feature: SvgFeatureModule, dialog_service: DialogService) {
     this.svg_feature = svg_feature;
     this.dialog_service = dialog_service;
-
-    this.clicked_datapoint_data = new DataPoint(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); // TODO: Remover
   }
 
   private connectDatapoints(center: DataPoint, intersections:Map<number, number>, intersections_colors: Map<number, string>){
@@ -155,7 +153,7 @@ export class IntersectionModeFeatureModule {
 
       this.clicked_datapoint_data = clicked_circle.node().__data__;
 
-      raw_data = await invoke("getIntersectionPercentagesFor", {identifier: this.clicked_datapoint_data.identifier})
+      raw_data = await invoke("getIntersectionDetails", {identifier: this.clicked_datapoint_data.identifier})
         .catch((error: any) => {
           console.error(error);
           this.dialog_service.openErrorDialog("Error while getting intersections.");
