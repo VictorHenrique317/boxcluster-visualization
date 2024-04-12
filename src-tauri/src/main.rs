@@ -32,6 +32,7 @@ fn main() {
             getTruncatedRssEvolution,
             getDataPoints,
             getPattern,
+            getIntersectionsPercentages,
             getIntersectionDetails,
             ])
         .run(tauri::generate_context!())

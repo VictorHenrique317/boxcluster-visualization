@@ -79,6 +79,14 @@ pub fn getPattern(application_service: State<ApplicationServiceState>, identifie
 }
 
 #[tauri::command]
+pub fn getIntersectionsPercentages(application_service: State<ApplicationServiceState>, identifier: u32) -> Result<HashMap<u32, f64>, GenericError> {
+    println!("Calling getIntersectionsPercentages...");
+
+    let application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
+    return application_service.getIntersectionsPercentages(&identifier);
+}
+
+#[tauri::command]
 pub fn getIntersectionDetails(application_service: State<ApplicationServiceState>, identifier: u32) -> Result<IntersectionsDetails, GenericError> {
     println!("Calling getIntersectionDetails...");
 

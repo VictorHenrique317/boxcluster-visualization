@@ -74,9 +74,9 @@ export class AppComponent implements AfterViewInit{
 
   @ViewChild("sidenav") sidenav: MatSidenav;
   @ViewChild("model_selector") model_selector: ElementRef<HTMLElement>;
-  public tensor_path: string = "";
-  public patterns_path: string = "";
-  public model_loaded = false;
+  protected tensor_path: string = "";
+  protected patterns_path: string = "";
+  protected model_loaded = false;
   @ViewChild('rss_view') rss_view: RssViewComponent;
   
   @ViewChild('visualization_view') visualization_view: VisualizationComponent;
@@ -144,6 +144,8 @@ export class AppComponent implements AfterViewInit{
   }
 
   private openModelSelection(): void {
+    
+
     let dialog_data = {
       tensor_path: this.tensor_path,
       patterns_path: this.patterns_path

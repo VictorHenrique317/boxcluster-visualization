@@ -153,7 +153,7 @@ export class IntersectionModeFeatureModule {
 
       this.clicked_datapoint_data = clicked_circle.node().__data__;
 
-      raw_data = await invoke("getIntersectionDetails", {identifier: this.clicked_datapoint_data.identifier})
+      raw_data = await invoke("getIntersectionsPercentages", {identifier: this.clicked_datapoint_data.identifier})
         .catch((error: any) => {
           console.error(error);
           this.dialog_service.openErrorDialog("Error while getting intersections.");

@@ -14,7 +14,9 @@
 - [x] Implementar legendas de tamanho e densidade
 - [x] Fazer o programa aceitar arquivos com padrões que possuem dados adicionais
 
-## Checklist ??? -> ??? - v0.3.0
+## Checklist 01/03/2024 -> 12/04/2024 - v0.3.0
 - [x] Implementar o modo que mostra a interseção no hovering do mouse
-- [] Implementar o modo que mostra detalhes da interseção
+- [x] Implementar o modo que mostra detalhes da interseção
+
+## Checklist ??? -> ??? - v0.3.1
 - [] Integrar movimentação no dag e números flutuantes
