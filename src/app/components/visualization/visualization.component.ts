@@ -1,6 +1,6 @@
 import * as d3Tip from "d3-tip";
 import { resolveResource } from '@tauri-apps/api/path'
-import { ChangeDetectorRef, Component, ComponentFactoryResolver, EventEmitter, InjectionToken, Input, Output, Renderer2, ViewContainerRef } from '@angular/core';
+import { ChangeDetectorRef, Component, ComponentFactoryResolver, EventEmitter, InjectionToken, Input, OnDestroy, Output, Renderer2, ViewContainerRef } from '@angular/core';
 import { ComponentPortal, PortalModule } from '@angular/cdk/portal';
 import { CommonModule } from '@angular/common';
 import {MatCardModule} from '@angular/material/card';
@@ -69,7 +69,10 @@ import {MatButtonModule} from '@angular/material/button';
     ]
 })
 
-export class VisualizationComponent implements AfterViewInit{
+export class VisualizationComponent implements AfterViewInit, OnDestroy{
+  @Output() datapoint_hover_in = new EventEmitter<number>();
+  @Output() datapoint_hover_out = new EventEmitter<number>();
+
   @ViewChild('body') body: ElementRef<HTMLBodyElement>;
   @ViewChild('vizualization_div') visualization_div: ElementRef<HTMLDivElement>;
 
@@ -90,11 +93,18 @@ export class VisualizationComponent implements AfterViewInit{
     
     this.svg_feature = new SvgFeatureModule(this.dialog_service, this.cdr);
     this.svg_feature.init(this.visualization_div, svg_width, svg_height);
+    this.svg_feature.datapoint_hover_in.subscribe(identifier => this.onDatapointHoverIn(identifier));
+    this.svg_feature.datapoint_hover_out.subscribe(identifier => this.onDatapointHoverOut(identifier));
     
     let datapoints = await this.fetchDataPoints();
     this.svg_feature.drawDataPoints(datapoints);
 
     this.intersection_mode_feature = new IntersectionModeFeatureModule(this.svg_feature, this.dialog_service);
+  }
+
+  ngOnDestroy() {
+    this.svg_feature.datapoint_hover_in.unsubscribe();
+    this.svg_feature.datapoint_hover_out.unsubscribe();
   }
 
   private async fetchDataPoints(): Promise<Array<DataPoint>>{
@@ -144,6 +154,14 @@ export class VisualizationComponent implements AfterViewInit{
     }
 
     this.svg_feature.drawDataPoints(truncated_datapoints);
+  }
+
+  private onDatapointHoverIn(identifier: number){
+    this.datapoint_hover_in.emit(identifier);
+  }
+
+  private onDatapointHoverOut(identifier: number){
+    this.datapoint_hover_out.emit(identifier);
   }
 
   public toggleIntersectionMode(){

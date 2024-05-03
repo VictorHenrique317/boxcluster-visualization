@@ -90,6 +90,7 @@
             
             <app-visualization #visualization_view
                 (onTruncation)="onTruncation($event)"
+                (datapoint_hover_in)="updatePatternSummary($event)"
                 *ngIf="model_loaded">
             </app-visualization>
         </div>

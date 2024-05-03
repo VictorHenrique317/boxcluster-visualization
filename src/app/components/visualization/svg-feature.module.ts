@@ -1,5 +1,5 @@
 import * as d3Tip from "d3-tip";
-import { ChangeDetectorRef, ElementRef, NgModule } from '@angular/core';
+import { ChangeDetectorRef, ElementRef, EventEmitter, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as d3 from 'd3';
 import { DataPoint } from 'src/app/models/datapoint';
@@ -18,6 +18,9 @@ import { DatapointInfoDialogComponent } from './datapoint-info-dialog/datapoint-
   ]
 })
 export class SvgFeatureModule {
+  public datapoint_hover_in = new EventEmitter<number>();
+  public datapoint_hover_out = new EventEmitter<number>();
+
   private datapoints: Array<DataPoint>;
   
   private visualization_div: ElementRef;
@@ -237,6 +240,25 @@ export class SvgFeatureModule {
     return scaled_datapoints;
   }
 
+  private async onDatapointClick(identifier: number): Promise<void> {
+    let pattern;
+    if(!environment.dev_mode){
+      pattern = await this.getRawPattern(identifier);
+
+    }else if(environment.dev_mode){
+      let rawdata = await fs.readTextFile(await resolveResource('resources/pattern.json'));
+      pattern = JSON.parse(rawdata);
+    }
+
+    let dialog_data = {
+      pattern: pattern
+    }
+    this.dialog_service.open(DatapointInfoDialogComponent, 
+      DatapointInfoDialogComponent.WIDTH, 
+      DatapointInfoDialogComponent.HEIGHT, 
+      dialog_data);
+  }
+  
   public drawDataPoints(datapoints: Array<DataPoint>) {
     if(datapoints == undefined || datapoints == null){ return; }
     if(this.plot == undefined){ return; }
@@ -273,8 +295,14 @@ export class SvgFeatureModule {
         .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
         .style('cursor', 'pointer')
         .style('stroke', 'rgba(255, 0, 0, 1')
-        .on('mouseover', (event, d) => { this.tooltip.show(d, event.currentTarget); })
-        .on('mouseout', (event, d) => { this.tooltip.hide(d, event.currentTarget); })
+        .on('mouseover', (event, d) => { 
+          this.tooltip.show(d, event.currentTarget);
+          this.datapoint_hover_in.emit(d.identifier);
+        })
+        .on('mouseout', (event, d) => { 
+          this.tooltip.hide(d, event.currentTarget); 
+          this.datapoint_hover_out.emit(d.identifier);
+        })
         .on('click', (event, d) => { this.onDatapointClick(d.identifier); })
         .transition()
         .duration(this.transition_duration)
@@ -299,25 +327,6 @@ export class SvgFeatureModule {
     });
 
     return pattern;
-  }
-
-  private async onDatapointClick(identifier: number): Promise<void> {
-    let pattern;
-    if(!environment.dev_mode){
-      pattern = await this.getRawPattern(identifier);
-
-    }else if(environment.dev_mode){
-      let rawdata = await fs.readTextFile(await resolveResource('resources/pattern.json'));
-      pattern = JSON.parse(rawdata);
-    }
-
-    let dialog_data = {
-      pattern: pattern
-    }
-    this.dialog_service.open(DatapointInfoDialogComponent, 
-      DatapointInfoDialogComponent.WIDTH, 
-      DatapointInfoDialogComponent.HEIGHT, 
-      dialog_data);
   }
 
   public xScale(x: number){

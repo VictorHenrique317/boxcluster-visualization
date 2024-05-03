@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { EventEmitter, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataPoint } from 'src/app/models/datapoint';
 import { SvgFeatureModule } from './svg-feature.module';
@@ -7,7 +7,6 @@ import { environment } from 'src/environments/environment';
 import { fs, invoke } from '@tauri-apps/api';
 import { DialogService } from 'src/app/services/dialog/dialog.service';
 import { resolveResource } from '@tauri-apps/api/path';
-import { race } from 'rxjs';
 import { IntersectionDetailsDialogComponent } from './intersection-details-dialog/intersection-details-dialog.component';
 import { IntersectionDetails } from 'src/app/models/intersection_details';
 
@@ -107,8 +106,17 @@ export class IntersectionModeFeatureModule {
     return intersections_colors;
   }
 
-  private createIntersectionChart(circle: any, intersections: Map<number, number>, chart_radius: number, 
-    intersections_colors: Map<number, string>): Map<number, string>{
+  private expandCircle(clicked_circle, expansion_factor, intersections, intersections_colors){
+    clicked_circle
+      .attr('r', this.clicked_datapoint_data.size)
+      .transition('mouseover')
+      .duration(this.transition_duration)
+      .attr('r', this.clicked_datapoint_data.size * expansion_factor)
+      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, 1)`);
+  }
+
+  private createIntersectionChart(clicked_circle: any, intersections: Map<number, number>, chart_radius: number, 
+    intersections_colors: Map<number, string>){
     let pie = d3.pie()
       .value((d: any) => d.value);
 
@@ -124,7 +132,7 @@ export class IntersectionModeFeatureModule {
 
     let pie_group = this.svg_feature.plot.append('g')
       .attr('class', 'pie_chart')
-      .attr('transform', `translate(${circle.attr('cx')}, ${circle.attr('cy')})`);
+      .attr('transform', `translate(${clicked_circle.attr('cx')}, ${clicked_circle.attr('cy')})`);
 
     pie_group.selectAll('path')
       .data(pie_data)
@@ -140,19 +148,40 @@ export class IntersectionModeFeatureModule {
         let color = intersections_colors.get(d.data.key);
         return color;
       });
+  }
 
-    return intersections_colors;
+  private createIntersectionCharts(identifiers: Array<number>, intersections: Map<number, number>, chart_radius: number, 
+    intersections_colors: Map<number, string>){
+    let clicked_datapoint = this.svg_feature.plot.selectAll('circle')
+      .filter(d => d.identifier == this.clicked_datapoint_data.identifier);
+    let empty = new Map<number, number>();
+    empty.set(this.clicked_datapoint_data.identifier, 1);
+    this.createIntersectionChart(clicked_datapoint, empty, chart_radius, intersections_colors);
+  
+    let identifiers_set = new Set(identifiers);
+    let circles = this.svg_feature.plot.selectAll('circle')
+      .filter(d => identifiers_set.has(d.identifier));
+
+    circles.each((d, i, nodes) => {
+      let intersection_data: Map<number, number> = new Map<number, number>();
+      let parent_current_percentage = intersections.get(d.identifier); // Colored with the parent color
+      let complement_percentage = 1 - parent_current_percentage; // Colored with current circle color
+
+      intersection_data.set(this.clicked_datapoint_data.identifier, parent_current_percentage);
+      intersection_data.set(d.identifier, complement_percentage);
+
+      this.createIntersectionChart(d3.select(nodes[i]), intersection_data, chart_radius, intersections_colors);
+    });
   }
 
   private async showIntersections(datapoint: DataPoint, event){
+    let clicked_circle = this.svg_feature.plot.selectAll('circle')
+      // .filter(d => d.identifier == 14);
+      .filter(d => d.identifier == datapoint.identifier);
+    this.clicked_datapoint_data = clicked_circle.node().__data__;
+
     let raw_data;
-    let clicked_circle: any;
     if(!environment.dev_mode){
-      clicked_circle = this.svg_feature.plot.selectAll('circle')
-        .filter(d => d.identifier == datapoint.identifier);
-
-      this.clicked_datapoint_data = clicked_circle.node().__data__;
-
       raw_data = await invoke("getIntersectionsPercentages", {identifier: this.clicked_datapoint_data.identifier})
         .catch((error: any) => {
           console.error(error);
@@ -160,36 +189,25 @@ export class IntersectionModeFeatureModule {
       });
       
     }else{
-      clicked_circle = this.svg_feature.plot.selectAll('circle')
-          // .filter(d => d.identifier == 14);
-          .filter(d => d.identifier == datapoint.identifier);
-
-      this.clicked_datapoint_data = clicked_circle.node().__data__;
-
       raw_data = await fs.readTextFile(await resolveResource('resources/intersections2.json'));
       raw_data = JSON.parse(raw_data);
     }
-
     console.log("Fetched intersections for datapoint: " + this.clicked_datapoint_data.identifier);
     console.log(raw_data);
 
     let intersections = new Map<number, number>();
     for (let key in raw_data) { intersections.set(Number(key), Number(raw_data[key])); }
-
     let intersections_colors = this.createIntesectionColorMapping(intersections);
 
-    this.highlightDatapoints(Array.from(intersections.keys()), intersections_colors);
+    let relationed_datapoints: Array<number> = Array.from(intersections.keys())
+      .filter(d => (d != this.clicked_datapoint_data.identifier) && (d != 0));
+    this.highlightDatapoints(relationed_datapoints, intersections_colors);
     this.connectDatapoints(this.clicked_datapoint_data, intersections, intersections_colors);
-
-    let expansion_factor = 4;
-    clicked_circle
-      .attr('r', this.clicked_datapoint_data.size)
-      .transition('mouseover')
-      .duration(this.transition_duration)
-      .attr('r', this.clicked_datapoint_data.size * expansion_factor)
-      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, 1)`);
+    let expansion_factor = 1;
+    this.expandCircle(clicked_circle, expansion_factor, intersections, intersections_colors);
     let chart_radius = this.clicked_datapoint_data.size * expansion_factor;
-    this.createIntersectionChart(clicked_circle, intersections, chart_radius, intersections_colors);
+    // this.createIntersectionChart(clicked_circle, intersections, chart_radius, intersections_colors);
+    this.createIntersectionCharts(relationed_datapoints, intersections, chart_radius, intersections_colors);
   }
 
   private hideIntersections(){

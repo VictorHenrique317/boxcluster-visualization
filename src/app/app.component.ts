@@ -144,8 +144,6 @@ export class AppComponent implements AfterViewInit{
   }
 
   private openModelSelection(): void {
-    
-
     let dialog_data = {
       tensor_path: this.tensor_path,
       patterns_path: this.patterns_path
@@ -184,5 +182,9 @@ export class AppComponent implements AfterViewInit{
     }, 1100);
 
     this.visualization_view.onTruncation(event);
- }
+  }
+
+  updatePatternSummary(identifier: number){
+    console.log(identifier);
+  }
 }
