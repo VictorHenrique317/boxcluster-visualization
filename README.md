@@ -18,5 +18,8 @@
 - [x] Implementar o modo que mostra a interseção no hovering do mouse
 - [x] Implementar o modo que mostra detalhes da interseção
 
-## Checklist ??? -> ??? - v0.3.1
+## Checklist 06/05/2024 -> ??? - v0.3.1
+- [x] Corrigir visualização de interseção
+- [] Implementar preview do padrão no evento de hovering do mouse
+- [] Ativar o modo de interseção no hovering do mouse
 - [] Integrar movimentação no dag e números flutuantes

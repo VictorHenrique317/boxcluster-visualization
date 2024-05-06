@@ -36,8 +36,7 @@
         <div id="content-cover" [hidden]="!truncate_model_enabled"></div>
         <mat-sidenav-container #content class="sidenav-content" autosize [ngClass]="{'faded': truncate_model_enabled}">
             <div id="settings-wrapper-lower-content">
-                <div id="paginator-placeholder" *ngIf="!model_loaded"></div>
-                <app-dynamic-paginator *ngIf="model_loaded" [matList_height]="matList_height"></app-dynamic-paginator>
+                <app-pattern-summary id="pattern-summary" #pattern_summary></app-pattern-summary>
             </div>
         
             <mat-sidenav #sidenav id="settings-wrapper-upper-content" mode="over" fixedInViewport="false">
@@ -91,6 +90,7 @@
             <app-visualization #visualization_view
                 (onTruncation)="onTruncation($event)"
                 (datapoint_hover_in)="updatePatternSummary($event)"
+                (datapoint_hover_out)="updatePatternSummary(null)"
                 *ngIf="model_loaded">
             </app-visualization>
         </div>

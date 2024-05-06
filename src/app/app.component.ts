@@ -20,8 +20,6 @@ import {MatRippleModule} from '@angular/material/core';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatIconModule} from '@angular/material/icon';
 import { CommonModule } from "@angular/common";
-import { PatternSummaryComponent } from "./components/dynamic-paginator/pattern-summary/pattern-summary.component";
-import { DynamicPaginatorComponent } from "./components/dynamic-paginator/dynamic-paginator.component";
 import { open } from '@tauri-apps/api/dialog';
 import { RssViewComponent } from "./components/main_options/rss-view/rss-view.component";
 import { provideRouter, Router, RouterOutlet} from "@angular/router";
@@ -33,6 +31,10 @@ import { FileSelectionDialogComponent } from './components/main_options/file-sel
 import { take } from "rxjs/operators";
 import { DialogService } from "./services/dialog/dialog.service";
 import { ErrorDialogComponent } from "./components/error-dialog/error-dialog.component";
+import { PatternSummaryComponent } from "./components/pattern-summary/pattern-summary.component";
+import { Pattern } from "./models/pattern";
+import { fs } from "@tauri-apps/api";
+import { resolveResource } from "@tauri-apps/api/path";
 
 export enum MainOption {
   MODEL_SELECTOR,
@@ -46,21 +48,20 @@ export enum MainOption {
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss'],
     standalone: true,
-    imports: [RouterOutlet, CommonModule, VisualizationComponent, RssViewComponent, PatternSummaryComponent,
-        DynamicPaginatorComponent, MatSlideToggleModule, MatTabsModule, MatButtonToggleModule, MatDividerModule,
-        MatListModule, MatSelectModule, MatSlideToggleModule, MatCheckboxModule, MatMenuModule, MatButtonModule,
-        MatRippleModule, MatPaginatorModule, MatSidenavModule, MatIconModule,MatTooltipModule],
     animations: [
-      trigger('slideInOut', [
-        state('void', style({ transform: 'translateX(-100%)', opacity: 0})),
-        state('in', style({ transform: 'translateX(0)', opacity: 1 })),
-        state('out', style({ transform: 'translateX(-100%)', opacity: 0 })),
-        transition('void => in', [ animate('0.4s ease-in-out') ]),
-        transition('in => out', [ animate('0.4s ease-in-out') ]),
-        transition('out => in', [ animate('0.4s ease-in-out') ])
-      ])
-    ]
-    
+        trigger('slideInOut', [
+            state('void', style({ transform: 'translateX(-100%)', opacity: 0 })),
+            state('in', style({ transform: 'translateX(0)', opacity: 1 })),
+            state('out', style({ transform: 'translateX(-100%)', opacity: 0 })),
+            transition('void => in', [animate('0.4s ease-in-out')]),
+            transition('in => out', [animate('0.4s ease-in-out')]),
+            transition('out => in', [animate('0.4s ease-in-out')])
+        ])
+    ],
+    imports: [RouterOutlet, CommonModule, VisualizationComponent, RssViewComponent,
+        MatSlideToggleModule, MatTabsModule, MatButtonToggleModule, MatDividerModule,
+        MatListModule, MatSelectModule, MatSlideToggleModule, MatCheckboxModule, MatMenuModule, MatButtonModule,
+        MatRippleModule, MatPaginatorModule, MatSidenavModule, MatIconModule, MatTooltipModule, PatternSummaryComponent]
 })
 
 export class AppComponent implements AfterViewInit{
@@ -78,8 +79,10 @@ export class AppComponent implements AfterViewInit{
   protected patterns_path: string = "";
   protected model_loaded = false;
   @ViewChild('rss_view') rss_view: RssViewComponent;
+  @ViewChild('pattern_summary') pattern_summary: PatternSummaryComponent;
   
   @ViewChild('visualization_view') visualization_view: VisualizationComponent;
+  protected hovered_pattern: Pattern;
   
   constructor(private cdr: ChangeDetectorRef, private dialog_service: DialogService){}
 
@@ -184,7 +187,7 @@ export class AppComponent implements AfterViewInit{
     this.visualization_view.onTruncation(event);
   }
 
-  updatePatternSummary(identifier: number){
-    console.log(identifier);
+  protected updatePatternSummary(identifier){
+    this.pattern_summary.update(identifier);
   }
 }

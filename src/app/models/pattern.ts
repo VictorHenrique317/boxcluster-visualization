@@ -10,4 +10,8 @@ export class Pattern{
         this.density = density;
         this.size = size;
     }
+
+    public static fromResponse(response: any): Pattern{
+        return new Pattern(response.identifier, response.dims_values, response.density, response.size);
+    }
 }
