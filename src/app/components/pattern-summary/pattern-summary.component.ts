@@ -9,33 +9,55 @@ import {MatTabsModule} from '@angular/material/tabs';
 import {MatTableDataSource, MatTableModule} from '@angular/material/table';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatSort, MatSortModule} from '@angular/material/sort';
+import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
+import { MatInputModule } from '@angular/material/input';
+import {MatSelectChange, MatSelectModule} from '@angular/material/select';
 
 @Component({
   selector: 'app-pattern-summary',
   standalone: true,
-  imports: [CommonModule, MatTabsModule, MatTableModule, MatFormFieldModule],
+  imports: [CommonModule, MatTabsModule, MatTableModule, MatFormFieldModule, MatPaginatorModule, 
+    MatInputModule, MatSelectModule],
   templateUrl: './pattern-summary.component.html',
   styleUrls: ['./pattern-summary.component.scss']
 })
 export class PatternSummaryComponent {
   @Input() public pattern: Pattern;
 
-  @ViewChild(MatSort) sort: MatSort;
-  private input: HTMLInputElement;
+  protected selected_dim;
   
+  private input: HTMLInputElement;
+
+  @ViewChild(MatSort) sort: MatSort;
   protected displayed_columns: string[] = ['values'];
   // protected data_source: MatTableDataSource<Array<any>>;
   protected data_source;
   protected data_source_length: number;
-  protected selected_tab;
 
   constructor(private cdr: ChangeDetectorRef, private dialog_service: DialogService) {
-    this.selected_tab = 0;
+    this.selected_dim = 0;
+    this.data_source = new MatTableDataSource();
   }
 
   ngOnInit(): void {
     this.update(1); // TODO: Retirar
   }
+
+  protected applyFilter(event: Event) {
+    this.data_source.data = this.pattern.dims_values[this.selected_dim];
+    this.input = (event.target as HTMLInputElement);
+
+    const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
+
+    let filteredData = this.data_source.data.filter(item => {
+        let itemStr = JSON.stringify(item).toLowerCase();
+        return itemStr.includes(filterValue);
+    });
+    
+    this.data_source.data = filteredData;
+    this.data_source_length = this.data_source.data.length;
+    console.log(this.data_source.data.length)
+}
 
   public async update(identifier){
     if(identifier == null){
@@ -55,34 +77,17 @@ export class PatternSummaryComponent {
     }
     this.pattern = Pattern.fromResponse(pattern);
     
-    this.data_source = new MatTableDataSource(this.pattern.dims_values[this.selected_tab]);
+    this.data_source.data = this.pattern.dims_values[this.selected_dim];
     this.data_source_length = this.data_source.data.length;
   }
 
-  protected applyFilter(event: Event) {
-    // this.data_source.data = this.pattern.dims_values[this.selected_tab];
-    // this.input = (event.target as HTMLInputElement);
+  protected onSelectionChange(event: MatSelectChange){
+    this.selected_dim = event.value;
+    this.data_source.data = this.pattern.dims_values[this.selected_dim];
+    this.data_source_length = this.data_source.data.length;
 
-    // const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
-
-    // let filteredData = this.data_source.data.filter(item => {
-    //     let itemStr = JSON.stringify(item).toLowerCase();
-    //     return itemStr.includes(filterValue);
-    // });
-    
-    // this.data_source.data = filteredData;
-    // this.data_source_length = this.data_source.data.length;
-}
-
-  protected onTabChange(tab_index: number){
-    // this.selected_tab = tab_index;
-    // let dim = this.pattern.dims_values[tab_index];
-    // this.data_source.data = dim;
-    // this.data_source_length = this.data_source.data.length;
-    // this.data_source.sort = this.sort;
-    
-    // if (this.input != null){
-    //   this.input.value = "";
-    // }
+    if (this.input != null){
+      this.input.value = "";
+    }
   }
 }
