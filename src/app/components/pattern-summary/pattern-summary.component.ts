@@ -12,6 +12,7 @@ import {MatSort, MatSortModule} from '@angular/material/sort';
 import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
 import { MatInputModule } from '@angular/material/input';
 import {MatSelectChange, MatSelectModule} from '@angular/material/select';
+import { ApiService } from 'src/app/services/api/api.service';
 
 @Component({
   selector: 'app-pattern-summary',
@@ -34,13 +35,13 @@ export class PatternSummaryComponent {
   protected data_source;
   protected data_source_length: number;
 
-  constructor(private cdr: ChangeDetectorRef, private dialog_service: DialogService) {
+  constructor(private api_service: ApiService) {
     this.selected_dim = 0;
     this.data_source = new MatTableDataSource();
   }
 
   ngOnInit(): void {
-    this.update(1); // TODO: Retirar
+    // this.update(1); // TODO: Retirar
   }
 
   protected applyFilter(event: Event) {
@@ -56,7 +57,6 @@ export class PatternSummaryComponent {
     
     this.data_source.data = filteredData;
     this.data_source_length = this.data_source.data.length;
-    console.log(this.data_source.data.length)
 }
 
   public async update(identifier){
@@ -65,18 +65,9 @@ export class PatternSummaryComponent {
       return;
     }
     
-    let pattern;
-    if(!environment.dev_mode){
-      pattern = await invoke("getPattern", {identifier: identifier}).catch((error: any) => {
-        console.error(error);
-        this.dialog_service.openErrorDialog("Error while fetching pattern.");
-      });
-    }else{
-      let rawdata = await fs.readTextFile(await resolveResource('resources/pattern.json'));
-      pattern = JSON.parse(rawdata);
-    }
-    this.pattern = Pattern.fromResponse(pattern);
-    
+    this.pattern = await this.api_service.getPattern(identifier);
+
+    this.selected_dim = 0;
     this.data_source.data = this.pattern.dims_values[this.selected_dim];
     this.data_source_length = this.data_source.data.length;
   }

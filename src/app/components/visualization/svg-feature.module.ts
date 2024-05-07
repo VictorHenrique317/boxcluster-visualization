@@ -5,11 +5,6 @@ import * as d3 from 'd3';
 import { DataPoint } from 'src/app/models/datapoint';
 import { legendCircle } from 'src/js/circle_legend.js';
 import { Legend } from 'src/js/color_legend.js';
-import { environment } from 'src/environments/environment';
-import { resolveResource } from '@tauri-apps/api/path';
-import { fs, invoke } from '@tauri-apps/api';
-import { DialogService } from 'src/app/services/dialog/dialog.service';
-import { DatapointInfoDialogComponent } from './datapoint-info-dialog/datapoint-info-dialog.component';
 
 @NgModule({
   declarations: [],
@@ -40,11 +35,9 @@ export class SvgFeatureModule {
   private tooltip;
   private transition_duration = 300;
 
-  private dialog_service: DialogService;
   private cdr: ChangeDetectorRef;
 
-  constructor(dialog_service: DialogService, cdr: ChangeDetectorRef){ 
-    this.dialog_service = dialog_service;
+  constructor(cdr: ChangeDetectorRef){ 
     this.cdr = cdr;
   }
 
@@ -241,22 +234,7 @@ export class SvgFeatureModule {
   }
 
   private async onDatapointClick(identifier: number): Promise<void> {
-    let pattern;
-    if(!environment.dev_mode){
-      pattern = await this.getRawPattern(identifier);
 
-    }else if(environment.dev_mode){
-      let rawdata = await fs.readTextFile(await resolveResource('resources/pattern.json'));
-      pattern = JSON.parse(rawdata);
-    }
-
-    let dialog_data = {
-      pattern: pattern
-    }
-    this.dialog_service.open(DatapointInfoDialogComponent, 
-      DatapointInfoDialogComponent.WIDTH, 
-      DatapointInfoDialogComponent.HEIGHT, 
-      dialog_data);
   }
   
   public drawDataPoints(datapoints: Array<DataPoint>) {
@@ -318,15 +296,6 @@ export class SvgFeatureModule {
         .on('mouseover', (event, d) => { this.tooltip.show(d, event.currentTarget); })
         .on('mouseout', (event, d) => { this.tooltip.hide(d, event.currentTarget); })
         .on('click', (event, d) => { this.onDatapointClick(d.identifier); });
-  }
-
-  private async getRawPattern(identifier: number){
-    let pattern = await invoke("getPattern", {identifier: identifier}).catch((error: any) => {
-      console.error(error);
-      this.dialog_service.openErrorDialog("Error while fetching pattern.");
-    });
-
-    return pattern;
   }
 
   public xScale(x: number){

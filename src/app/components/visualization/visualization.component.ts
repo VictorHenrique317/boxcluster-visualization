@@ -20,7 +20,6 @@ import { RssViewComponent } from 'src/app/components/main_options/rss-view/rss-v
 import { environment } from '../../../environments/environment';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { DataPointTooltipComponent } from "./datapoint-tooltip/datapoint-tooltip.component";
-import { DatapointInfoDialogComponent } from "./datapoint-info-dialog/datapoint-info-dialog.component";
 import { Pattern } from "src/app/models/pattern";
 import { DialogService } from "src/app/services/dialog/dialog.service";
 import { legendCircle } from 'src/js/circle_legend.js';
@@ -28,6 +27,7 @@ import { Legend } from 'src/js/color_legend.js';
 import { IntersectionModeFeatureModule } from 'src/app/components/visualization/intersection-mode-feature.module';
 import { SvgFeatureModule } from "./svg-feature.module";
 import {MatButtonModule} from '@angular/material/button';
+import { ApiService } from "src/app/services/api/api.service";
 
 @Component({
     selector: 'app-visualization',
@@ -79,7 +79,7 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
   private svg_feature: SvgFeatureModule;
   protected intersection_mode_feature: IntersectionModeFeatureModule;
 
-  constructor(public dialog_service: DialogService, private cdr: ChangeDetectorRef){ }
+  constructor(private api_service: ApiService, private dialog_service: DialogService, private cdr: ChangeDetectorRef){ }
 
   ngOnInit(): void {
     this.intersection_mode_feature = new IntersectionModeFeatureModule(null, null);
@@ -91,7 +91,7 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
     let svg_width = this.body.nativeElement.clientWidth;
     let svg_height = this.body.nativeElement.clientHeight;
     
-    this.svg_feature = new SvgFeatureModule(this.dialog_service, this.cdr);
+    this.svg_feature = new SvgFeatureModule(this.cdr);
     this.svg_feature.init(this.visualization_div, svg_width, svg_height);
     this.svg_feature.datapoint_hover_in.subscribe(identifier => this.onDatapointHoverIn(identifier));
     this.svg_feature.datapoint_hover_out.subscribe(identifier => this.onDatapointHoverOut(identifier));
@@ -110,17 +110,7 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
   private async fetchDataPoints(): Promise<Array<DataPoint>>{
     console.log("Invoking getDataPoints");
     
-    let datapoints;
-    if(!environment.dev_mode){
-      datapoints = await invoke("getDataPoints").catch((error: any) => {
-        console.error(error);
-        this.dialog_service.openErrorDialog("Error while fetching data points.");
-      });
-
-    } else if (environment.dev_mode){
-      let rawdata = await fs.readTextFile(await resolveResource('resources/datapoints2.json'));
-      datapoints = JSON.parse(rawdata);
-    }
+    let datapoints = await this.api_service.getDataPoints();
 
     console.log("Received datapoints:");
     console.log(datapoints);
