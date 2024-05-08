@@ -24,8 +24,9 @@ import { ApiService } from 'src/app/services/api/api.service';
 })
 export class PatternSummaryComponent {
   @Input() public pattern: Pattern;
+  private locked: boolean = false;
 
-  protected selected_dim;
+  protected selected_dim = 1;
   
   private input: HTMLInputElement;
 
@@ -35,7 +36,7 @@ export class PatternSummaryComponent {
   protected data_source;
   protected data_source_length: number;
 
-  constructor(private api_service: ApiService) {
+  constructor(private api_service: ApiService, private cdr: ChangeDetectorRef) {
     this.selected_dim = 0;
     this.data_source = new MatTableDataSource();
   }
@@ -60,11 +61,13 @@ export class PatternSummaryComponent {
 }
 
   public async update(identifier){
+    if (this.locked){ return; }
+
     if(identifier == null){
       this.pattern = undefined;
       return;
     }
-    
+
     this.pattern = await this.api_service.getPattern(identifier);
 
     this.selected_dim = 0;
@@ -80,5 +83,20 @@ export class PatternSummaryComponent {
     if (this.input != null){
       this.input.value = "";
     }
+  }
+
+  public toggle(identifier: number){
+    if(identifier == null){ // De-select current pattern
+      this.locked = false;
+      this.update(null);
+      return;
+    }
+
+    if(identifier != this.pattern.identifier){ // Lock on another pattern
+      this.locked = false;
+      this.update(identifier);
+    }
+
+    this.locked = !this.locked;
   }
 }

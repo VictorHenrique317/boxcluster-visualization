@@ -15,6 +15,7 @@ import { Legend } from 'src/js/color_legend.js';
 export class SvgFeatureModule {
   public datapoint_hover_in = new EventEmitter<number>();
   public datapoint_hover_out = new EventEmitter<number>();
+  public datapoint_click = new EventEmitter<number>();
 
   private datapoints: Array<DataPoint>;
   
@@ -128,6 +129,7 @@ export class SvgFeatureModule {
     this.svg.call(panning_zoom.transform, initial_transform);
     
     this.drawGridLines();
+    this.drawUnselectionRect();
   }
 
   private drawGridLines() {
@@ -153,6 +155,18 @@ export class SvgFeatureModule {
           // .tickSize(-300)
           .tickFormat(() => "")
       )
+  }
+
+  private drawUnselectionRect(){
+    this.plot.append('rect')
+        .attr('id', 'overlay')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', this.svg_width)
+        .attr('height', this.svg_height)
+        .style('fill', 'rgba(0, 0, 0, 0)')
+        .lower()
+        .on('click', (event, d) => { this.datapoint_click.emit(null) });
   }
 
   private drawCircleLegend(){
@@ -233,10 +247,6 @@ export class SvgFeatureModule {
     return scaled_datapoints;
   }
 
-  private async onDatapointClick(identifier: number): Promise<void> {
-
-  }
-  
   public drawDataPoints(datapoints: Array<DataPoint>) {
     if(datapoints == undefined || datapoints == null){ return; }
     if(this.plot == undefined){ return; }
@@ -281,7 +291,9 @@ export class SvgFeatureModule {
           this.tooltip.hide(d, event.currentTarget); 
           this.datapoint_hover_out.emit(d.identifier);
         })
-        .on('click', (event, d) => { this.onDatapointClick(d.identifier); })
+        .on('click', (event, d) => { 
+          this.datapoint_click.emit(d.identifier);
+         })
         .transition()
         .duration(this.transition_duration)
         .attr('r', d => d.size);
@@ -293,9 +305,17 @@ export class SvgFeatureModule {
   public resetDatapointEvents(){
     let circles = this.plot.selectAll('circle'); 
     circles
-        .on('mouseover', (event, d) => { this.tooltip.show(d, event.currentTarget); })
-        .on('mouseout', (event, d) => { this.tooltip.hide(d, event.currentTarget); })
-        .on('click', (event, d) => { this.onDatapointClick(d.identifier); });
+        .on('mouseover', (event, d) => { 
+          this.tooltip.show(d, event.currentTarget);
+          this.datapoint_hover_in.emit(d.identifier)
+         })
+        .on('mouseout', (event, d) => { 
+          this.tooltip.hide(d, event.currentTarget); 
+          this.datapoint_hover_out.emit(d.identifier);
+         })
+        .on('click', (event, d) => { 
+          this.datapoint_click.emit(d.identifier);
+         });
   }
 
   public xScale(x: number){

@@ -35,6 +35,7 @@ import { PatternSummaryComponent } from "./components/pattern-summary/pattern-su
 import { Pattern } from "./models/pattern";
 import { fs } from "@tauri-apps/api";
 import { resolveResource } from "@tauri-apps/api/path";
+import { ApiService } from "./services/api/api.service";
 
 export enum MainOption {
   MODEL_SELECTOR,
@@ -84,7 +85,7 @@ export class AppComponent implements AfterViewInit{
   @ViewChild('visualization_view') visualization_view: VisualizationComponent;
   protected hovered_pattern: Pattern;
   
-  constructor(private cdr: ChangeDetectorRef, private dialog_service: DialogService){}
+  constructor(private cdr: ChangeDetectorRef, private dialog_service: DialogService, private api_service: ApiService){}
 
   ngAfterViewInit(){
     this.matList_height = this.aside.nativeElement.clientHeight - this.model_selector.nativeElement.clientHeight;
@@ -103,7 +104,7 @@ export class AppComponent implements AfterViewInit{
     this.cdr.detectChanges();
   }
 
-  private handleModelChange(event: any){
+  private async handleModelChange(event: any){
     console.log("Handling model change");
     if (event.tensor_path == null || event.patterns_path == null){ return; }
 
@@ -111,14 +112,9 @@ export class AppComponent implements AfterViewInit{
     this.tensor_path = event.tensor_path;
     this.patterns_path = event.patterns_path;
     
-    invoke("initApplication", {tensorPath: this.tensor_path, patternsPath: this.patterns_path}).then((result: any) =>{
-      this.model_loaded = true;
-      this.reloadApplication();
-
-    }).catch((error: any) => {
-      console.error(error);
-      this.dialog_service.openErrorDialog("ERROR Could not read tensor or patterns.");
-    });
+    await this.api_service.initApplication(this.tensor_path, this.patterns_path);
+    this.model_loaded = true;
+    this.reloadApplication();
   }
 
   protected toggleMainOption(option: MainOption){
@@ -189,5 +185,9 @@ export class AppComponent implements AfterViewInit{
 
   protected updatePatternSummary(identifier){
     this.pattern_summary.update(identifier);
+  }
+
+  protected togglePatternSummary(identifier){
+    this.pattern_summary.toggle(identifier);
   }
 }

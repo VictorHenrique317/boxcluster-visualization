@@ -10,7 +10,7 @@
             <div id="options-wrapper">
                 <mat-form-field id="dropdown">
                     <mat-label>DIM</mat-label>
-                    <mat-select (selectionChange)="onSelectionChange($event)">
+                    <mat-select (selectionChange)="onSelectionChange($event)" [(value)]="selected_dim">
                       <mat-option *ngFor="let dim of this.pattern.dims_values; let id=index" value={{id}}>DIM {{id+1}}</mat-option>
                     </mat-select>
                 </mat-form-field>

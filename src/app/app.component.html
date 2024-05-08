@@ -91,6 +91,7 @@
                 (onTruncation)="onTruncation($event)"
                 (datapoint_hover_in)="updatePatternSummary($event)"
                 (datapoint_hover_out)="updatePatternSummary(null)"
+                (datapoint_click)="togglePatternSummary($event)"
                 *ngIf="model_loaded">
             </app-visualization>
         </div>

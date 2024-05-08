@@ -72,6 +72,7 @@ import { ApiService } from "src/app/services/api/api.service";
 export class VisualizationComponent implements AfterViewInit, OnDestroy{
   @Output() datapoint_hover_in = new EventEmitter<number>();
   @Output() datapoint_hover_out = new EventEmitter<number>();
+  @Output() datapoint_click = new EventEmitter();
 
   @ViewChild('body') body: ElementRef<HTMLBodyElement>;
   @ViewChild('vizualization_div') visualization_div: ElementRef<HTMLDivElement>;
@@ -82,7 +83,7 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
   constructor(private api_service: ApiService, private dialog_service: DialogService, private cdr: ChangeDetectorRef){ }
 
   ngOnInit(): void {
-    this.intersection_mode_feature = new IntersectionModeFeatureModule(null, null);
+    this.intersection_mode_feature = new IntersectionModeFeatureModule(null, null, null);
   }
 
   async ngAfterViewInit() {
@@ -95,27 +96,18 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
     this.svg_feature.init(this.visualization_div, svg_width, svg_height);
     this.svg_feature.datapoint_hover_in.subscribe(identifier => this.onDatapointHoverIn(identifier));
     this.svg_feature.datapoint_hover_out.subscribe(identifier => this.onDatapointHoverOut(identifier));
+    this.svg_feature.datapoint_click.subscribe(identifier => this.onDatapointClick(identifier));
     
-    let datapoints = await this.fetchDataPoints();
+    let datapoints = await this.api_service.getDataPoints();
     this.svg_feature.drawDataPoints(datapoints);
 
-    this.intersection_mode_feature = new IntersectionModeFeatureModule(this.svg_feature, this.dialog_service);
+    this.intersection_mode_feature = new IntersectionModeFeatureModule(this.svg_feature, this.dialog_service, this.api_service);
   }
 
   ngOnDestroy() {
     this.svg_feature.datapoint_hover_in.unsubscribe();
     this.svg_feature.datapoint_hover_out.unsubscribe();
-  }
-
-  private async fetchDataPoints(): Promise<Array<DataPoint>>{
-    console.log("Invoking getDataPoints");
-    
-    let datapoints = await this.api_service.getDataPoints();
-
-    console.log("Received datapoints:");
-    console.log(datapoints);
-
-    return datapoints;
+    this.svg_feature.datapoint_click.unsubscribe();
   }
 
   public onResize(event) {
@@ -127,21 +119,7 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
 
   public async onTruncation(event){
     let new_size = event - 1; // -1 because the first point is the null model rss
-    console.log("Truncating datapoints to only: " + new_size);
-
-    let truncated_datapoints;
-    if(!environment.dev_mode){
-      await invoke("truncateModel", {newSize: new_size}).catch((error: any) => {
-        console.error(error);
-        this.dialog_service.openErrorDialog("Error while truncating datapoints.");
-      });
-  
-      truncated_datapoints = await this.fetchDataPoints();
-    }
-    else if(environment.dev_mode) {
-      let datapoints = await this.fetchDataPoints(); // Getting all original datapoints in dev mode
-      truncated_datapoints = datapoints.slice(0, new_size);
-    }
+    let truncated_datapoints = await this.api_service.truncateModel(new_size);
 
     this.svg_feature.drawDataPoints(truncated_datapoints);
   }
@@ -152,6 +130,10 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
 
   private onDatapointHoverOut(identifier: number){
     this.datapoint_hover_out.emit(identifier);
+  }
+
+  private onDatapointClick(identifier: number){
+    this.datapoint_click.emit(identifier);
   }
 
   public toggleIntersectionMode(){

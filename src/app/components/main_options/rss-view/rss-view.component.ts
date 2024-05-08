@@ -18,6 +18,7 @@ import { ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { DialogService } from 'src/app/services/dialog/dialog.service';
+import { ApiService } from 'src/app/services/api/api.service';
 
 @Component({
   selector: 'app-rss-view',
@@ -55,27 +56,11 @@ export class RssViewComponent implements AfterViewInit{
   private scaled_datapoints: Array<DataPoint>;
   protected pattern_number;
 
-  constructor(private route: ActivatedRoute, private dialog_service: DialogService){}
+  constructor(private route: ActivatedRoute, private dialog_service: DialogService, private api_service: ApiService){}
   
   async ngAfterViewInit() {
-    console.log("Initializing rss view component");
-    console.log("Invoking getFullRssEvolution");
+    this.rss_evolution = await this.api_service.getFullRssEvolution();
     
-    let rss_evolution;
-    if(!environment.dev_mode){
-      rss_evolution = await invoke("getFullRssEvolution").catch((error: any) => {
-        console.error(error);
-        this.dialog_service.openErrorDialog("Could not load rss graph.");
-      });
-
-    } else if(environment.dev_mode){
-      let rawdata = await fs.readTextFile(await resolveResource('resources/rss_evolution.json'));
-      rss_evolution = JSON.parse(rawdata);
-    }
-
-    console.log("Received rss_evolution:");
-    console.log(rss_evolution);
-    this.rss_evolution = rss_evolution;
     this.pattern_number = this.rss_evolution.length;
     this.datapoints = this.wrapIntoDatapoints(this.rss_evolution);
     

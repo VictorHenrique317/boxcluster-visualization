@@ -86,7 +86,6 @@ export class IntersectionDetailsDialogComponent {
 
   ngOnInit(): void { 
     console.log("Initializing intersection details dialog");
-    
   }
 
   ngAfterViewInit(){

@@ -9,6 +9,7 @@ import { DialogService } from 'src/app/services/dialog/dialog.service';
 import { resolveResource } from '@tauri-apps/api/path';
 import { IntersectionDetailsDialogComponent } from './intersection-details-dialog/intersection-details-dialog.component';
 import { IntersectionDetails } from 'src/app/models/intersection_details';
+import { ApiService } from 'src/app/services/api/api.service';
 
 @NgModule({
   declarations: [],
@@ -23,10 +24,12 @@ export class IntersectionModeFeatureModule {
 
   private svg_feature: SvgFeatureModule;
   private dialog_service: DialogService;
+  private api_service: ApiService
 
-  constructor(svg_feature: SvgFeatureModule, dialog_service: DialogService) {
+  constructor(svg_feature: SvgFeatureModule, dialog_service: DialogService, api_service: ApiService) {
     this.svg_feature = svg_feature;
     this.dialog_service = dialog_service;
+    this.api_service = api_service;
   }
 
   private connectDatapoints(center: DataPoint, intersections:Map<number, number>, intersections_colors: Map<number, string>){
@@ -180,23 +183,7 @@ export class IntersectionModeFeatureModule {
       .filter(d => d.identifier == datapoint.identifier);
     this.clicked_datapoint_data = clicked_circle.node().__data__;
 
-    let raw_data;
-    if(!environment.dev_mode){
-      raw_data = await invoke("getIntersectionsPercentages", {identifier: this.clicked_datapoint_data.identifier})
-        .catch((error: any) => {
-          console.error(error);
-          this.dialog_service.openErrorDialog("Error while getting intersections.");
-      });
-      
-    }else{
-      raw_data = await fs.readTextFile(await resolveResource('resources/intersections2.json'));
-      raw_data = JSON.parse(raw_data);
-    }
-    console.log("Fetched intersections for datapoint: " + this.clicked_datapoint_data.identifier);
-    console.log(raw_data);
-
-    let intersections = new Map<number, number>();
-    for (let key in raw_data) { intersections.set(Number(key), Number(raw_data[key])); }
+    let intersections = await this.api_service.getIntersectionsPercentages(this.clicked_datapoint_data.identifier);
     let intersections_colors = this.createIntesectionColorMapping(intersections);
 
     let relationed_datapoints: Array<number> = Array.from(intersections.keys())
@@ -312,29 +299,7 @@ export class IntersectionModeFeatureModule {
       return;
     }
 
-    let data: any;
-    if(!environment.dev_mode){
-      data = await invoke("getIntersectionDetails", {identifier: this.clicked_datapoint_data.identifier})
-
-    }else if(environment.dev_mode){
-      let rawdata = await fs.readTextFile(await resolveResource('resources/intersection_details.json'));
-      data = JSON.parse(rawdata);
-    }
-
-    let intersections: Map<number, [number, Array<Array<string>>]> = new Map();
-    for (let key in data.intersections) { 
-      let value = data.intersections[key];
-      let percentage = Math.round(value[0]*100)/100;
-      let dims_intersections = value[1];
-      intersections.set(Number(key), [percentage, dims_intersections]);
-    }
-
-    let intersection_details: IntersectionDetails = new IntersectionDetails(
-      data.identifier,
-      Math.round(data.total_untouched_percentage * 100)/100,
-      Math.round(data.total_intersection_percentage * 100)/100,
-      intersections
-    );
+    let intersection_details = await this.api_service.getIntersectionDetails(this.clicked_datapoint_data.identifier);
 
     let dialog_data = {
       intersection_details: intersection_details
