@@ -12,8 +12,8 @@ body{
     overflow-x: hidden; /* Hide horizontal scrollbar */
 
     #info{
-        padding: 1em 0 0 2em;
-        height: 15vh;
+        padding: 1em 0 1em 2em;
+        height: fit-content;
         // background-color: yellow;
     }
 
@@ -33,10 +33,12 @@ body{
 
             #dropdown{
                 width: 6em;
+                height: 5em;
             }
     
             #filter{
                 width: 8em;
+                height: 5em;
             }
         }
 

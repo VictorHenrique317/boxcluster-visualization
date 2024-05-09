@@ -1,5 +1,5 @@
 import { open } from '@tauri-apps/api/dialog';
-import {Component, EventEmitter, Inject, NgModule, Output} from '@angular/core';
+import {Component, EventEmitter, Inject, Input, NgModule, Output} from '@angular/core';
 import {MatDialogRef, MatDialogModule} from '@angular/material/dialog';
 import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
@@ -13,7 +13,7 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 export class FileSelectionDialogComponent {
   @Output() modelChange: EventEmitter<any> = new EventEmitter();
 
-  private last_opened_folder: string = "";
+  private last_opened_folder: string;
   
   private tensor_path: string = "";
   protected tensor_name: string = "";
@@ -22,7 +22,8 @@ export class FileSelectionDialogComponent {
   protected patterns_name: string = "";
 
   constructor(public dialogRef: MatDialogRef<FileSelectionDialogComponent>, 
-    @Inject(MAT_DIALOG_DATA) public data: {tensor_path: string, patterns_path: string}) {
+    @Inject(MAT_DIALOG_DATA) public data: {last_opened_folder: string, tensor_path: string, patterns_path: string}) {
+      this.last_opened_folder = data.last_opened_folder;
       this.tensor_path = data.tensor_path;
       this.patterns_path = data.patterns_path;
       this.setNames();
@@ -77,9 +78,9 @@ export class FileSelectionDialogComponent {
 
   protected submit() {
     if (this.isStateValid()){
-      this.dialogRef.close({tensor_path: this.tensor_path, patterns_path: this.patterns_path});
+      this.dialogRef.close({last_opened_folder: this.last_opened_folder, tensor_path: this.tensor_path, patterns_path: this.patterns_path});
     }else{
-      this.dialogRef.close({tensor_path: null, patterns_path: null});
+      this.dialogRef.close({last_opened_folder: "", tensor_path: null, patterns_path: null});
     }
    }
 }

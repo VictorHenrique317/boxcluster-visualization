@@ -19,7 +19,8 @@ import { ApiService } from 'src/app/services/api/api.service';
 })
 export class IntersectionModeFeatureModule {
   private intersection_mode:boolean = false;
-  private clicked_datapoint_data: DataPoint;
+  private old_clicked_datapoint = null;
+  private clicked_datapoint_data: DataPoint = null;
   private intersection_details: IntersectionDetails;
   private transition_duration: number = 300;
 
@@ -66,25 +67,28 @@ export class IntersectionModeFeatureModule {
   }
 
   private highlightDatapoints(identifiers: Array<number>, intersections_colors: Map<number, string>){
-    let circles = this.svg_feature.plot.selectAll('circle');
+    let identifiers_set = new Set(identifiers);
     let circles_visibility = 0.2;
 
-    circles
+    this.svg_feature.plot.selectAll('circle')
       .raise()
       .transition('mouseover')
+      // .duration(this.transition_duration)
+      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
+      .style('stroke', `rgba(255, 0, 0, 1)`)
+      .transition('mouseover')
       .duration(this.transition_duration)
-      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a*circles_visibility})`)
+      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${circles_visibility})`)
       .style('stroke', `rgba(255, 0, 0, ${circles_visibility})`);
 
-    let identifiers_set = new Set(identifiers);
-    let highligthed_circles = circles.filter(d => identifiers_set.has(d.identifier));
+    let highligthed_circles = this.svg_feature.plot.selectAll('circle')
+      .filter(d => identifiers_set.has(d.identifier));
+
     highligthed_circles
       .raise()
       .transition('mouseover')
       .duration(this.transition_duration)
-      // .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
       .attr('fill', d => intersections_colors.get(d.identifier))
-      // .style('stroke', `rgba(255, 0, 0, 1)`)
       .style('stroke', d=> intersections_colors.get(d.identifier));
   }
 
@@ -180,11 +184,7 @@ export class IntersectionModeFeatureModule {
     });
   }
 
-  private async showIntersections(identifier: number){
-    if(identifier == null || identifier==undefined){return;}
-
-    this.updateClickedDatapoint(identifier);
-
+  private async showIntersections(){
     if(this.clicked_datapoint_data == null){ return };
 
     let intersections = await this.api_service.getIntersectionsPercentages(this.clicked_datapoint_data.identifier);
@@ -199,7 +199,7 @@ export class IntersectionModeFeatureModule {
     this.createIntersectionCharts(relationed_datapoints, intersections, intersections_colors);
   }
 
-  private hideIntersections(){
+  private async hideIntersections(){
     let intersection_lines = this.svg_feature.svg.selectAll('.intersection_line');
     intersection_lines
       .transition('mouseout')
@@ -228,29 +228,36 @@ export class IntersectionModeFeatureModule {
         .attr('d', d=> d.size)
         .remove();  // Remove the paths after the transition
     }
-
-    this.updateClickedDatapoint(null);
   }
 
-  public toggleIntersections(identifier: number){
-    let old_clicked_datapoint: DataPoint = null;
-    if(this.clicked_datapoint_data != null || this.clicked_datapoint_data != undefined){
-      old_clicked_datapoint = this.clicked_datapoint_data;
-    }
+  public async toggleIntersections(identifier: number){
+    // if(this.clicked_datapoint_data != null || this.clicked_datapoint_data != undefined){
+    //   this.old_clicked_datapoint = this.clicked_datapoint_data;
+    // }
 
     this.hideIntersections();
+    await this.updateClickedDatapoint(identifier);
 
-    if(old_clicked_datapoint == null){
-      // No datapoint was clicked before, show intersections
-      this.showIntersections(identifier);
+    if(identifier == null || identifier==undefined){return;}
 
-    }else if(old_clicked_datapoint.identifier != identifier){
-      // Did not click the same datapoint, show intersections
-      this.showIntersections(identifier)
+    if((this.old_clicked_datapoint != null) && (identifier == this.old_clicked_datapoint.identifier)){ // Datapoint was clicked again
+      await this.updateClickedDatapoint(null);
     }
+
+    this.showIntersections();
+    // if(this.old_clicked_datapoint == null){
+    //   // No datapoint was clicked before, show intersections
+    //   this.showIntersections();
+
+    // }else if(this.old_clicked_datapoint.identifier != identifier){
+    //   // Did not click the same datapoint, show intersections
+    //   this.showIntersections()
+    // }
   }
 
   private async updateClickedDatapoint(identifier: number) {
+    this.old_clicked_datapoint = this.clicked_datapoint_data;
+
     if(identifier == null){
       this.clicked_datapoint_data = null;
       this.intersection_details = null;

@@ -76,6 +76,7 @@ export class AppComponent implements AfterViewInit{
 
   @ViewChild("sidenav") sidenav: MatSidenav;
   @ViewChild("model_selector") model_selector: ElementRef<HTMLElement>;
+  private last_opened_folder: string = "";
   protected tensor_path: string = "";
   protected patterns_path: string = "";
   protected model_loaded = false;
@@ -107,6 +108,8 @@ export class AppComponent implements AfterViewInit{
   private async handleModelChange(event: any){
     console.log("Handling model change");
     if (event.tensor_path == null || event.patterns_path == null){ return; }
+    
+    this.last_opened_folder = event.last_opened_folder;
 
     this.model_loaded = false;
     this.tensor_path = event.tensor_path;
@@ -144,6 +147,7 @@ export class AppComponent implements AfterViewInit{
 
   private openModelSelection(): void {
     let dialog_data = {
+      last_opened_folder: this.last_opened_folder,
       tensor_path: this.tensor_path,
       patterns_path: this.patterns_path
     };
