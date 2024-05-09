@@ -1,21 +1,13 @@
 <body #app_body id="app_body">
     <aside #aside>
         <div id="main-options">
-            <header class="main-option" id="model-selection-button" #model_selector matRipple [matRippleCentered]="true"
+            <header class="main-option" id="model-selection-button" *ngIf="model_loaded" #model_selector matRipple [matRippleCentered]="true"
                 (click)="toggleMainOption(MainOption.MODEL_SELECTOR)"
                 matTooltip="Change model">
                 <div id="matlist-placeholder" *ngIf="!model_loaded"></div>
-                <mat-icon aria-hidden="false" aria-label="open_file" fontIcon="upload_file" *ngIf="model_loaded"></mat-icon>
+                <mat-icon aria-hidden="false" aria-label="open_file" fontIcon="upload_file" ></mat-icon>
             </header>
 
-            <header class="main-option" id="settings-button" matRipple [matRippleCentered]="true" 
-                [ngClass]="{'buttonToggled': this.settings_enabled}"
-                *ngIf="model_loaded"
-                (click)="toggleMainOption(MainOption.SETTINGS)"
-                matTooltip="Settings">
-                <mat-icon aria-hidden="false" aria-label="settings" fontIcon="settings"></mat-icon>
-            </header>
-            
             <header class="main-option" id="truncate-model-button" 
                 [ngClass]="{'buttonToggled': this.truncate_model_enabled}"
                 *ngIf="model_loaded"
@@ -24,12 +16,12 @@
                 <mat-icon aria-hidden="false" aria-label="settings" fontIcon="show_chart"></mat-icon>
             </header>
 
-            <header class="main-option buttonToggled" id="intersection-mode-button" 
-                [ngClass]="{'buttonToggled': this.intersection_mode_enabled}"
+            <header class="main-option" id="settings-button" matRipple [matRippleCentered]="true" 
+                [ngClass]="{'buttonToggled': this.settings_enabled}"
                 *ngIf="model_loaded"
-                (click)="toggleMainOption(MainOption.INTERSECTION_MODE)"
-                matTooltip="Intersection mode">
-                <mat-icon aria-hidden="false" aria-label="settings" fontIcon="donut_small"></mat-icon>
+                (click)="toggleMainOption(MainOption.SETTINGS)"
+                matTooltip="Settings">
+                <mat-icon aria-hidden="false" aria-label="settings" fontIcon="settings"></mat-icon>
             </header>
         </div>
         
@@ -58,8 +50,6 @@
                         <button mat-menu-item>Flat</button>
                         <button mat-menu-item>Group by fonts</button>
                     </mat-menu>
-        
-                    <button class="setting" mat-raised-button>Pin/ unpin</button>
                 </nav>
             </mat-sidenav>
         </mat-sidenav-container>

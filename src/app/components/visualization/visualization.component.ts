@@ -125,18 +125,19 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
   }
 
   private onDatapointHoverIn(identifier: number){
-    this.datapoint_hover_in.emit(identifier);
+    this.datapoint_hover_in.emit(identifier); // To communicate with pattern summary
   }
 
   private onDatapointHoverOut(identifier: number){
-    this.datapoint_hover_out.emit(identifier);
+    this.datapoint_hover_out.emit(identifier); // To communicate with pattern summary
   }
 
   private onDatapointClick(identifier: number){
-    this.datapoint_click.emit(identifier);
+    this.datapoint_click.emit(identifier); // To communicate with pattern summary
+    this.intersection_mode_feature.toggleIntersections(identifier);
   }
 
-  public toggleIntersectionMode(){
-    this.intersection_mode_feature.toggleIntersectionMode();
-  }
+  // public toggleIntersectionMode(){
+  //   this.intersection_mode_feature.toggleIntersectionMode();
+  // }
 }

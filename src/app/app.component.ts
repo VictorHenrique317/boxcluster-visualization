@@ -88,7 +88,7 @@ export class AppComponent implements AfterViewInit{
   constructor(private cdr: ChangeDetectorRef, private dialog_service: DialogService, private api_service: ApiService){}
 
   ngAfterViewInit(){
-    this.matList_height = this.aside.nativeElement.clientHeight - this.model_selector.nativeElement.clientHeight;
+    // this.matList_height = this.aside.nativeElement.clientHeight - this.model_selector.nativeElement.clientHeight;
 
     if(environment.dev_mode){ 
       this.model_loaded = true;
@@ -130,16 +130,16 @@ export class AppComponent implements AfterViewInit{
       case MainOption.TRUNCATE_MODEL:
         this.toggleTruncateModel();
         break;
-      case MainOption.INTERSECTION_MODE:
-        this.toggleIntersectionMode();
-        break;
+      // case MainOption.INTERSECTION_MODE:
+      //   this.toggleIntersectionMode();
+      //   break;
     }
   }
 
   private deactivateMainOptionsExcept(option: MainOption){
     if(this.settings_enabled && option != MainOption.SETTINGS){ this.toggleSettings(); }
     if(this.truncate_model_enabled && option != MainOption.TRUNCATE_MODEL){ this.toggleTruncateModel(); }
-    if(this.intersection_mode_enabled && option != MainOption.INTERSECTION_MODE){ this.toggleIntersectionMode(); }
+    // if(this.intersection_mode_enabled && option != MainOption.INTERSECTION_MODE){ this.toggleIntersectionMode(); }
   }
 
   private openModelSelection(): void {
@@ -164,10 +164,10 @@ export class AppComponent implements AfterViewInit{
     this.cdr.detectChanges();
   }
 
-  private toggleIntersectionMode(){
-    this.intersection_mode_enabled = !this.intersection_mode_enabled;
-    this.visualization_view.toggleIntersectionMode();
-   }
+  // private toggleIntersectionMode(){
+  //   this.intersection_mode_enabled = !this.intersection_mode_enabled;
+  //   this.visualization_view.toggleIntersectionMode();
+  //  }
 
   protected disableRssView(){
     this.truncate_model_enabled = false;

@@ -20,6 +20,7 @@ import { ApiService } from 'src/app/services/api/api.service';
 export class IntersectionModeFeatureModule {
   private intersection_mode:boolean = false;
   private clicked_datapoint_data: DataPoint;
+  private intersection_details: IntersectionDetails;
   private transition_duration: number = 300;
 
   private svg_feature: SvgFeatureModule;
@@ -84,8 +85,7 @@ export class IntersectionModeFeatureModule {
       // .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
       .attr('fill', d => intersections_colors.get(d.identifier))
       // .style('stroke', `rgba(255, 0, 0, 1)`)
-      .style('stroke', d=> intersections_colors.get(d.identifier))
-      .style('stroke-dasharray', '10000,10000');
+      .style('stroke', d=> intersections_colors.get(d.identifier));
   }
 
   private createIntesectionColorMapping(intersections: Map<number, number>): Map<number, string>{
@@ -118,7 +118,7 @@ export class IntersectionModeFeatureModule {
       .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, 1)`);
   }
 
-  private createIntersectionChart(clicked_circle: any, intersections: Map<number, number>, chart_radius: number, 
+  private createIntersectionChart(clicked_circle: any, intersections: Map<number, number>, original_radius: number, chart_radius: number, 
     intersections_colors: Map<number, string>){
     let pie = d3.pie()
       .value((d: any) => d.value);
@@ -128,7 +128,7 @@ export class IntersectionModeFeatureModule {
     
     let original_arc = d3.arc()
       .innerRadius(0)
-      .outerRadius(d => this.clicked_datapoint_data.size);
+      .outerRadius(d => original_radius);
     let pie_chart_arc = d3.arc()
       .innerRadius(0)
       .outerRadius(chart_radius);
@@ -153,13 +153,14 @@ export class IntersectionModeFeatureModule {
       });
   }
 
-  private createIntersectionCharts(identifiers: Array<number>, intersections: Map<number, number>, chart_radius: number, 
-    intersections_colors: Map<number, string>){
+  private createIntersectionCharts(identifiers: Array<number>, intersections: Map<number, number>, intersections_colors: Map<number, string>){
     let clicked_datapoint = this.svg_feature.plot.selectAll('circle')
       .filter(d => d.identifier == this.clicked_datapoint_data.identifier);
     let empty = new Map<number, number>();
     empty.set(this.clicked_datapoint_data.identifier, 1);
-    this.createIntersectionChart(clicked_datapoint, empty, chart_radius, intersections_colors);
+    let original_radius = this.clicked_datapoint_data.size;
+    let chart_radius = this.clicked_datapoint_data.size;
+    this.createIntersectionChart(clicked_datapoint, empty, original_radius, chart_radius, intersections_colors);
   
     let identifiers_set = new Set(identifiers);
     let circles = this.svg_feature.plot.selectAll('circle')
@@ -173,15 +174,18 @@ export class IntersectionModeFeatureModule {
       intersection_data.set(this.clicked_datapoint_data.identifier, parent_current_percentage);
       intersection_data.set(d.identifier, complement_percentage);
 
-      this.createIntersectionChart(d3.select(nodes[i]), intersection_data, chart_radius, intersections_colors);
+      original_radius = d.size;
+      chart_radius = d.size;
+      this.createIntersectionChart(d3.select(nodes[i]), intersection_data, original_radius, chart_radius, intersections_colors);
     });
   }
 
-  private async showIntersections(datapoint: DataPoint, event){
-    let clicked_circle = this.svg_feature.plot.selectAll('circle')
-      // .filter(d => d.identifier == 14);
-      .filter(d => d.identifier == datapoint.identifier);
-    this.clicked_datapoint_data = clicked_circle.node().__data__;
+  private async showIntersections(identifier: number){
+    if(identifier == null || identifier==undefined){return;}
+
+    this.updateClickedDatapoint(identifier);
+
+    if(this.clicked_datapoint_data == null){ return };
 
     let intersections = await this.api_service.getIntersectionsPercentages(this.clicked_datapoint_data.identifier);
     let intersections_colors = this.createIntesectionColorMapping(intersections);
@@ -191,10 +195,8 @@ export class IntersectionModeFeatureModule {
     this.highlightDatapoints(relationed_datapoints, intersections_colors);
     this.connectDatapoints(this.clicked_datapoint_data, intersections, intersections_colors);
     let expansion_factor = 1;
-    this.expandCircle(clicked_circle, expansion_factor, intersections, intersections_colors);
-    let chart_radius = this.clicked_datapoint_data.size * expansion_factor;
-    // this.createIntersectionChart(clicked_circle, intersections, chart_radius, intersections_colors);
-    this.createIntersectionCharts(relationed_datapoints, intersections, chart_radius, intersections_colors);
+    // this.expandCircle(clicked_circle, expansion_factor, intersections, intersections_colors);
+    this.createIntersectionCharts(relationed_datapoints, intersections, intersections_colors);
   }
 
   private hideIntersections(){
@@ -212,8 +214,7 @@ export class IntersectionModeFeatureModule {
       .duration(this.transition_duration)
       .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
       .attr('r', d => d.size)
-      .style('stroke', `rgba(255, 0, 0, 1)`)
-      .style('stroke-dasharray', '1,1');
+      .style('stroke', `rgba(255, 0, 0, 1)`);
 
     if(this.clicked_datapoint_data != null){
       let circle_arc = d3.arc()
@@ -224,73 +225,52 @@ export class IntersectionModeFeatureModule {
       pie_chart.selectAll('path')
         .transition('mouseout')
         .duration(this.transition_duration)
-        .attr('d', circle_arc)
+        .attr('d', d=> d.size)
         .remove();  // Remove the paths after the transition
     }
 
-    this.clicked_datapoint_data = null;
+    this.updateClickedDatapoint(null);
   }
 
-  public isOnIntersectionMode(){
-    return this.intersection_mode;
-  }
-
-  public toggleIntersectionMode(){
-    this.intersection_mode = !this.intersection_mode;
-    
-    let circles = this.svg_feature.plot.selectAll('circle'); 
-    if(this.intersection_mode){ // Activate intersection mode
-      console.log("Intersection mode activated.");
-      this.svg_feature.plot.append('rect')
-        .attr('id', 'overlay')
-        .attr('x', 0)
-        .attr('y', 0)
-        .attr('width', this.svg_feature.getSvgWidth())
-        .attr('height', this.svg_feature.getSvgHeight())
-        .style('fill', 'rgba(0, 0, 0, 0)')
-        .lower()
-        .on('click', (event, d) => { this.hideIntersections(); });
-
-      circles
-        .on('click', (event, d) => {
-          let old_clicked_datapoint: DataPoint = null;
-          if(this.clicked_datapoint_data != null || this.clicked_datapoint_data != undefined){
-            old_clicked_datapoint = this.clicked_datapoint_data;
-          }
-
-          this.hideIntersections();
-
-          if(old_clicked_datapoint == null){
-            // No datapoint was clicked before, show intersections
-            this.showIntersections(d, event);
-
-          }else if(old_clicked_datapoint.identifier != d.identifier){
-            // Did not click the same datapoint, show intersections
-            this.showIntersections(d, event)
-          }
-         })
-        .transition()
-        .duration(this.transition_duration)
-        .style('stroke', 'rgba(255, 0, 0, 1)')
-        .style('stroke-dasharray', '1,1');
+  public toggleIntersections(identifier: number){
+    let old_clicked_datapoint: DataPoint = null;
+    if(this.clicked_datapoint_data != null || this.clicked_datapoint_data != undefined){
+      old_clicked_datapoint = this.clicked_datapoint_data;
     }
 
-    else if(!this.intersection_mode){ // Deactivate intersection mode
-      console.log("Intersection mode deactivated.");
-      this.svg_feature.plot.selectAll('#overlay').remove();
+    this.hideIntersections();
 
-      this.hideIntersections();
+    if(old_clicked_datapoint == null){
+      // No datapoint was clicked before, show intersections
+      this.showIntersections(identifier);
 
-      this.svg_feature.resetDatapointEvents();
-      circles
-        .transition()
-        .duration(this.transition_duration)
-        .style('stroke-dasharray', '10000,10000');
+    }else if(old_clicked_datapoint.identifier != identifier){
+      // Did not click the same datapoint, show intersections
+      this.showIntersections(identifier)
     }
   }
 
-  public getClickedDatapoint(){
-    return this.clicked_datapoint_data;
+  private async updateClickedDatapoint(identifier: number) {
+    if(identifier == null){
+      this.clicked_datapoint_data = null;
+      this.intersection_details = null;
+      return;
+    }
+
+    let clicked_circle = this.svg_feature.plot.selectAll('circle')
+      // .filter(d => d.identifier == 13); // Fix black color
+      .filter(d => d.identifier == identifier);
+    this.clicked_datapoint_data = clicked_circle.node().__data__;
+
+    this.intersection_details = await this.api_service.getIntersectionDetails(this.clicked_datapoint_data.identifier);
+  }
+
+  public clickedPatternHasIntersections(): boolean {
+    if(this.intersection_details == null){
+      return false;
+    }
+
+    return this.intersection_details.intersections.size > 0;
   }
 
   public async showIntersectionDetails(){

@@ -14,9 +14,10 @@ export class ApiService {
   constructor(private dialog_service: DialogService) { }
 
   public async initApplication(tensor_path: string, patterns_path: string){
-    invoke("initApplication", {tensorPath: tensor_path, patternsPath: patterns_path}).catch((error: any) => {
-      console.error(error);
+    await invoke("initApplication", {tensorPath: tensor_path, patternsPath: patterns_path}).catch((error: any) => {
+      // console.error(error);
       this.dialog_service.openErrorDialog("ERROR Could not read tensor or patterns.");
+      throw error;
     });
   }
 
@@ -27,8 +28,9 @@ export class ApiService {
     let rss_evolution;
     if(!environment.dev_mode){
       rss_evolution = await invoke("getFullRssEvolution").catch((error: any) => {
-        console.error(error);
+        // console.error(error);
         this.dialog_service.openErrorDialog("Could not load rss graph.");
+        throw error;
       });
 
     } else if(environment.dev_mode){
@@ -47,8 +49,9 @@ export class ApiService {
     let truncated_datapoints;
     if(!environment.dev_mode){
       await invoke("truncateModel", {newSize: new_size}).catch((error: any) => {
-        console.error(error);
+        // console.error(error);
         this.dialog_service.openErrorDialog("Error while truncating datapoints.");
+        throw error;
       });
   
       truncated_datapoints = await this.getDataPoints();
@@ -66,8 +69,9 @@ export class ApiService {
     if(!environment.dev_mode){
       raw_data = await invoke("getIntersectionsPercentages", {identifier: identifier})
         .catch((error: any) => {
-          console.error(error);
+          // console.error(error);
           this.dialog_service.openErrorDialog("Error while getting intersections.");
+          throw error;
       });
       
     }else{
@@ -84,7 +88,11 @@ export class ApiService {
   public async getIntersectionDetails(identifier: number): Promise<IntersectionDetails>{
     let data: any;
     if(!environment.dev_mode){
-      data = await invoke("getIntersectionDetails", {identifier: identifier})
+      data = await invoke("getIntersectionDetails", {identifier: identifier}).catch((error: any) => {
+        // console.error(error);
+        this.dialog_service.openErrorDialog("Error while fetching intersection details.");
+        throw error;
+      });
 
     }else if(environment.dev_mode){
       let rawdata = await fs.readTextFile(await resolveResource('resources/intersection_details.json'));
@@ -113,7 +121,7 @@ export class ApiService {
     let pattern;
     if(!environment.dev_mode){
       pattern = await invoke("getPattern", {identifier: identifier}).catch((error: any) => {
-        console.error(error);
+        // console.error(error);
         this.dialog_service.openErrorDialog("Error while fetching pattern.");
         throw error;
       });
@@ -131,7 +139,7 @@ export class ApiService {
     let datapoints;
     if(!environment.dev_mode){
       datapoints = await invoke("getDataPoints").catch((error: any) => {
-        console.error(error);
+        // console.error(error);
         this.dialog_service.openErrorDialog("Error while fetching data points.");
         throw error;
       });
