@@ -42,7 +42,7 @@ export class PatternSummaryComponent {
   }
 
   ngOnInit(): void {
-    this.update(1); // TODO: Retirar
+    // this.update(1); // TODO: Retirar
   }
 
   protected applyFilter(event: Event) {
