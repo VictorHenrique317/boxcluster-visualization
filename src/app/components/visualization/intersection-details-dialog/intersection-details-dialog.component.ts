@@ -127,7 +127,7 @@ export class IntersectionDetailsDialogComponent {
         dim_values_preview = values;
         needs_expand = false;
       }else{
-        dim_values_preview.push("{" + values.length + " values...}");
+        dim_values_preview.push("{" + values.length + " elements...}");
         needs_expand = true;
       }
 

@@ -251,6 +251,7 @@ export class SvgFeatureModule {
     if(datapoints == undefined || datapoints == null){ return; }
     if(this.plot == undefined){ return; }
     
+    console.log("Drawing " + datapoints.length + " datapoints");
     this.datapoints = datapoints;
 
     this.plot.call(this.tooltip);
@@ -291,7 +292,8 @@ export class SvgFeatureModule {
           this.tooltip.hide(d, event.currentTarget); 
           this.datapoint_hover_out.emit(d.identifier);
         })
-        .on('click', (event, d) => { 
+        .on('click', (event, d) => {
+          // console.log("Clicked on datapoint " + d.identifier);
           this.datapoint_click.emit(d.identifier);
          })
         .transition()

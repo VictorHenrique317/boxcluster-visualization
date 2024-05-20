@@ -57,7 +57,8 @@ export class IntersectionModeFeatureModule {
         .attr('stroke', intersections_colors.get(identifier))
         .attr('stroke-width', stroke_width);
       
-      let related_circle = circles.get(identifier);
+      let related_circle = circles.get(identifier) || null;
+      if (related_circle == null) { continue; } // Related circle is a subpattern
       line
         .transition('mouseover')
         .duration(this.transition_duration*2)

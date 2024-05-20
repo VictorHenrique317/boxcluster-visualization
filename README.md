@@ -18,10 +18,25 @@
 - [x] Implementar o modo que mostra a interseção no hovering do mouse
 - [x] Implementar o modo que mostra detalhes da interseção
 
-## Changelogs 06/05/2024 -> ??? - v0.3.1
-- [x] Corrigir visualização de interseção
+## Changelogs 06/05/2024 -> 15/05/2024 - v0.3.1
+- [x] FIX: Corrigir visualização de interseção
 - [x] Implementar preview do padrão no evento de hovering do mouse
-- [] Ativar o modo de interseção no hovering do mouse
+- [x] Ativar o modo de interseção no hovering do mouse
 
-## Changelogs ??? -> ??? - v0.x
-- [] Integrar movimentação no dag e números flutuantes
+## Changelogs 20/05/2024 -> ??? - v0.3.2
+- [] Bugfixes
+- [x] FIX: Retirar o botão de configurações
+- [x] FIX: Erros de vocabulário
+- [] FIX: Tamanho dos dialogs
+- [] FIX: Manter ordenação nativa dos elementos das dimensões
+- [] FIX: Preservar casing dos valores das dimensões
+- [] FIX: Divisão por área correta no modo de interseção
+- [] Visão geral do padrão mostra uma tabela com todas as dimensões, em vez de uma por vez
+- [] Highlight do padrão no mouse hover
+- [] Manter cor da densidade no mouser hover, colocar uma cor com mais constraste
+- [] No padrão selecionado, a fatia representa a proporção de área que está coberta por pelo menos um padrão
+- [] Efeito de desfoco cinza em vez de transparente
+- [] Mostrar sub-tensores de interseção ao clicar nas arestas, a cor deve ser a do padrão de maior densidade
+
+## Changelogs ??? -> ??? - v0.4.0
+- [] Integrar movimentação no dag, mouse-hover deve fornecer possibilidade de entrar no dag

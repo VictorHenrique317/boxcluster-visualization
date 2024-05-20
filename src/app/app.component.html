@@ -3,7 +3,7 @@
         <div id="main-options">
             <header class="main-option" id="model-selection-button" *ngIf="model_loaded" #model_selector matRipple [matRippleCentered]="true"
                 (click)="toggleMainOption(MainOption.MODEL_SELECTOR)"
-                matTooltip="Change model">
+                matTooltip="Change resume">
                 <div id="matlist-placeholder" *ngIf="!model_loaded"></div>
                 <mat-icon aria-hidden="false" aria-label="open_file" fontIcon="upload_file" ></mat-icon>
             </header>
@@ -12,17 +12,17 @@
                 [ngClass]="{'buttonToggled': this.truncate_model_enabled}"
                 *ngIf="model_loaded"
                 (click)="toggleMainOption(MainOption.TRUNCATE_MODEL)"
-                matTooltip="Truncate Model">
+                matTooltip="Truncate resume">
                 <mat-icon aria-hidden="false" aria-label="settings" fontIcon="show_chart"></mat-icon>
             </header>
-
+<!-- 
             <header class="main-option" id="settings-button" matRipple [matRippleCentered]="true" 
                 [ngClass]="{'buttonToggled': this.settings_enabled}"
                 *ngIf="model_loaded"
                 (click)="toggleMainOption(MainOption.SETTINGS)"
                 matTooltip="Settings">
                 <mat-icon aria-hidden="false" aria-label="settings" fontIcon="settings"></mat-icon>
-            </header>
+            </header> -->
         </div>
         
         <div id="content-cover" [hidden]="!truncate_model_enabled"></div>
@@ -73,7 +73,7 @@
             </router-outlet> -->
             <div id="select-model-warning-wrapper" *ngIf="!model_loaded">
                 <div id="button-wrapper" (click)="toggleMainOption(MainOption.MODEL_SELECTOR)">
-                    <h1> Select model to visualize </h1>
+                    <h1> Select resume to visualize </h1>
                 </div>
             </div>
             
