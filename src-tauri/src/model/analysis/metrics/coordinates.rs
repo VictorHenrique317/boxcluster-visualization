@@ -31,16 +31,19 @@ impl Coordinates {
     fn buildDissimilarityMatrix<T: DistancesTrait>(distances: &T, n: usize) -> Result<DMatrix<f64>, GenericError> {
         let size: Vec<usize> = vec![n, n];
         let distance_matrix: Arc<Mutex<ArrayD<f64>>> = Arc::new(Mutex::new(Array::zeros(Dim(size.clone())).into_dyn()));
-
-        distances.get().par_iter().try_for_each(|(pattern_1, columns)| 
+        
+        let i: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
+        distances.get().par_iter().try_for_each(|(_, columns)| 
                 -> Result<(), GenericError> {
 
-            let pattern_1 = (pattern_1 - 1) as usize;
-
-            for (pattern_2, distance) in columns{
-                let pattern_2 = (pattern_2 - 1) as usize;
-
-                let index: Dim<IxDynImpl> = Dim(vec![pattern_1, pattern_2]);
+            let mut i_lock = i.lock().map_err(|_| GenericError::new("Error while getting i thread lock", file!(), &line!()))?;
+            let i_value = i_lock.clone();
+            *i_lock += 1;
+            drop(i_lock);
+            
+            let mut j: usize = 0;
+            for (_, distance) in columns{
+                let index: Dim<IxDynImpl> = Dim(vec![i_value, j]);
                 
                 let mut distance_matrix_lock = distance_matrix.lock()
                     .map_err(|_| GenericError::new("Error while getting distance matrix thread lock", file!(), &line!()))?;
@@ -49,6 +52,7 @@ impl Coordinates {
                     .ok_or(GenericError::new(&format!("Index {:?} does not exist on distance matrix", &index), file!(), &line!()))?;
 
                 *matrix_value = *distance;
+                j += 1;
             }
 
             return Ok(());
@@ -73,9 +77,9 @@ impl Coordinates {
         return Ok(dissimilarity_matrix);
     }
 
-    fn mds(distances: DMatrix<f64>, dimensions: usize) -> Result<HashMap<u32, (f64, f64)>, GenericError> {
+    fn mds<T: DistancesTrait>(dissimilarity_matrix: DMatrix<f64>, dimensions: usize, original_distances: &T) -> Result<HashMap<u32, (f64, f64)>, GenericError> {
         // square distances
-        let mut m = distances.map(|x| -0.5 * x.powi(2));
+        let mut m = dissimilarity_matrix.map(|x| -0.5 * x.powi(2));
 
         // double centre the rows/columns
         let row_means = m.row_mean();
@@ -107,8 +111,10 @@ impl Coordinates {
         // Convert result to hashmap
         let n_rows = result.nrows();
         let mut xys: HashMap<u32, (f64, f64)> = HashMap::new();
+        let mut visible_identifiers: Vec<u32> = original_distances.get().keys().map(|x| x.clone()).collect();
+        visible_identifiers.sort();
         for i in 0..n_rows {
-            let identifier = (i + 1) as u32;
+            let identifier = visible_identifiers[i];
             let x = result[(i, 0)];
             let y = result[(i, 1)];
             xys.insert(identifier, (x, y));
@@ -127,7 +133,7 @@ impl Coordinates {
         println!("  Applying Multi Dimensional Scaling...");
         let n: usize = distances.get().len();
         let dissimilarity_matrix: DMatrix<f64> = Coordinates::buildDissimilarityMatrix(distances, n)?;
-        let xys = Coordinates::mds(dissimilarity_matrix, 2);
+        let xys: Result<HashMap<u32, (f64, f64)>, GenericError> = Coordinates::mds(dissimilarity_matrix, 2, distances);
         return xys;
     }
 }

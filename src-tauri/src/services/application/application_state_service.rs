@@ -126,10 +126,19 @@ impl ApplicationStateService{
     }
 
     pub fn truncateModel(&mut self, new_size: &u32) -> Result<(), GenericError>{
-        let mut visible_identifiers = self.current_level_identifiers.clone();
-        visible_identifiers.sort();
-        visible_identifiers.truncate(*new_size as usize);
-        self.visible_identifiers = visible_identifiers.clone();
+        let mut all_identifiers = self.identifierMapper()?
+            .getIdentifiers().clone();
+            
+        all_identifiers.sort();
+        all_identifiers.truncate(*new_size as usize);
+
+        let mut current_level_identifiers = self.current_level_identifiers.clone();
+        current_level_identifiers.sort();
+
+        self.visible_identifiers = current_level_identifiers.iter()
+            .filter(|identifier| all_identifiers.contains(&identifier))
+            .map(|identifier| identifier.clone())
+            .collect();
 
         self.update(&None)?;
 

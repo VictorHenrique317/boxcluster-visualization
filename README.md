@@ -24,7 +24,8 @@
 - [x] Ativar o modo de interseção no hovering do mouse
 
 ## Changelogs 20/05/2024 -> ??? - v0.3.2
-- [] Bugfixes
+- [x] Bugfixes
+- [] Colocar informações na RSS view para trackear os padrões ocultos (subpadrões)
 - [x] FIX: Retirar o botão de configurações
 - [x] FIX: Erros de vocabulário
 - [] FIX: Tamanho dos dialogs
