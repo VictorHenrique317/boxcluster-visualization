@@ -60,9 +60,10 @@ export class RssViewComponent implements AfterViewInit{
   
   async ngAfterViewInit() {
     this.rss_evolution = await this.api_service.getFullRssEvolution();
+    let subpatterns_identifiers: number[] = await this.api_service.getAllSubpatternsIdentifiers();
     
     this.pattern_number = this.rss_evolution.length;
-    this.datapoints = this.wrapIntoDatapoints(this.rss_evolution);
+    this.datapoints = this.wrapIntoDatapoints(this.rss_evolution, subpatterns_identifiers);
     
     let width = this.visualization_div.nativeElement.clientWidth;
     let height = this.visualization_div.nativeElement.clientHeight;
@@ -75,13 +76,27 @@ export class RssViewComponent implements AfterViewInit{
     this.initialized.emit();
   }
 
-  private wrapIntoDatapoints(rss_evolution: Array<number>): Array<DataPoint>{
+  private wrapIntoDatapoints(rss_evolution: Array<number>, subpatterns_identifiers: number[]): Array<DataPoint>{
     let datapoints: DataPoint[] = [];
+    let subpatterns_identifiers_set: Set<number> = new Set(subpatterns_identifiers);
 
+    let gray_shade = 160;
     for (let i = 0; i < rss_evolution.length; i++){
+      let identifier = i + 1;
       let x = undefined;
       let y = undefined;
-      let datapoint = new DataPoint(i, 10, 10, 0, 0, x, y, 0, 0, 0, 0);
+
+      let r = 0;
+      let g = 0;
+      let b = 0;
+      let a = 1;
+      if(subpatterns_identifiers_set.has(identifier)){
+        r = gray_shade;
+        g = gray_shade;
+        b = gray_shade;
+      }
+
+      let datapoint = new DataPoint(i, 10, 10, 0, 0, x, y, r, g, b, a);
       datapoints[i] = datapoint;
     }
 
@@ -100,6 +115,7 @@ export class RssViewComponent implements AfterViewInit{
     let vertical_screen_coverage = 0.9;
     let scaled_datapoints: Array<DataPoint> = datapoints;
     for (let i = 0; i < datapoints.length; i++){
+      let datapoint: DataPoint = datapoints[i];
       let rss = this.rss_evolution[i];
       
       let x = ((i + 0.5)/length) * 2 - 1; // scale x to be between -1 and 1
@@ -110,8 +126,8 @@ export class RssViewComponent implements AfterViewInit{
       y /= ((1-vertical_screen_coverage) + 1)
       
       let radius = 3;
-      let datapoint = new DataPoint(i, radius, 10, 0, 0, x, y, 0, 0, 0, 1);
-      scaled_datapoints[i] = datapoint;
+      let scaled_datapoint = new DataPoint(i, radius, 10, 0, 0, x, y, datapoint.r, datapoint.g, datapoint.b, datapoint.a);
+      scaled_datapoints[i] = scaled_datapoint;
     }
 
     return scaled_datapoints;

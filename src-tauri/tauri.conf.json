@@ -16,11 +16,7 @@
         "all": true,
         "scope": [
           "$RESOURCE/*",
-          "$RESOURCE/resources/*",
-          "$RESOURCE/resources/rss_evolution.json",
-          "$RESOURCE/resources/page_patterns.json",
-          "$RESOURCE/resources/datapoints2.json",
-          "$RESOURCE/resources/intersection_details.json"
+          "$RESOURCE/resources/*"
         ]
       },
       "all": true,
@@ -55,13 +51,7 @@
         "signingIdentity": null
       },
       "resources": [
-        "resources/*",
-        "resources/rss_evolution.json",
-        "resources/page_patterns.json",
-        "resources/pattern.json",
-        "resources/intersections.json",
-        "resources/intersections2.json",
-        "resources/intersection_details.json"
+        "resources/*"
       ],
       "shortDescription": "",
       "targets": "all",

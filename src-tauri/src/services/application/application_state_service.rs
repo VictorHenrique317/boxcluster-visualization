@@ -160,6 +160,14 @@ impl ApplicationStateService{
         return &self.visible_identifiers;
     }
 
+    pub fn getAllSubPatternsIdentifiers(&self) -> Result<Vec<u32>, GenericError>{
+        return Ok(
+            self.dag_service.as_ref()
+            .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()))?
+            .getSubNodes()
+        );
+    }
+
     pub fn getMetricsService(&self) -> Result<&MetricsService, GenericError>{
         return Ok(
             self.metrics_service.as_ref()

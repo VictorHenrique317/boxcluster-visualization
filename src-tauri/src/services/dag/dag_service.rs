@@ -7,6 +7,7 @@ use super::dag_creator_service::DagCreatorService;
 
 pub struct DagService{
     font_nodes: Vec<u32>,
+    sub_nodes: Vec<u32>,
 }
 
 impl DagService{
@@ -24,29 +25,40 @@ impl DagService{
         return dag_creator_service.create(flat_dag_nodes);
     }
 
-    fn calculateFontNodes(identifier_mapper: &IdentifierMapper) -> Result<Vec<u32>, GenericError>{
+    fn identifyNodes(identifier_mapper: &IdentifierMapper) -> Result<(Vec<u32>, Vec<u32>), GenericError>{
         let mut font_nodes: Vec<u32> = Vec::new();
+        let mut sub_nodes: Vec<u32> = Vec::new();
+
         for representation in identifier_mapper.getRepresentations(){
             let dag_node = representation.asDagNode()?;
 
             if dag_node.supers.len() == 0{
                 font_nodes.push(dag_node.identifier);
+            }else{
+                sub_nodes.push(dag_node.identifier);
             }
+        
         }
 
-        return Ok(font_nodes);
+        return Ok((font_nodes, sub_nodes));
     }
 
     pub fn new(identifier_mapper: &IdentifierMapper) -> Result<DagService, GenericError>{
+        let (font_nodes, sub_nodes) = DagService::identifyNodes(identifier_mapper)?;
         return Ok(
             DagService{
-                font_nodes: DagService::calculateFontNodes(identifier_mapper)?,
+                font_nodes: font_nodes,
+                sub_nodes: sub_nodes,
             }
         );
     }
 
     pub fn getFontNodes(&self) -> Vec<u32> {
         return self.font_nodes.clone();
+    }
+
+    pub fn getSubNodes(&self) -> Vec<u32> {
+        return self.sub_nodes.clone();
     }
 
     pub fn ascendDag(&self, identifier_mapper: &IdentifierMapper, current_identifier: &u32) -> Result<Vec<u32>, GenericError> {

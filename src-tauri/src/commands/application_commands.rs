@@ -71,6 +71,14 @@ pub fn getDataPoints(application_service: State<ApplicationServiceState>) -> Res
 }
 
 #[tauri::command]
+pub fn getAllSubPatternsIdentifiers(application_service: State<ApplicationServiceState>) -> Result<Vec<u32>, GenericError> {
+    println!("Calling getAllSubPatternsIdentifiers...");
+
+    let application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
+    return application_service.getAllSubPatternsIdentifiers();
+}
+
+#[tauri::command]
 pub fn getPattern(application_service: State<ApplicationServiceState>, identifier: u32) -> Result<RawPattern, GenericError> {
     println!("Calling getPattern...");
 

@@ -154,5 +154,21 @@ export class ApiService {
 
     return datapoints;
   }
+
+  public async getAllSubpatternsIdentifiers(): Promise<Array<number>> {
+    let subpatterns_identifiers;
+    if(!environment.dev_mode){
+      subpatterns_identifiers = await invoke("getAllSubPatternsIdentifiers").catch((error: any) => {
+        // console.error(error);
+        this.dialog_service.openErrorDialog("Error while fetching subpatterns identifiers.");
+        throw error;
+      });
+    }else{
+      let rawdata = await fs.readTextFile(await resolveResource('resources/subpatterns_identifiers.json'));
+      subpatterns_identifiers = JSON.parse(rawdata);
+    }
+
+    return subpatterns_identifiers;
+  }
   
 }

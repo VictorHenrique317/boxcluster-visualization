@@ -123,6 +123,10 @@ impl ApplicationService{
         return Ok(datapoints);
     }
 
+    pub fn getAllSubPatternsIdentifiers(&self) -> Result<Vec<u32>, GenericError>{
+        return self.application_state_service.getAllSubPatternsIdentifiers();
+    }
+
     pub fn getRawPattern(&self, identifier: &u32) -> Result<RawPattern, GenericError>{
         let visible_identifiers = self.application_state_service.getVisibleIdentifiers();
 
