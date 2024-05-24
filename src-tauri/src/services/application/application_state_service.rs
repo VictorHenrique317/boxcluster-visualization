@@ -38,20 +38,8 @@ impl ApplicationStateService{
         identifier_mapper.insertDagNodeRepresentations(
             DagService::createAndArrange(&identifier_mapper)?,
         )?;
-
-        // Inserts the data point representations
-        let metrics_service = MetricsService::new(
-                &identifier_mapper,
-                self.tensor.as_ref()
-                    .ok_or(GenericError::new("Tensor not initialized", file!(), &line!()))?,
-        )?;
-
-        identifier_mapper.insertDataPointRepresentations(
-            DataPointService::createDataPoints(&identifier_mapper, &metrics_service.coordinates)?
-        )?;
-
-        self.identifier_mapper = Some(identifier_mapper);
-        let dag_service = DagService::new(self.identifierMapper()?)?;
+        
+        let dag_service = DagService::new(&identifier_mapper)?;
         self.dag_service = Some(dag_service);
 
         self.current_level_identifiers = self.dag_service.as_ref()
@@ -59,7 +47,21 @@ impl ApplicationStateService{
             .getFontNodes();
 
         self.visible_identifiers = self.current_level_identifiers.clone();
+
+        // Inserts the data point representations
+        let metrics_service = MetricsService::new(
+            &identifier_mapper,
+            self.tensor.as_ref()
+                .ok_or(GenericError::new("Tensor not initialized", file!(), &line!()))?,
+            &self.visible_identifiers
+        )?;
+
+        identifier_mapper.insertDataPointRepresentations(
+            DataPointService::createDataPoints(&identifier_mapper, &metrics_service.coordinates)?
+        )?;
+
         self.metrics_service = Some(metrics_service);
+        self.identifier_mapper = Some(identifier_mapper);
 
         return Ok(());
     }
@@ -77,8 +79,8 @@ impl ApplicationStateService{
         };
 
         let identifiers_used_to_update = match new_current_level_identifiers {
-            Some(new_current_level_identifiers) => new_current_level_identifiers, // Updates all identifiers and reset visible identifiers
-            None => &self.visible_identifiers, // Updates only the visible identifiers
+            Some(new_current_level_identifiers) => new_current_level_identifiers, // Updates all identifiers and reset visible identifiers (dag movement)
+            None => &self.visible_identifiers, // Updates only the visible identifiers, (truncation)
         };
 
         self.metrics_service.as_mut().ok_or(GenericError::new("Metrics service not initialized", file!(), &line!()))?

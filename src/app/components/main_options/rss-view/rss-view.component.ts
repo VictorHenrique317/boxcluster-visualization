@@ -82,7 +82,7 @@ export class RssViewComponent implements AfterViewInit{
 
     let gray_shade = 160;
     for (let i = 0; i < rss_evolution.length; i++){
-      let identifier = i + 1;
+      let identifier = i; // i because the first index is the null model rss
       let x = undefined;
       let y = undefined;
 

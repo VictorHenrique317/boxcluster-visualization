@@ -57,13 +57,13 @@ impl Metric<HashMap<u32, HashMap<u32, f64>>> for Distances{
 }
 
 impl Distances{
-    pub fn new(identifier_mapper: &IdentifierMapper, tensor: &Tensor, intersections_predictions: &IntersectionsPredictions) 
+    pub fn new(identifier_mapper: &IdentifierMapper, tensor: &Tensor, intersections_predictions: &IntersectionsPredictions, visible_identifiers: &Vec<u32>) 
             -> Result<Distances, GenericError>{
                 
         println!("  Distances...");
         return Ok(
             Distances { 
-                value: Distances::calculate(identifier_mapper, tensor, intersections_predictions)?,
+                value: Distances::calculate(identifier_mapper, tensor, intersections_predictions, visible_identifiers)?,
             }
         );
     }
@@ -194,25 +194,25 @@ impl Distances{
         return Ok(());
     }
 
-    fn calculate(identifier_mapper: &IdentifierMapper, tensor:&Tensor, intersections_predictions: &IntersectionsPredictions) 
+    fn calculate(identifier_mapper: &IdentifierMapper, tensor:&Tensor, intersections_predictions: &IntersectionsPredictions, visible_identifiers: &Vec<u32>) 
             -> Result<HashMap<u32, HashMap<u32, f64>>, GenericError>{
         // 58s, 30s, 46s, 39s, 37s, 19s, 16s, 5s, 3s
         let distances = Arc::new(Mutex::new(HashMap::new()));
-        let patterns: Result<Vec<Pattern>, GenericError> = identifier_mapper.getRepresentations().iter()
-            .map(|r| r.asPattern().map(|p| p.clone()))
-            .collect();
+        let visible_patterns: Result<Vec<&Pattern>, GenericError> = visible_identifiers.iter()
+                .map(|identifier| identifier_mapper.getRepresentation(identifier)?.asPattern())
+                .collect();
 
-        let patterns = patterns?;
+        let visible_patterns = visible_patterns?;
 
-        let total_distances = (identifier_mapper.length().pow(2) as u32 / 2) - identifier_mapper.length() as u32;
+        let total_distances = (visible_identifiers.len().pow(2) as u32 / 2) - visible_identifiers.len() as u32;
         let total_distances = total_distances as u64;
         let bar = progress_bar::new(total_distances, "  Calculated distances");
 
-        patterns.par_iter().enumerate().try_for_each(|(row, x)| 
+        visible_patterns.par_iter().enumerate().try_for_each(|(row, x)| 
                 -> Result<(), GenericError>{
 
             if row != 0 {
-                for (col, y) in patterns.iter().enumerate() { 
+                for (col, y) in visible_patterns.iter().enumerate() { 
                     if col < row { // Iterate triangularly
                         let xuy = Distances::getXUY(tensor, x, y)?;
                         let covered_xuy_rss = Distances::getCoveredXUYRss(tensor, &xuy, x, y)?;

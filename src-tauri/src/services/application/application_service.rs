@@ -56,7 +56,7 @@ impl ApplicationService{
 
     pub fn getDistances(&self) -> Result<&HashMap<u32, HashMap<u32, f64>>, GenericError>{
         return Ok(
-            self.application_state_service.getMetricsService()?.distances.get()
+            self.application_state_service.getMetricsService()?.all_initial_visible_distances.get()
         );
     }
 

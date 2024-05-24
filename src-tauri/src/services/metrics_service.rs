@@ -8,13 +8,13 @@ use crate::{model::{analysis::metrics::{empty_model_rss::EmptyModelRss, distance
 pub struct MetricsService{
     pub empty_model_rss: EmptyModelRss,
     pub rss_evolution: RssEvolution,
-    pub distances: Distances,
+    pub all_initial_visible_distances: Distances,
     pub coordinates: Coordinates,
     pub intersections_percentages: IntersectionsPercentages,
 }
 
 impl MetricsService{
-    pub fn new(identifier_mapper: &IdentifierMapper, tensor: &Tensor) -> Result<MetricsService, GenericError>{
+    pub fn new(identifier_mapper: &IdentifierMapper, tensor: &Tensor, visible_identifiers: &Vec<u32>) -> Result<MetricsService, GenericError>{
         println!("Calculating metrics...");
 
         let intersections_predictions = IntersectionsPredictions::new(identifier_mapper)?;
@@ -44,11 +44,11 @@ impl MetricsService{
         let distances = Distances::new(
             identifier_mapper,
             tensor,
-            &intersections_predictions
+            &intersections_predictions,
+            &visible_identifiers,
         )?;
 
         let coordinates = Coordinates::new(
-            identifier_mapper,
             &distances,
         )?;
 
@@ -57,7 +57,7 @@ impl MetricsService{
             MetricsService {
                 empty_model_rss: empty_model_rss,
                 rss_evolution: rss_evolution,
-                distances: distances,
+                all_initial_visible_distances: distances,
                 coordinates: coordinates,
                 intersections_percentages: intersections_percentages,
              }
@@ -70,8 +70,7 @@ impl MetricsService{
         let visible_patterns = identifier_mapper.getOrderedPatternsFrom(visible_identifiers);
         
         let coordinates = Coordinates::new(
-            identifier_mapper,
-            &self.distances.getView(identifier_mapper, visible_identifiers)?,
+            &self.all_initial_visible_distances.getView(identifier_mapper, visible_identifiers)?,
         )?;
         self.coordinates = coordinates;
 
