@@ -28,8 +28,16 @@ impl Coordinates {
         );
     }
 
+    fn printMatrix(matrix: &DMatrix<f64>){
+        for i in 0..matrix.nrows(){
+            for j in 0..matrix.ncols(){
+                print!("{:.2} ", matrix[(i, j)]);
+            }
+            println!("");
+        }
+    }
+
     fn buildDissimilarityMatrix<T: DistancesTrait>(distances: &T, n: usize) -> Result<DMatrix<f64>, GenericError> {
-        // TODO: To optimize reduce excess sortings inside the loops
         let size: Vec<usize> = vec![n, n];
         let distance_matrix: Arc<Mutex<ArrayD<f64>>> = Arc::new(Mutex::new(Array::zeros(Dim(size.clone())).into_dyn()));
 
@@ -143,6 +151,7 @@ impl Coordinates {
         println!("  Applying Multi Dimensional Scaling...");
         let n: usize = distances.get().len();
         let dissimilarity_matrix: DMatrix<f64> = Coordinates::buildDissimilarityMatrix(distances, n)?;
+        printMatrix(&dissimilarity_matrix);
         let xys: HashMap<u32, (f64, f64)> = Coordinates::mds(dissimilarity_matrix, 2)?;
 
         let mut visible_identifiers: Vec<u32> = distances.get().keys().cloned().collect();
