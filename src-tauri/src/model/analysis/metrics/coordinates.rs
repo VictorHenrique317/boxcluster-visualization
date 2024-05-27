@@ -4,7 +4,7 @@ use std::{collections::HashMap, sync::{Mutex, Arc}};
 use nalgebra::{DMatrix, SVD};
 use ndarray::{IxDynImpl, Dim, ArrayD, Array};
 use rayon::{iter::IndexedParallelIterator, prelude::{IntoParallelRefIterator, ParallelIterator}};
-use crate::{model::identifier_mapper::IdentifierMapper, common::generic_error::GenericError};
+use crate::{common::generic_error::GenericError, model::identifier_mapper::IdentifierMapper};
 use super::{metric::Metric, distances::DistancesTrait};
 
 pub struct Coordinates {
@@ -29,12 +29,14 @@ impl Coordinates {
     }
 
     fn printMatrix(matrix: &DMatrix<f64>){
+        println!("Printing matrix:");
         for i in 0..matrix.nrows(){
             for j in 0..matrix.ncols(){
                 print!("{:.2} ", matrix[(i, j)]);
             }
             println!("");
         }
+        println!("");
     }
 
     fn buildDissimilarityMatrix<T: DistancesTrait>(distances: &T, n: usize) -> Result<DMatrix<f64>, GenericError> {
@@ -67,7 +69,7 @@ impl Coordinates {
 
                 let matrix_value = distance_matrix_lock.get_mut(&index)
                     .ok_or(GenericError::new(&format!("Index {:?} does not exist on distance matrix", &index), file!(), &line!()))?;
-
+                
                 *matrix_value = distance;
             }
 
@@ -151,7 +153,6 @@ impl Coordinates {
         println!("  Applying Multi Dimensional Scaling...");
         let n: usize = distances.get().len();
         let dissimilarity_matrix: DMatrix<f64> = Coordinates::buildDissimilarityMatrix(distances, n)?;
-        printMatrix(&dissimilarity_matrix);
         let xys: HashMap<u32, (f64, f64)> = Coordinates::mds(dissimilarity_matrix, 2)?;
 
         let mut visible_identifiers: Vec<u32> = distances.get().keys().cloned().collect();

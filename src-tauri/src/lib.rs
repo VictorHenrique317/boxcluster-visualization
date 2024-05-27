@@ -47,34 +47,34 @@ pub fn main() {
         
 }
 
-fn printMatrix(matrix: &HashMap<u32, HashMap<u32, f64>>) {
-    // Collect and sort the keys
-    let mut keys: Vec<&u32> = matrix.keys().collect();
-    keys.sort();
+// fn printMatrix(matrix: &DMatrix<f64>) {
+//     // Collect and sort the keys
+//     let mut keys: Vec<&u32> = matrix.keys().collect();
+//     keys.sort();
 
-    // Print column names
-    print!("{:10}", "");
-    for &column_name in &keys {
-        print!("{:10}", column_name);
-    }
-    println!();
+//     // Print column names
+//     print!("{:10}", "");
+//     for &column_name in &keys {
+//         print!("{:10}", column_name);
+//     }
+//     println!();
 
-    // Print rows
-    for &row_name in &keys {
-        // Print row name
-        print!("{:10}", row_name);
+//     // Print rows
+//     for &row_name in &keys {
+//         // Print row name
+//         print!("{:10}", row_name);
 
-        // Print values in the row
-        for &column_name in &keys {
-            if let Some(value) = matrix.get(row_name).and_then(|row| row.get(column_name)) {
-                print!("{:10}", value);
-            } else {
-                print!("{:10}", "");
-            }
-        }
-        println!();
-    }
-}
+//         // Print values in the row
+//         for &column_name in &keys {
+//             if let Some(value) = matrix.get(row_name).and_then(|row| row.get(column_name)) {
+//                 print!("{:10}", value);
+//             } else {
+//                 print!("{:10}", "");
+//             }
+//         }
+//         println!();
+//     }
+// }
 
 fn testDag(){
     // let path = "../tests/test_data/real1.txt".to_owned(); 
@@ -115,8 +115,8 @@ fn testDag(){
     // let tensor_path = "tests/test_data/tensors/retweets2d.txt".to_owned();
     // let patterns_path = "tests/test_data/other_patterns/retweets2d_patterns.txt".to_owned();
     
-    let patterns_path = "tests/test_data/dag_test_patterns/complex-msub.txt".to_owned();
-    let tensor_path = "tests/test_data/dag_test_patterns/complex-msub.txt".to_owned();
+    let tensor_path = "tests/test_data/dissimilarity_matrix/8.tensor".to_owned();
+    let patterns_path = "tests/test_data/dissimilarity_matrix/8.patterns".to_owned();
 
     // let tensor_path = "tests/test_data/rss_evolution_test/synth_co1.txt".to_owned();
     // let patterns_path = "tests/test_data/rss_evolution_test/synth_co1_patterns.txt".to_owned();

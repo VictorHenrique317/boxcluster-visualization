@@ -12,13 +12,11 @@ impl PlotService{
         // let root = BitMapBackend::new("scatter.png", (1600, 900)).into_drawing_area();
         // root.fill(&WHITE).unwrap();
 
-        // let identifier_mapper = application_state.identifierMapper();
+        // let identifier_mapper = application_state.identifierMapper().unwrap();
 
         // let visible_identifiers = application_state.getVisibleIdentifiers();
-        // let visible_representations: Vec<&IdentifierRepresentation> = identifier_mapper.getMapping()
-        //     .iter()
-        //     .filter(|(identifier, _)| visible_identifiers.contains(identifier))
-        //     .map(|(_, representation)| representation)
+        // let visible_representations: Vec<&IdentifierRepresentation> = visible_identifiers.iter()
+        //     .map(|identifier| identifier_mapper.getRepresentation(identifier).unwrap())
         //     .collect();
     
         // let mut x_range = 0.0;

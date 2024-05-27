@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use std::{collections::HashMap, sync::{Arc, Mutex}};
+use std::{collections::{HashMap, HashSet}, sync::{Arc, Mutex}};
 use rayon::prelude::{IntoParallelRefIterator, IndexedParallelIterator, ParallelIterator};
 use crate::{common::{generic_error::GenericError, progress_bar}, database::{pattern::Pattern, subtensor::Subtensor, tensor::Tensor}, model::{analysis::ordered_pair::OrderedPair, identifier_mapper::IdentifierMapper}};
 use super::{intersections_predictions::IntersectionsPredictions, metric::Metric};
@@ -74,8 +74,8 @@ impl Distances{
         let intersections_predictions = intersections_predictions.get();
         let mut untouched_rss_s: HashMap<u32, f64> = HashMap::new();
         let mut intersection_rss = 0.0;
+        let mut seen_intersection_indices: HashSet<&Vec<usize>> = HashSet::new();
 
-        let mut saw_pair_overlapping = false;
         for pattern in pair.get(){
             let mut untouched_rss = 0.0;
 
@@ -83,27 +83,26 @@ impl Distances{
                 let actual_value = *tensor.dims_values.get(index.as_slice())
                     .ok_or(GenericError::new("Index not found", file!(), &line!()))? as f64;
     
-                let possible_overlapper = match saw_pair_overlapping {
-                    false => intersections_predictions.get(index),
-                    true => None,
-                };
+                let possible_overlapper = intersections_predictions.get(index);
 
                 match possible_overlapper {
-                None => { },
+                None => { }, // No overlapper
                 Some(possible_overlapper) => {
                     if *possible_overlapper == pair.getOther(pattern) { // Here there is intersection with the pair
+                        if seen_intersection_indices.contains(index){ continue; } // Avoid double counting
+
                         let overlapper = possible_overlapper;
                         let overlapper_contribution = (actual_value - overlapper.density).powi(2);
-        
+                        
                         intersection_rss += overlapper_contribution;
+                        seen_intersection_indices.insert(index);
                         continue;
                     }}
                 }
-                
+
                 untouched_rss += (actual_value - pattern.density).powi(2);
             }
 
-            saw_pair_overlapping = true;
             untouched_rss_s.insert(pattern.identifier, untouched_rss);
         }
 
@@ -204,7 +203,11 @@ impl Distances{
 
         let visible_patterns = visible_patterns?;
 
-        let total_distances = (visible_identifiers.len().pow(2) as u32 / 2) - visible_identifiers.len() as u32;
+        let mut total_distances = 0;
+        if visible_identifiers.len() > 1 {
+            total_distances = (visible_identifiers.len().pow(2) as u32 / 2) - visible_identifiers.len() as u32
+        }
+
         let total_distances = total_distances as u64;
         let bar = progress_bar::new(total_distances, "  Calculated distances");
 
@@ -226,8 +229,9 @@ impl Distances{
 
                         let untouched_rss_y = *untouched_rss.get(&y.identifier)
                             .ok_or(GenericError::new(&format!("Untouched RSS for pattern {} not found", &y.identifier), file!(), &line!()))?;
-        
+                        
                         let raw_distance = covered_xuy_rss - untouched_rss_x - untouched_rss_y - x_y_intersection_rss;
+                        
                         let normalized_distance = Distances::normalize(x, y, &raw_distance)?;
                         
                         let mut distances = distances.lock()
