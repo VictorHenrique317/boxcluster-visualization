@@ -43,7 +43,7 @@ impl IdentifierRepresentation {
         let pattern = self.pattern_representation.as_ref()
             .ok_or(GenericError::new("Could not get pattern representation", file!(), &line!()))?;
 
-        let raw_dims_values = translator.untranslateLineDims(&pattern.dims_values)?;
+        let raw_dims_values = translator.untranslateLineDims(&pattern.unordered_dims_values)?;
         let raw_dims_values: Vec<Vec<String>> = raw_dims_values.iter()
             .map(|raw_dim_values| raw_dim_values.split(",").map(|s| s.to_string()).collect())
             .collect();

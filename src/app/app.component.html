@@ -1,16 +1,16 @@
 <body #app_body id="app_body">
     <aside #aside>
         <div id="main-options">
-            <header class="main-option" id="model-selection-button" *ngIf="model_loaded" #model_selector matRipple [matRippleCentered]="true"
+            <header class="main-option" id="model-selection-button" *ngIf="application_status == applicationStatusLoaded" #model_selector matRipple [matRippleCentered]="true"
                 (click)="toggleMainOption(MainOption.MODEL_SELECTOR)"
                 matTooltip="Change resume">
-                <div id="matlist-placeholder" *ngIf="!model_loaded"></div>
+                <div id="matlist-placeholder" *ngIf="application_status == applicationStatusUnloaded"></div>
                 <mat-icon aria-hidden="false" aria-label="open_file" fontIcon="upload_file" ></mat-icon>
             </header>
 
             <header class="main-option" id="truncate-model-button" 
                 [ngClass]="{'buttonToggled': this.truncate_model_enabled}"
-                *ngIf="model_loaded"
+                *ngIf="application_status == applicationStatusLoaded"
                 (click)="toggleMainOption(MainOption.TRUNCATE_MODEL)"
                 matTooltip="Truncate resume">
                 <mat-icon aria-hidden="false" aria-label="settings" fontIcon="show_chart"></mat-icon>
@@ -62,7 +62,7 @@
                 (onTruncation)="onTruncation($event)"
                 (initialized)="disableRssView()"
                 [@slideInOut]="truncate_model_enabled ? 'in' : 'out'"
-                *ngIf="model_loaded">
+                *ngIf="application_status == applicationStatusLoaded">
         </app-rss-view>
 
         <div id="visualization">
@@ -71,10 +71,15 @@
                 (onTruncationFinished)="onTruncationFinished()"
                 >
             </router-outlet> -->
-            <div id="select-model-warning-wrapper" *ngIf="!model_loaded">
+            <div id="select-model-warning-wrapper" *ngIf="application_status == applicationStatusUnloaded">
                 <div id="button-wrapper" (click)="toggleMainOption(MainOption.MODEL_SELECTOR)">
                     <h1> Select resume to visualize </h1>
                 </div>
+            </div>
+
+            <div id="progress-spinner" *ngIf="application_status == applicationStatusLoading">
+                <mat-spinner></mat-spinner>
+                <h1>Loading visualization...</h1>
             </div>
             
             <app-visualization #visualization_view
@@ -82,7 +87,7 @@
                 (datapoint_hover_in)="updatePatternSummary($event)"
                 (datapoint_hover_out)="updatePatternSummary(null)"
                 (datapoint_click)="togglePatternSummary($event)"
-                *ngIf="model_loaded">
+                *ngIf="application_status == applicationStatusLoaded">
             </app-visualization>
         </div>
     </div>

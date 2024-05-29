@@ -10,8 +10,8 @@ import {MatIconModule} from '@angular/material/icon';
   styleUrls: ['./error-dialog.component.scss']
 })
 export class ErrorDialogComponent {
-  public static WIDTH = '400px';
-  public static HEIGHT = '250px';
+  public static WIDTH = '30vw';
+  public static HEIGHT = '30vh';
 
   protected error_message: string;
   

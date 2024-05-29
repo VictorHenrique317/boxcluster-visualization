@@ -11,6 +11,8 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
   styleUrls: ['./file-selection-dialog.component.scss']
 })
 export class FileSelectionDialogComponent {
+  public static WIDTH = '45vw';
+  public static HEIGHT = '50vh';
   @Output() modelChange: EventEmitter<any> = new EventEmitter();
 
   private last_opened_folder: string;

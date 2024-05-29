@@ -82,7 +82,7 @@ impl IntersectionMetrics{
                 }
 
                 if !intersection_indices.is_empty() { // There are intersections between pattern and other_pattern
-                    let intersection_percentage = intersection_indices.len() as f64 / pattern.size as f64;
+                    let intersection_percentage = intersection_indices.len() as f64 / other_pattern.size as f64;
                     
                     pattern_intersections.insert(other_pattern.identifier, intersection_indices);
                     pattern_intersections_percentages.insert(other_pattern.identifier, intersection_percentage);

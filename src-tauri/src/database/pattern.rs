@@ -20,6 +20,7 @@ pub enum Relation {
 pub struct Pattern {
     pub identifier: u32, // Starts at 1
     pub dims_values: Vec<Vec<usize>>,
+    pub unordered_dims_values: Vec<Vec<usize>>,
     pub density: f64,
     pub size: u32,
     pub indices_as_dims: Vec<Dim<IxDynImpl>>,
@@ -48,7 +49,7 @@ impl Serialize for Pattern {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: serde::Serializer, {
         let mut state = serializer.serialize_struct("Pattern", 4)?;
         state.serialize_field("identifier", &self.identifier)?;
-        state.serialize_field("dims_values", &self.dims_values)?;
+        state.serialize_field("dims_values", &self.unordered_dims_values)?;
         state.serialize_field("density", &self.density)?;
         state.serialize_field("size", &self.size)?;
         state.end()
@@ -63,6 +64,7 @@ impl Pattern {
         return Pattern {
             identifier: identifier,
             dims_values: Pattern::sortDimsValues(&dims_values),
+            unordered_dims_values: dims_values,
             density: density,
             size: size,
             indices_as_dims: Pattern::getIndicesAsDims(&indices),

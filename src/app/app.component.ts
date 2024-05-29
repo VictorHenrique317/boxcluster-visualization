@@ -36,12 +36,19 @@ import { Pattern } from "./models/pattern";
 import { fs } from "@tauri-apps/api";
 import { resolveResource } from "@tauri-apps/api/path";
 import { ApiService } from "./services/api/api.service";
+import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 
 export enum MainOption {
   MODEL_SELECTOR,
   SETTINGS,
   TRUNCATE_MODEL,
   INTERSECTION_MODE
+};
+
+export enum ApplicationStatus {
+  UNLOADED,
+  LOADING,
+  LOADED
 };
 
 @Component({
@@ -62,10 +69,14 @@ export enum MainOption {
     imports: [RouterOutlet, CommonModule, VisualizationComponent, RssViewComponent,
         MatSlideToggleModule, MatTabsModule, MatButtonToggleModule, MatDividerModule,
         MatListModule, MatSelectModule, MatSlideToggleModule, MatCheckboxModule, MatMenuModule, MatButtonModule,
-        MatRippleModule, MatPaginatorModule, MatSidenavModule, MatIconModule, MatTooltipModule, PatternSummaryComponent]
+        MatRippleModule, MatPaginatorModule, MatSidenavModule, MatIconModule, MatTooltipModule, PatternSummaryComponent,
+        MatProgressSpinnerModule]
 })
 
 export class AppComponent implements AfterViewInit{
+  protected all_application_status = Object.values(ApplicationStatus);
+  protected application_status: ApplicationStatus = ApplicationStatus.UNLOADED;
+
   protected MainOption = MainOption;
   protected settings_enabled: boolean = false;
   protected truncate_model_enabled: boolean;
@@ -79,7 +90,6 @@ export class AppComponent implements AfterViewInit{
   private last_opened_folder: string = "";
   protected tensor_path: string = "";
   protected patterns_path: string = "";
-  protected model_loaded = false;
   @ViewChild('rss_view') rss_view: RssViewComponent;
   @ViewChild('pattern_summary') pattern_summary: PatternSummaryComponent;
   
@@ -92,35 +102,42 @@ export class AppComponent implements AfterViewInit{
     // this.matList_height = this.aside.nativeElement.clientHeight - this.model_selector.nativeElement.clientHeight;
 
     if(environment.dev_mode){ 
-      this.model_loaded = true;
+      this.application_status = ApplicationStatus.LOADED;
       this.cdr.detectChanges();
     }
   }
 
-  private reloadApplication(){
-    this.model_loaded = false;
-    this.cdr.detectChanges();
+  // private reloadApplication(){
+  //   this.application_status = ApplicationStatus.UNLOADED;
+  //   this.cdr.detectChanges();
 
-    this.model_loaded = true;
-    this.cdr.detectChanges();
-  }
+  //   this.application_status = ApplicationStatus.LOADED;
+  //   this.cdr.detectChanges();
+  // }
 
   private async handleModelChange(event: any){
     console.log("Handling model change");
     if (event.tensor_path == null || event.patterns_path == null){ return; }
+    this.application_status = ApplicationStatus.LOADING;
+    this.cdr.detectChanges();
+
+    this.toggleMainOption(null);
+    this.togglePatternSummary(null);
+    this.updatePatternSummary(null);
     
     this.last_opened_folder = event.last_opened_folder;
 
-    this.model_loaded = false;
     this.tensor_path = event.tensor_path;
     this.patterns_path = event.patterns_path;
     
     await this.api_service.initApplication(this.tensor_path, this.patterns_path);
-    this.model_loaded = true;
-    this.reloadApplication();
+    
+    this.application_status = ApplicationStatus.LOADED;
+    this.cdr.detectChanges();
+    // this.reloadApplication();
   }
 
-  protected toggleMainOption(option: MainOption){
+  protected toggleMainOption(option: MainOption | null){
     this.deactivateMainOptionsExcept(option);
 
     switch(option){
@@ -133,6 +150,8 @@ export class AppComponent implements AfterViewInit{
       case MainOption.TRUNCATE_MODEL:
         this.toggleTruncateModel();
         break;
+      case null:
+        break
       // case MainOption.INTERSECTION_MODE:
       //   this.toggleIntersectionMode();
       //   break;
@@ -152,7 +171,9 @@ export class AppComponent implements AfterViewInit{
       patterns_path: this.patterns_path
     };
     this.dialog_service.open(FileSelectionDialogComponent, 
-      '500px', '400px', dialog_data, 
+      FileSelectionDialogComponent.WIDTH, 
+      FileSelectionDialogComponent.HEIGHT, 
+      dialog_data, 
       this.handleModelChange.bind(this));
   }
 
@@ -193,5 +214,17 @@ export class AppComponent implements AfterViewInit{
 
   protected togglePatternSummary(identifier){
     this.pattern_summary.toggle(identifier);
+  }
+
+  get applicationStatusUnloaded(): ApplicationStatus {
+    return ApplicationStatus.UNLOADED;
+  }
+
+  get applicationStatusLoading(): ApplicationStatus {
+    return ApplicationStatus.LOADING;
+  }
+
+  get applicationStatusLoaded(): ApplicationStatus {
+    return ApplicationStatus.LOADED;
   }
 }

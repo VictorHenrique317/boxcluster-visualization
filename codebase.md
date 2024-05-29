@@ -1,84 +1,84 @@
-### DIRECTORY src-tauri/src FOLDER STRUCTURE ###
-src/
+### DIRECTORY src-tauri/src/ FOLDER STRUCTURE ###
+/
     flamegraph.svg
     lib.rs
     main.rs
-    commands/
-        application_commands.rs
+commands/
+    application_commands.rs
+    mod.rs
+    paginator_commands.rs
+common/
+    generic_error.rs
+    mod.rs
+    progress_bar.rs
+controller/
+    application_controller.rs
+    dynamic_paginator_controller.rs
+    mod.rs
+    states/
         mod.rs
-        paginator_commands.rs
-    common/
-        generic_error.rs
+        states.rs
+database/
+    dag.rs
+    dag_node.rs
+    datapoint.rs
+    intersections_details.rs
+    mod.rs
+    pattern.rs
+    raw_pattern.rs
+    subtensor.rs
+    tensor.rs
+model/
+    identifier_mapper.rs
+    identifier_representation.rs
+    mod.rs
+    analysis/
         mod.rs
-        progress_bar.rs
-    controller/
-        application_controller.rs
-        dynamic_paginator_controller.rs
-        mod.rs
-        states/
+        ordered_pair.rs
+        metrics/
+            coordinates.rs
+            distances.rs
+            empty_model_rss.rs
+            full_model_rss.rs
+            intersections_predictions.rs
+            metric.rs
             mod.rs
-            states.rs
-    database/
-        dag.rs
-        dag_node.rs
-        datapoint.rs
-        intersections_details.rs
-        mod.rs
-        pattern.rs
-        raw_pattern.rs
-        subtensor.rs
-        tensor.rs
-    model/
-        identifier_mapper.rs
-        identifier_representation.rs
-        mod.rs
-        analysis/
-            mod.rs
-            ordered_pair.rs
-            metrics/
-                coordinates.rs
-                distances.rs
-                empty_model_rss.rs
-                full_model_rss.rs
-                intersections_predictions.rs
-                metric.rs
+            rss_evolution.rs
+            intersection/
+                intersections_indices.rs
+                intersections_percentages.rs
+                intersection_metrics.rs
                 mod.rs
-                rss_evolution.rs
-                intersection/
-                    intersections_indices.rs
-                    intersections_percentages.rs
-                    intersection_metrics.rs
-                    mod.rs
-                    prediction_matrix.rs
-                    untouched_delta_rss.rs
-        io/
-            mod.rs
-            pattern_reader.rs
-            reader.rs
-            tensor_reader.rs
-            translator.rs
-    services/
-        datapoint_service.rs
-        dynamic_paginator_service.rs
-        io_service.rs
-        metrics_service.rs
+                prediction_matrix.rs
+                untouched_delta_rss.rs
+    io/
         mod.rs
-        plot_service.rs
-        application/
-            application_service.rs
-            application_state_service.rs
-            mod.rs
-        dag/
-            dag_arranger_service.rs
-            dag_creator_service.rs
-            dag_service.rs
-            mod.rs
-    temp/
-        retweets.png
-        synth-100-3d-co16.png
-### DIRECTORY src-tauri/src FOLDER STRUCTURE ###
+        pattern_reader.rs
+        reader.rs
+        tensor_reader.rs
+        translator.rs
+services/
+    datapoint_service.rs
+    dynamic_paginator_service.rs
+    io_service.rs
+    metrics_service.rs
+    mod.rs
+    plot_service.rs
+    application/
+        application_service.rs
+        application_state_service.rs
+        mod.rs
+    dag/
+        dag_arranger_service.rs
+        dag_creator_service.rs
+        dag_service.rs
+        mod.rs
+temp/
+    retweets.png
+    synth-100-3d-co16.png
+### DIRECTORY src-tauri/src/ FOLDER STRUCTURE ###
 
-### DIRECTORY src-tauri/src FLATTENED CONTENT ###
+### DIRECTORY src-tauri/src/ FLATTENED CONTENT ###
 ### src-tauri/src/flamegraph.svg BEGIN ###
 <?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd"><svg version="1.1" width="1200" height="60" onload="init(evt)" viewBox="0 0 1200 60" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:fg="http://github.com/jonhoo/inferno"><!--Flame graph stack visualization. See https://github.com/brendangregg/FlameGraph for latest version, and http://www.brendangregg.com/flamegraphs.html for examples.--><!--NOTES: --><text x="50.0000%" y="24.00">ERROR: No valid input provided to flamegraph</text></svg>
 ### src-tauri/src/flamegraph.svg END ###
@@ -133,34 +133,34 @@ pub fn main() {
         
 }
 
-fn printMatrix(matrix: &HashMap<u32, HashMap<u32, f64>>) {
-    // Collect and sort the keys
-    let mut keys: Vec<&u32> = matrix.keys().collect();
-    keys.sort();
+// fn printMatrix(matrix: &DMatrix<f64>) {
+//     // Collect and sort the keys
+//     let mut keys: Vec<&u32> = matrix.keys().collect();
+//     keys.sort();
 
-    // Print column names
-    print!("{:10}", "");
-    for &column_name in &keys {
-        print!("{:10}", column_name);
-    }
-    println!();
+//     // Print column names
+//     print!("{:10}", "");
+//     for &column_name in &keys {
+//         print!("{:10}", column_name);
+//     }
+//     println!();
 
-    // Print rows
-    for &row_name in &keys {
-        // Print row name
-        print!("{:10}", row_name);
+//     // Print rows
+//     for &row_name in &keys {
+//         // Print row name
+//         print!("{:10}", row_name);
 
-        // Print values in the row
-        for &column_name in &keys {
-            if let Some(value) = matrix.get(row_name).and_then(|row| row.get(column_name)) {
-                print!("{:10}", value);
-            } else {
-                print!("{:10}", "");
-            }
-        }
-        println!();
-    }
-}
+//         // Print values in the row
+//         for &column_name in &keys {
+//             if let Some(value) = matrix.get(row_name).and_then(|row| row.get(column_name)) {
+//                 print!("{:10}", value);
+//             } else {
+//                 print!("{:10}", "");
+//             }
+//         }
+//         println!();
+//     }
+// }
 
 fn testDag(){
     // let path = "../tests/test_data/real1.txt".to_owned(); 
@@ -201,8 +201,8 @@ fn testDag(){
     // let tensor_path = "tests/test_data/tensors/retweets2d.txt".to_owned();
     // let patterns_path = "tests/test_data/other_patterns/retweets2d_patterns.txt".to_owned();
     
-    let patterns_path = "tests/test_data/dag_test_patterns/complex-msub.txt".to_owned();
-    let tensor_path = "tests/test_data/dag_test_patterns/complex-msub.txt".to_owned();
+    let tensor_path = "tests/test_data/dissimilarity_matrix/8.tensor".to_owned();
+    let patterns_path = "tests/test_data/dissimilarity_matrix/8.patterns".to_owned();
 
     // let tensor_path = "tests/test_data/rss_evolution_test/synth_co1.txt".to_owned();
     // let patterns_path = "tests/test_data/rss_evolution_test/synth_co1_patterns.txt".to_owned();
@@ -1559,8 +1559,8 @@ impl OrderedPair <'_> {
 use std::{collections::HashMap, sync::{Mutex, Arc}};
 use nalgebra::{DMatrix, SVD};
 use ndarray::{IxDynImpl, Dim, ArrayD, Array};
-use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
-use crate::{model::identifier_mapper::IdentifierMapper, common::generic_error::GenericError};
+use rayon::{iter::IndexedParallelIterator, prelude::{IntoParallelRefIterator, ParallelIterator}};
+use crate::{common::generic_error::GenericError, model::identifier_mapper::IdentifierMapper};
 use super::{metric::Metric, distances::DistancesTrait};
 
 pub struct Coordinates {
@@ -1584,31 +1584,49 @@ impl Coordinates {
         );
     }
 
+    fn printMatrix(matrix: &DMatrix<f64>){
+        println!("Printing matrix:");
+        for i in 0..matrix.nrows(){
+            for j in 0..matrix.ncols(){
+                print!("{:.2} ", matrix[(i, j)]);
+            }
+            println!("");
+        }
+        println!("");
+    }
+
     fn buildDissimilarityMatrix<T: DistancesTrait>(distances: &T, n: usize) -> Result<DMatrix<f64>, GenericError> {
         let size: Vec<usize> = vec![n, n];
         let distance_matrix: Arc<Mutex<ArrayD<f64>>> = Arc::new(Mutex::new(Array::zeros(Dim(size.clone())).into_dyn()));
-        
-        let i: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
-        distances.get().par_iter().try_for_each(|(_, columns)| 
-                -> Result<(), GenericError> {
 
-            let mut i_lock = i.lock().map_err(|_| GenericError::new("Error while getting i thread lock", file!(), &line!()))?;
-            let i_value = i_lock.clone();
-            *i_lock += 1;
-            drop(i_lock);
+        let mut visible_identifiers: Vec<u32> = distances.get().keys().cloned().collect();
+        visible_identifiers.sort();
+        let visible_identifiers2: Vec<u32> = visible_identifiers.clone();
+        
+        let distances: Arc<Mutex<HashMap<u32, HashMap<u32, f64>>>> = Arc::new(Mutex::new(distances.get().clone()));
+        visible_identifiers.par_iter().enumerate().try_for_each(|(i, &identifier_1)| -> Result<(), GenericError> {
             
-            let mut j: usize = 0;
-            for (_, distance) in columns{
-                let index: Dim<IxDynImpl> = Dim(vec![i_value, j]);
+            for (j, identifier_2) in visible_identifiers2.iter().enumerate(){
+                let distances_lock = distances.lock()
+                    .map_err(|_| GenericError::new("Error while getting distances thread lock", file!(), &line!()))?;
+                
+                let mut distance: f64 = 0.0;
+                if identifier_1 != *identifier_2 {
+                    distance = distances_lock.get(&identifier_1)
+                    .ok_or(GenericError::new(&format!("Identifier {} not found", identifier_1), file!(), &line!()))?
+                    .get(identifier_2)
+                    .ok_or(GenericError::new(&format!("Identifier {} not found", identifier_2), file!(), &line!()))?.clone();
+                }
+                
+                let index: Dim<IxDynImpl> = Dim(vec![i, j]);
                 
                 let mut distance_matrix_lock = distance_matrix.lock()
                     .map_err(|_| GenericError::new("Error while getting distance matrix thread lock", file!(), &line!()))?;
 
                 let matrix_value = distance_matrix_lock.get_mut(&index)
                     .ok_or(GenericError::new(&format!("Index {:?} does not exist on distance matrix", &index), file!(), &line!()))?;
-
-                *matrix_value = *distance;
-                j += 1;
+                
+                *matrix_value = distance;
             }
 
             return Ok(());
@@ -1634,9 +1652,8 @@ impl Coordinates {
     }
 
     fn mds(dissimilarity_matrix: DMatrix<f64>, dimensions: usize) -> Result<HashMap<u32, (f64, f64)>, GenericError> {
-
-        dbg!(dissimilarity_matrix.clone());
         // Returns a hashmap of the points in the new space, the indices DO NOT represent the identifiers
+        // dbg!(&dissimilarity_matrix);
         let mut m = dissimilarity_matrix.map(|x| -0.5 * x.powi(2));
 
         // double centre the rows/columns
@@ -1650,6 +1667,8 @@ impl Coordinates {
             }
         }
 
+        // dbg!(&m);
+
         // take the SVD of the double centred matrix, and return the
         // points from it
         let svd = SVD::new(m, true, true);
@@ -1659,6 +1678,8 @@ impl Coordinates {
             .ok_or(GenericError::new("Error getting U matrix from SVD", file!(), &line!()))?;
 
         let mut result = DMatrix::zeros(u.nrows(), dimensions);
+        // dbg!(&eigen_values);
+        // dbg!(&result);
 
         for i in 0..u.nrows() {
             for j in 0..dimensions {
@@ -1711,7 +1732,7 @@ impl Coordinates {
 
 ### src-tauri/src/model/analysis/metrics/distances.rs BEGIN ###
 #![allow(non_snake_case)]
-use std::{collections::HashMap, sync::{Arc, Mutex}};
+use std::{collections::{HashMap, HashSet}, sync::{Arc, Mutex}};
 use rayon::prelude::{IntoParallelRefIterator, IndexedParallelIterator, ParallelIterator};
 use crate::{common::{generic_error::GenericError, progress_bar}, database::{pattern::Pattern, subtensor::Subtensor, tensor::Tensor}, model::{analysis::ordered_pair::OrderedPair, identifier_mapper::IdentifierMapper}};
 use super::{intersections_predictions::IntersectionsPredictions, metric::Metric};
@@ -1786,8 +1807,8 @@ impl Distances{
         let intersections_predictions = intersections_predictions.get();
         let mut untouched_rss_s: HashMap<u32, f64> = HashMap::new();
         let mut intersection_rss = 0.0;
+        let mut seen_intersection_indices: HashSet<&Vec<usize>> = HashSet::new();
 
-        let mut saw_pair_overlapping = false;
         for pattern in pair.get(){
             let mut untouched_rss = 0.0;
 
@@ -1795,27 +1816,26 @@ impl Distances{
                 let actual_value = *tensor.dims_values.get(index.as_slice())
                     .ok_or(GenericError::new("Index not found", file!(), &line!()))? as f64;
     
-                let possible_overlapper = match saw_pair_overlapping {
-                    false => intersections_predictions.get(index),
-                    true => None,
-                };
+                let possible_overlapper = intersections_predictions.get(index);
 
                 match possible_overlapper {
-                None => { },
+                None => { }, // No overlapper
                 Some(possible_overlapper) => {
                     if *possible_overlapper == pair.getOther(pattern) { // Here there is intersection with the pair
+                        if seen_intersection_indices.contains(index){ continue; } // Avoid double counting
+
                         let overlapper = possible_overlapper;
                         let overlapper_contribution = (actual_value - overlapper.density).powi(2);
-        
+                        
                         intersection_rss += overlapper_contribution;
+                        seen_intersection_indices.insert(index);
                         continue;
                     }}
                 }
-                
+
                 untouched_rss += (actual_value - pattern.density).powi(2);
             }
 
-            saw_pair_overlapping = true;
             untouched_rss_s.insert(pattern.identifier, untouched_rss);
         }
 
@@ -1916,7 +1936,11 @@ impl Distances{
 
         let visible_patterns = visible_patterns?;
 
-        let total_distances = (visible_identifiers.len().pow(2) as u32 / 2) - visible_identifiers.len() as u32;
+        let mut total_distances = 0;
+        if visible_identifiers.len() > 1 {
+            total_distances = (visible_identifiers.len().pow(2) as u32 / 2) - visible_identifiers.len() as u32
+        }
+
         let total_distances = total_distances as u64;
         let bar = progress_bar::new(total_distances, "  Calculated distances");
 
@@ -1938,8 +1962,9 @@ impl Distances{
 
                         let untouched_rss_y = *untouched_rss.get(&y.identifier)
                             .ok_or(GenericError::new(&format!("Untouched RSS for pattern {} not found", &y.identifier), file!(), &line!()))?;
-        
+                        
                         let raw_distance = covered_xuy_rss - untouched_rss_x - untouched_rss_y - x_y_intersection_rss;
+                        
                         let normalized_distance = Distances::normalize(x, y, &raw_distance)?;
                         
                         let mut distances = distances.lock()
@@ -3640,13 +3665,11 @@ impl PlotService{
         // let root = BitMapBackend::new("scatter.png", (1600, 900)).into_drawing_area();
         // root.fill(&WHITE).unwrap();
 
-        // let identifier_mapper = application_state.identifierMapper();
+        // let identifier_mapper = application_state.identifierMapper().unwrap();
 
         // let visible_identifiers = application_state.getVisibleIdentifiers();
-        // let visible_representations: Vec<&IdentifierRepresentation> = identifier_mapper.getMapping()
-        //     .iter()
-        //     .filter(|(identifier, _)| visible_identifiers.contains(identifier))
-        //     .map(|(_, representation)| representation)
+        // let visible_representations: Vec<&IdentifierRepresentation> = visible_identifiers.iter()
+        //     .map(|identifier| identifier_mapper.getRepresentation(identifier).unwrap())
         //     .collect();
     
         // let mut x_range = 0.0;
@@ -4657,4 +4680,4 @@ mod dag_creator_service;
 mod dag_arranger_service;
 ### src-tauri/src/services/dag/mod.rs END ###
 
-### DIRECTORY src-tauri/src FLATTENED CONTENT ###
+### DIRECTORY src-tauri/src/ FLATTENED CONTENT ###

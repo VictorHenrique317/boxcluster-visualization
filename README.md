@@ -25,13 +25,14 @@
 
 ## Changelogs 20/05/2024 -> ??? - v0.3.2
 - [x] Bugfixes
-- [] Colocar informações na RSS view para trackear os padrões ocultos (subpadrões)
 - [x] FIX: Retirar o botão de configurações
 - [x] FIX: Erros de vocabulário
-- [] FIX: Tamanho dos dialogs
-- [] FIX: Manter ordenação nativa dos elementos das dimensões
-- [] FIX: Preservar casing dos valores das dimensões
-- [] FIX: Divisão por área correta no modo de interseção
+- [x] FIX: Tamanho dos dialogs
+- [x] FIX: Manter ordenação nativa dos elementos das dimensões
+- [x] FIX: Preservar casing dos valores das dimensões
+- [x] FIX: Divisão por área correta no modo de interseção
+- [x] Colocar informações na RSS view para trackear os padrões ocultos (subpadrões)
+- [x] Tela de loading implementada
 - [] Visão geral do padrão mostra uma tabela com todas as dimensões, em vez de uma por vez
 - [] Highlight do padrão no mouse hover
 - [] Manter cor da densidade no mouser hover, colocar uma cor com mais constraste
