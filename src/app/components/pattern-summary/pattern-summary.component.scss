@@ -19,7 +19,6 @@ body{
 
     section{
         height: 100%;
-        padding-right: 2em;
 
         #options-wrapper{
             // background-color: blue;
@@ -42,22 +41,39 @@ body{
             }
         }
 
-        #table-wrapper{
-            overflow-y: auto; /* Enable vertical scrollbar */
-            // height: 90vh;
-            height: 55vh;
+        #dim-summaries{
+            .dim-summary{
+                padding: 1em 0 1em 2em;
+                
+                width: 100%;
+                max-height: 8em;
 
-            padding: 0 0em 0 2em;
+                overflow: hidden;
+                
+                .dim-summary-header{
 
-            scrollbar-color: mat.get-color-from-palette($primary-palette, 800) mat.get-color-from-palette($primary-palette, 900);
-
-            table{
-                color: white;
-                background-color: mat.get-color-from-palette($primary-palette, 900);
-
-                .mat-column-values{
-                    color: white;
                 }
+
+                .dim-summary-content{
+                    display: inline-block;
+                    width: 85%;
+
+                    // white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    word-wrap: break-word;
+
+                    .element{
+                        word-wrap: break-word;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+                }
+            }
+
+            .dim-summary:hover{
+                cursor: pointer;
+                background-color: mat.get-color-from-palette($primary-palette, 800);
             }
         }
     }

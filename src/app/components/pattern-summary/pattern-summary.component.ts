@@ -14,6 +14,8 @@ import { MatInputModule } from '@angular/material/input';
 import {MatSelectChange, MatSelectModule} from '@angular/material/select';
 import { ApiService } from 'src/app/services/api/api.service';
 
+const MAX_VALUE_STRING_LENGTH = 60;
+
 @Component({
   selector: 'app-pattern-summary',
   standalone: true,
@@ -42,7 +44,17 @@ export class PatternSummaryComponent {
   }
 
   ngOnInit(): void {
-    // this.update(1); // TODO: Retirar
+    this.update(1); // TODO: Retirar
+  }
+
+  protected formatDimValues(dims_values: string[]): string {
+    let formated_string = dims_values.join(", ");
+
+    if(formated_string.length > MAX_VALUE_STRING_LENGTH){
+      formated_string = formated_string.slice(0, MAX_VALUE_STRING_LENGTH) + " (...)";
+    }
+
+    return formated_string;
   }
 
   protected applyFilter(event: Event) {
