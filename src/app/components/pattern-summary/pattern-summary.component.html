@@ -2,30 +2,18 @@
     <div id="pattern-preview" *ngIf="pattern">
         <div id="info">
             <h1>Pattern {{pattern.identifier}}</h1>
-            <span>Size: {{pattern.size}}</span> <br>
-            <span>Density: {{pattern.density}}</span>
+            <div id="details">
+                <span>Size: {{pattern.size}}</span> <br>
+                <span>Density: {{pattern.density}}</span>
+            </div>
         </div>
     
         <section>
-            <div id="options-wrapper">
-                <mat-form-field id="dropdown">
-                    <mat-label>DIM</mat-label>
-                    <mat-select (selectionChange)="onSelectionChange($event)" [(value)]="selected_dim">
-                      <mat-option *ngFor="let dim of this.pattern.dims_values; let id=index" value={{id}}>DIM {{id+1}}</mat-option>
-                    </mat-select>
-                </mat-form-field>
-    
-                <mat-form-field id="filter" class="filter">
-                    <mat-label>Filter</mat-label>
-                    <input matInput (keyup)="applyFilter($event)" placeholder="" #input>
-                </mat-form-field>
-            </div>
-
             <div id="dim-summaries">
-                <div class="dim-summary" *ngFor="let dim_values of this.pattern.dims_values; let i = index">
+                <div class="dim-summary" *ngFor="let dim_values of this.pattern.dims_values; let i = index" (click)="openDimDialog(i)">
                     <div class="dim-summary-header">
                         <h2>DIM {{i+1}}</h2>
-                        <span>Nb of elements: {{dim_values.length}}</span> <br>
+                        <span>({{dim_values.length}} elements)</span> <br>
                     </div>
                     <div class="dim-summary-content">
                         <span class="element"> {{this.formatDimValues(dim_values)}} </span>

@@ -213,7 +213,7 @@ export class AppComponent implements AfterViewInit{
   }
 
   protected togglePatternSummary(identifier){
-    this.pattern_summary.toggle(identifier);
+    this.pattern_summary.toggleLock(identifier);
   }
 
   get applicationStatusUnloaded(): ApplicationStatus {

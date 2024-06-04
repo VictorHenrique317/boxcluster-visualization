@@ -13,8 +13,9 @@ import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
 import { MatInputModule } from '@angular/material/input';
 import {MatSelectChange, MatSelectModule} from '@angular/material/select';
 import { ApiService } from 'src/app/services/api/api.service';
+import { PatternDimDialogComponent } from './pattern-dim-dialog/pattern-dim-dialog.component';
 
-const MAX_VALUE_STRING_LENGTH = 60;
+const MAX_VALUE_STRING_LENGTH = 140;
 
 @Component({
   selector: 'app-pattern-summary',
@@ -27,21 +28,10 @@ const MAX_VALUE_STRING_LENGTH = 60;
 export class PatternSummaryComponent {
   @Input() public pattern: Pattern;
   private locked: boolean = false;
-
-  protected selected_dim = 1;
   
   private input: HTMLInputElement;
 
-  @ViewChild(MatSort) sort: MatSort;
-  protected displayed_columns: string[] = ['values'];
-  // protected data_source: MatTableDataSource<Array<any>>;
-  protected data_source;
-  protected data_source_length: number;
-
-  constructor(private api_service: ApiService, private cdr: ChangeDetectorRef) {
-    this.selected_dim = 0;
-    this.data_source = new MatTableDataSource();
-  }
+  constructor(private api_service: ApiService, private dialog_service: DialogService) {}
 
   ngOnInit(): void {
     this.update(1); // TODO: Retirar
@@ -57,20 +47,16 @@ export class PatternSummaryComponent {
     return formated_string;
   }
 
-  protected applyFilter(event: Event) {
-    this.data_source.data = this.pattern.dims_values[this.selected_dim];
-    this.input = (event.target as HTMLInputElement);
+  protected openDimDialog(dim_index: number): void {
+    let dialog_data = {
+      dim_values: this.pattern.dims_values[dim_index]
+    };
 
-    const filterValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
-
-    let filteredData = this.data_source.data.filter(item => {
-        let itemStr = JSON.stringify(item).toLowerCase();
-        return itemStr.includes(filterValue);
-    });
-    
-    this.data_source.data = filteredData;
-    this.data_source_length = this.data_source.data.length;
-}
+    this.dialog_service.open(PatternDimDialogComponent, 
+      PatternDimDialogComponent.WIDTH, 
+      PatternDimDialogComponent.HEIGHT, 
+      dialog_data);
+  }
 
   public async update(identifier){
     if (this.locked){ return; }
@@ -81,23 +67,9 @@ export class PatternSummaryComponent {
     }
 
     this.pattern = await this.api_service.getPattern(identifier);
-
-    this.selected_dim = 0;
-    this.data_source.data = this.pattern.dims_values[this.selected_dim];
-    this.data_source_length = this.data_source.data.length;
   }
 
-  protected onSelectionChange(event: MatSelectChange){
-    this.selected_dim = event.value;
-    this.data_source.data = this.pattern.dims_values[this.selected_dim];
-    this.data_source_length = this.data_source.data.length;
-
-    if (this.input != null){
-      this.input.value = "";
-    }
-  }
-
-  public toggle(identifier: number){
+  public toggleLock(identifier: number){
     if(identifier == null){ // De-select current pattern
       this.locked = false;
       this.update(null);
