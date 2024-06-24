@@ -15,8 +15,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
   styleUrls: ['./pattern-dim-dialog.component.scss']
 })
 export class PatternDimDialogComponent implements OnInit{
-  public static WIDTH = '45vw';
-  public static HEIGHT = '50vh';
+  public static WIDTH = '40vw';
+  public static HEIGHT = '60vh';
 
   private dim_values: string[];
   protected displayed_columns: string[] = ['Elements'];

@@ -33,8 +33,10 @@ export class PatternSummaryComponent {
 
   constructor(private api_service: ApiService, private dialog_service: DialogService) {}
 
-  ngOnInit(): void {
-    this.update(1); // TODO: Retirar
+  async ngOnInit(): Promise<void> {
+    console.log("Initializing PatternSummaryComponent");
+    // await this.update(1); // TODO: Retirar
+    // this.openDimDialog(1); // TODO: Retirar
   }
 
   protected formatDimValues(dims_values: string[]): string {
@@ -76,7 +78,7 @@ export class PatternSummaryComponent {
       return;
     }
 
-    if(identifier != this.pattern.identifier){ // Lock on another pattern
+    if((!this.pattern) || (identifier != this.pattern.identifier)){ // Lock on another pattern
       this.locked = false;
       this.update(identifier);
     }
