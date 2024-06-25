@@ -74,6 +74,10 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
   @Output() datapoint_hover_out = new EventEmitter<number>();
   @Output() datapoint_click = new EventEmitter();
 
+  private datapoint_hover_in_subscription: Subscription;
+  private datapoint_hover_out_subscription: Subscription;
+  private datapoint_click_subscription: Subscription;
+
   @ViewChild('body') body: ElementRef<HTMLBodyElement>;
   @ViewChild('vizualization_div') visualization_div: ElementRef<HTMLDivElement>;
 
@@ -94,9 +98,9 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
     
     this.svg_feature = new SvgFeatureModule(this.cdr);
     this.svg_feature.init(this.visualization_div, svg_width, svg_height);
-    this.svg_feature.datapoint_hover_in.subscribe(identifier => this.onDatapointHoverIn(identifier));
-    this.svg_feature.datapoint_hover_out.subscribe(identifier => this.onDatapointHoverOut(identifier));
-    this.svg_feature.datapoint_click.subscribe(identifier => this.onDatapointClick(identifier));
+    this. datapoint_hover_in_subscription = this.svg_feature.datapoint_hover_in.subscribe(identifier => this.onDatapointHoverIn(identifier));
+    this.datapoint_hover_out_subscription = this.svg_feature.datapoint_hover_out.subscribe(identifier => this.onDatapointHoverOut(identifier));
+    this.datapoint_click_subscription = this.svg_feature.datapoint_click.subscribe(identifier => this.onDatapointClick(identifier));
     
     let datapoints = await this.api_service.getDataPoints();
     this.svg_feature.drawDataPoints(datapoints);
@@ -105,9 +109,9 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
   }
 
   ngOnDestroy() {
-    this.svg_feature.datapoint_hover_in.unsubscribe();
-    this.svg_feature.datapoint_hover_out.unsubscribe();
-    this.svg_feature.datapoint_click.unsubscribe();
+    this.datapoint_hover_in_subscription.unsubscribe();
+    this.datapoint_hover_out_subscription.unsubscribe();
+    this.datapoint_click_subscription.unsubscribe();
   }
 
   public onResize(event) {

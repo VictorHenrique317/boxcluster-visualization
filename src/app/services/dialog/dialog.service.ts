@@ -1,12 +1,14 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dialog.component';
 
 @Injectable({
   providedIn: 'root'
 })
-export class DialogService {
+export class DialogService implements OnDestroy{
+  private dialog_subscription: Subscription;
 
   constructor(public dialog: MatDialog) { }
 
@@ -23,7 +25,7 @@ export class DialogService {
       data: dialog_data
     });
 
-    dialogRef.afterClosed().pipe(take(1)).subscribe(result => {
+     this.dialog_subscription = dialogRef.afterClosed().pipe(take(1)).subscribe(result => {
       // Executes when the dialog is closed
       if (result) {
         if (closeFunction){
@@ -31,6 +33,12 @@ export class DialogService {
         }
       }
     });
+  }
+
+  ngOnDestroy() {
+    if (this.dialog_subscription) {
+      this.dialog_subscription.unsubscribe();
+    }
   }
 
   public openErrorDialog(error_message: string) {
