@@ -232,10 +232,7 @@ export class IntersectionModeFeatureModule {
   }
 
   public async toggleIntersections(identifier: number){
-    // if(this.clicked_datapoint_data != null || this.clicked_datapoint_data != undefined){
-    //   this.old_clicked_datapoint = this.clicked_datapoint_data;
-    // }
-
+    return;
     this.hideIntersections();
     await this.updateClickedDatapoint(identifier);
 
@@ -246,14 +243,6 @@ export class IntersectionModeFeatureModule {
     }
 
     this.showIntersections();
-    // if(this.old_clicked_datapoint == null){
-    //   // No datapoint was clicked before, show intersections
-    //   this.showIntersections();
-
-    // }else if(this.old_clicked_datapoint.identifier != identifier){
-    //   // Did not click the same datapoint, show intersections
-    //   this.showIntersections()
-    // }
   }
 
   private async updateClickedDatapoint(identifier: number) {

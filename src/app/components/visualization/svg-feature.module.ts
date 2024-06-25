@@ -17,6 +17,7 @@ export class SvgFeatureModule {
   public datapoint_hover_out = new EventEmitter<number>();
   public datapoint_click = new EventEmitter<number>();
 
+  private locked_on_datapoint = false;
   private datapoints: Array<DataPoint>;
   
   private visualization_div: ElementRef;
@@ -166,7 +167,10 @@ export class SvgFeatureModule {
         .attr('height', this.svg_height)
         .style('fill', 'rgba(0, 0, 0, 0)')
         .lower()
-        .on('click', (event, d) => { this.datapoint_click.emit(null) });
+        .on('click', (event, d) => { 
+          this.locked_on_datapoint = false;
+          this.datapoint_click.emit(null) 
+        });
   }
 
   private drawCircleLegend(){
@@ -247,6 +251,35 @@ export class SvgFeatureModule {
     return scaled_datapoints;
   }
 
+  private toggleHighlight(datapoint: DataPoint, highlight: boolean){
+    if(this.locked_on_datapoint){ return; }
+    
+    // Draw a new blue circle on the coordinates of datapoint
+    let highlight_radius = datapoint.size * 1.8;
+    let highlight_color = 'rgba(114, 232, 247)';
+    let highlight_opacity = 0.8;
+    let stroke_width = highlight_radius/3;
+    
+    if(highlight){ // Add a EMPTY circle with id highlight, the circle should not block mouse hover and click events
+      let highlight_circle = this.plot.select('#highlight');
+      if(highlight_circle){ highlight_circle.remove(); }
+      this.plot.append('circle')
+        .attr('id', 'highlight')
+        .attr('cx', this.x_scale(datapoint.x))
+        .attr('cy', this.y_scale(datapoint.y))
+        .attr('r', highlight_radius)
+        .attr('fill', 'none')
+        .attr('stroke', highlight_color)
+        .attr('stroke-width', stroke_width)
+        .attr('opacity', highlight_opacity)
+        .style('pointer-events', 'none');
+    }else{
+      // Remove the circle with id highlight
+      let highlight_circle = this.plot.select('#highlight');
+      if(highlight_circle){ highlight_circle.remove(); }
+    }
+  }
+
   public drawDataPoints(datapoints: Array<DataPoint>) {
     if(datapoints == undefined || datapoints == null){ return; }
     if(this.plot == undefined){ return; }
@@ -257,7 +290,7 @@ export class SvgFeatureModule {
     this.plot.call(this.tooltip);
 
     let scaled_datapoints = this.scalingFunction(this.datapoints);
-    const circles = this.plot.selectAll('circle')
+    const circles = this.plot.selectAll('datapoint')
         .data(scaled_datapoints, d => d.identifier);
 
     circles.exit()
@@ -279,21 +312,24 @@ export class SvgFeatureModule {
             const result = this.x_scale(parseFloat(d.x));
             return result;
         })
+        .attr('class', 'datapoint')
         .attr('cy', d => this.y_scale(parseFloat(d.y)))
         .attr('r', 0)
         .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
         .style('cursor', 'pointer')
         .style('stroke', 'rgba(255, 0, 0, 1')
         .on('mouseover', (event, d) => { 
+          this.toggleHighlight(d, true);
           this.tooltip.show(d, event.currentTarget);
           this.datapoint_hover_in.emit(d.identifier);
         })
         .on('mouseout', (event, d) => { 
+          this.toggleHighlight(d, false);
           this.tooltip.hide(d, event.currentTarget); 
           this.datapoint_hover_out.emit(d.identifier);
         })
         .on('click', (event, d) => {
-          // console.log("Clicked on datapoint " + d.identifier);
+          this.locked_on_datapoint = true;
           this.datapoint_click.emit(d.identifier);
          })
         .transition()
@@ -305,7 +341,7 @@ export class SvgFeatureModule {
   }
 
   public resetDatapointEvents(){
-    let circles = this.plot.selectAll('circle'); 
+    let circles = this.plot.selectAll('datapoint'); 
     circles
         .on('mouseover', (event, d) => { 
           this.tooltip.show(d, event.currentTarget);
@@ -315,7 +351,8 @@ export class SvgFeatureModule {
           this.tooltip.hide(d, event.currentTarget); 
           this.datapoint_hover_out.emit(d.identifier);
          })
-        .on('click', (event, d) => { 
+        .on('click', (event, d) => {
+          this.locked_on_datapoint = true;
           this.datapoint_click.emit(d.identifier);
          });
   }
@@ -339,5 +376,4 @@ export class SvgFeatureModule {
   public getSvgHeight(){
     return this.svg_height;
   }
-
 }
