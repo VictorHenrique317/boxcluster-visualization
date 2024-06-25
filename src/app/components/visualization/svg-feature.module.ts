@@ -169,6 +169,7 @@ export class SvgFeatureModule {
         .lower()
         .on('click', (event, d) => { 
           this.locked_on_datapoint = false;
+          this.toggleHighlight(undefined);
           this.datapoint_click.emit(null) 
         });
   }
@@ -251,16 +252,16 @@ export class SvgFeatureModule {
     return scaled_datapoints;
   }
 
-  private toggleHighlight(datapoint: DataPoint, highlight: boolean){
+  private toggleHighlight(datapoint: DataPoint){
     if(this.locked_on_datapoint){ return; }
     
-    // Draw a new blue circle on the coordinates of datapoint
-    let highlight_radius = datapoint.size * 1.8;
-    let highlight_color = 'rgba(114, 232, 247)';
-    let highlight_opacity = 0.8;
-    let stroke_width = highlight_radius/3;
-    
-    if(highlight){ // Add a EMPTY circle with id highlight, the circle should not block mouse hover and click events
+    if(datapoint){ // Add a EMPTY circle with id highlight, the circle should not block mouse hover and click events
+       // Draw a new blue circle on the coordinates of datapoint
+      let highlight_radius = datapoint.size * 1.8;
+      let highlight_color = 'rgba(114, 232, 247)';
+      let highlight_opacity = 0.8;
+      let stroke_width = highlight_radius/3;
+
       let highlight_circle = this.plot.select('#highlight');
       if(highlight_circle){ highlight_circle.remove(); }
       this.plot.append('circle')
@@ -319,16 +320,18 @@ export class SvgFeatureModule {
         .style('cursor', 'pointer')
         .style('stroke', 'rgba(255, 0, 0, 1')
         .on('mouseover', (event, d) => { 
-          this.toggleHighlight(d, true);
+          this.toggleHighlight(d);
           this.tooltip.show(d, event.currentTarget);
           this.datapoint_hover_in.emit(d.identifier);
         })
         .on('mouseout', (event, d) => { 
-          this.toggleHighlight(d, false);
+          this.toggleHighlight(undefined);
           this.tooltip.hide(d, event.currentTarget); 
           this.datapoint_hover_out.emit(d.identifier);
         })
         .on('click', (event, d) => {
+          this.locked_on_datapoint = false;
+          this.toggleHighlight(d);
           this.locked_on_datapoint = true;
           this.datapoint_click.emit(d.identifier);
          })
@@ -352,6 +355,8 @@ export class SvgFeatureModule {
           this.datapoint_hover_out.emit(d.identifier);
          })
         .on('click', (event, d) => {
+          this.locked_on_datapoint = false;
+          this.toggleHighlight(d);
           this.locked_on_datapoint = true;
           this.datapoint_click.emit(d.identifier);
          });
