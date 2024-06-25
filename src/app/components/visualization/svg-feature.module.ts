@@ -19,6 +19,7 @@ export class SvgFeatureModule {
 
   private locked_datapoint: DataPoint;
   private datapoints: Array<DataPoint>;
+  private datapoints_mapping: Map<number, DataPoint>;
   
   private visualization_div: ElementRef;
   public plot: any;
@@ -289,6 +290,8 @@ export class SvgFeatureModule {
     
     console.log("Drawing " + datapoints.length + " datapoints");
     this.datapoints = datapoints;
+    this.datapoints_mapping = new Map<number, DataPoint>();
+    this.datapoints.forEach(datapoint => this.datapoints_mapping.set(datapoint.identifier, datapoint));
 
     this.plot.call(this.tooltip);
 
@@ -398,5 +401,9 @@ export class SvgFeatureModule {
 
   public getSvgHeight(){
     return this.svg_height;
+  }
+
+  public getDatapoint(identifier: number){
+    return this.datapoints_mapping.get(identifier);
   }
 }
