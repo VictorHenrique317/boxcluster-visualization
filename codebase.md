@@ -1272,6 +1272,7 @@ export class SvgFeatureModule {
   public datapoint_hover_out = new EventEmitter<number>();
   public datapoint_click = new EventEmitter<number>();
 
+  private locked_datapoint: DataPoint;
   private datapoints: Array<DataPoint>;
   
   private visualization_div: ElementRef;
@@ -1421,7 +1422,11 @@ export class SvgFeatureModule {
         .attr('height', this.svg_height)
         .style('fill', 'rgba(0, 0, 0, 0)')
         .lower()
-        .on('click', (event, d) => { this.datapoint_click.emit(null) });
+        .on('click', (event, d) => { 
+          this.locked_datapoint = undefined;
+          this.toggleHighlight(undefined);
+          this.datapoint_click.emit(null) 
+        });
   }
 
   private drawCircleLegend(){
@@ -1502,14 +1507,16 @@ export class SvgFeatureModule {
     return scaled_datapoints;
   }
 
-  private toggleHighlight(datapoint: DataPoint, highlight: boolean){
-    // Draw a new blue circle on the coordinates of datapoint
-    let highlight_radius = datapoint.size * 1.8;
-    let highlight_color = 'rgba(114, 232, 247)';
-    let highlight_opacity = 0.8;
-    let stroke_width = highlight_radius/3;
+  private toggleHighlight(datapoint: DataPoint){
+    if(this.locked_datapoint){ return; }
     
-    if(highlight){ // Add a EMPTY circle with id highlight, the circle should not block mouse hover and click events
+    if(datapoint){ // Add a EMPTY circle with id highlight, the circle should not block mouse hover and click events
+       // Draw a new blue circle on the coordinates of datapoint
+      let highlight_radius = datapoint.size * 1.8;
+      let highlight_color = 'rgba(114, 232, 247)';
+      let highlight_opacity = 0.8;
+      let stroke_width = highlight_radius/3;
+
       let highlight_circle = this.plot.select('#highlight');
       if(highlight_circle){ highlight_circle.remove(); }
       this.plot.append('circle')
@@ -1568,17 +1575,20 @@ export class SvgFeatureModule {
         .style('cursor', 'pointer')
         .style('stroke', 'rgba(255, 0, 0, 1')
         .on('mouseover', (event, d) => { 
-          this.toggleHighlight(d, true);
+          this.toggleHighlight(d);
           this.tooltip.show(d, event.currentTarget);
           this.datapoint_hover_in.emit(d.identifier);
         })
         .on('mouseout', (event, d) => { 
-          this.toggleHighlight(d, false);
+          this.toggleHighlight(undefined);
           this.tooltip.hide(d, event.currentTarget); 
           this.datapoint_hover_out.emit(d.identifier);
         })
         .on('click', (event, d) => {
-          // this.toggleHighlight(d, false);
+          this.locked_datapoint = undefined;
+          this.toggleHighlight(d);
+          this.locked_datapoint = d;
+
           this.datapoint_click.emit(d.identifier);
          })
         .transition()
@@ -1600,7 +1610,11 @@ export class SvgFeatureModule {
           this.tooltip.hide(d, event.currentTarget); 
           this.datapoint_hover_out.emit(d.identifier);
          })
-        .on('click', (event, d) => { 
+        .on('click', (event, d) => {
+          this.locked_datapoint = undefined;
+          this.toggleHighlight(d);
+          this.locked_datapoint = d;
+
           this.datapoint_click.emit(d.identifier);
          });
   }
@@ -1665,7 +1679,7 @@ export class IntersectionModeFeatureModule {
   }
 
   private connectDatapoints(center: DataPoint, intersections:Map<number, number>, intersections_colors: Map<number, string>){
-    let circles = new Map<number, DataPoint>(this.svg_feature.plot.selectAll('circle').data()
+    let circles = new Map<number, DataPoint>(this.svg_feature.plot.selectAll('datapoint').data()
       .map(d => [d.identifier, d]));
 
     for(let [identifier, percentage] of intersections.entries()){
@@ -1701,7 +1715,7 @@ export class IntersectionModeFeatureModule {
     let identifiers_set = new Set(identifiers);
     let circles_visibility = 0.2;
 
-    this.svg_feature.plot.selectAll('circle')
+    this.svg_feature.plot.selectAll('datapoint')
       .raise()
       .transition('mouseover')
       // .duration(this.transition_duration)
@@ -1712,7 +1726,7 @@ export class IntersectionModeFeatureModule {
       .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${circles_visibility})`)
       .style('stroke', `rgba(255, 0, 0, ${circles_visibility})`);
 
-    let highligthed_circles = this.svg_feature.plot.selectAll('circle')
+    let highligthed_circles = this.svg_feature.plot.selectAll('datapoint')
       .filter(d => identifiers_set.has(d.identifier));
 
     highligthed_circles
@@ -1789,7 +1803,7 @@ export class IntersectionModeFeatureModule {
   }
 
   private createIntersectionCharts(identifiers: Array<number>, intersections: Map<number, number>, intersections_colors: Map<number, string>){
-    let clicked_datapoint = this.svg_feature.plot.selectAll('circle')
+    let clicked_datapoint = this.svg_feature.plot.selectAll('datapoint')
       .filter(d => d.identifier == this.clicked_datapoint_data.identifier);
     let empty = new Map<number, number>();
     empty.set(this.clicked_datapoint_data.identifier, 1);
@@ -1798,7 +1812,7 @@ export class IntersectionModeFeatureModule {
     this.createIntersectionChart(clicked_datapoint, empty, original_radius, chart_radius, intersections_colors);
   
     let identifiers_set = new Set(identifiers);
-    let circles = this.svg_feature.plot.selectAll('circle')
+    let circles = this.svg_feature.plot.selectAll('datapoint')
       .filter(d => identifiers_set.has(d.identifier));
 
     circles.each((d, i, nodes) => {
@@ -1839,7 +1853,7 @@ export class IntersectionModeFeatureModule {
       .attr('y2', d => d.y1)  // End position (y) becomes the start position
       .remove();
 
-    let circles = this.svg_feature.plot.selectAll('circle');
+    let circles = this.svg_feature.plot.selectAll('datapoint');
     circles
       .transition('mouseout')
       .duration(this.transition_duration)
@@ -1862,28 +1876,16 @@ export class IntersectionModeFeatureModule {
   }
 
   public async toggleIntersections(identifier: number){
-    // if(this.clicked_datapoint_data != null || this.clicked_datapoint_data != undefined){
-    //   this.old_clicked_datapoint = this.clicked_datapoint_data;
-    // }
-
     this.hideIntersections();
     await this.updateClickedDatapoint(identifier);
 
-    if(identifier == null || identifier==undefined){return;}
+    // if(identifier == null || identifier==undefined){return;}
 
-    if((this.old_clicked_datapoint != null) && (identifier == this.old_clicked_datapoint.identifier)){ // Datapoint was clicked again
-      await this.updateClickedDatapoint(null);
-    }
-
-    this.showIntersections();
-    // if(this.old_clicked_datapoint == null){
-    //   // No datapoint was clicked before, show intersections
-    //   this.showIntersections();
-
-    // }else if(this.old_clicked_datapoint.identifier != identifier){
-    //   // Did not click the same datapoint, show intersections
-    //   this.showIntersections()
+    // if((this.old_clicked_datapoint != null) && (identifier == this.old_clicked_datapoint.identifier)){ // Datapoint was clicked again
+    //   await this.updateClickedDatapoint(null);
     // }
+
+    // this.showIntersections();
   }
 
   private async updateClickedDatapoint(identifier: number) {
@@ -1895,7 +1897,8 @@ export class IntersectionModeFeatureModule {
       return;
     }
 
-    let clicked_circle = this.svg_feature.plot.selectAll('circle')
+    console.log(this.svg_feature.plot.selectAll('datapoint'))
+    let clicked_circle = this.svg_feature.plot.selectAll('datapoint')
       // .filter(d => d.identifier == 13); // Fix black color
       .filter(d => d.identifier == identifier);
     this.clicked_datapoint_data = clicked_circle.node().__data__;

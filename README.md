@@ -24,7 +24,7 @@
 - [x] Ativar o modo de interseção no hovering do mouse
 
 ## Changelogs 20/05/2024 -> ??? - v0.3.2
-- [x] Bugfixes
+- [x] Bugfixes gerais
 - [x] FIX: Retirar o botão de configurações
 - [x] FIX: Erros de vocabulário
 - [x] FIX: Tamanho dos dialogs
@@ -35,7 +35,7 @@
 - [x] Tela de loading implementada
 - [x] Visão geral do padrão mostra uma tabela com todas as dimensões, em vez de uma por vez
 - [x] Highlight do padrão no mouse hover
-- [] Manter cor da densidade no mouser click, colocar uma cor com mais constraste
+- [] Manter cor da densidade no mouse click, colocar uma cor com mais constraste
 - [] No padrão selecionado, a fatia representa a proporção de área que está coberta por pelo menos um padrão
 - [] Efeito de desfoco cinza em vez de transparente
 - [] Mostrar sub-tensores de interseção ao clicar nas arestas, a cor deve ser a do padrão de maior densidade

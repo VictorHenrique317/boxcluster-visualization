@@ -17,7 +17,7 @@ export class SvgFeatureModule {
   public datapoint_hover_out = new EventEmitter<number>();
   public datapoint_click = new EventEmitter<number>();
 
-  private locked_on_datapoint = false;
+  private locked_datapoint: DataPoint;
   private datapoints: Array<DataPoint>;
   
   private visualization_div: ElementRef;
@@ -168,7 +168,7 @@ export class SvgFeatureModule {
         .style('fill', 'rgba(0, 0, 0, 0)')
         .lower()
         .on('click', (event, d) => { 
-          this.locked_on_datapoint = false;
+          this.locked_datapoint = undefined;
           this.toggleHighlight(undefined);
           this.datapoint_click.emit(null) 
         });
@@ -253,7 +253,7 @@ export class SvgFeatureModule {
   }
 
   private toggleHighlight(datapoint: DataPoint){
-    if(this.locked_on_datapoint){ return; }
+    if(this.locked_datapoint){ return; }
     
     if(datapoint){ // Add a EMPTY circle with id highlight, the circle should not block mouse hover and click events
        // Draw a new blue circle on the coordinates of datapoint
@@ -264,6 +264,7 @@ export class SvgFeatureModule {
 
       let highlight_circle = this.plot.select('#highlight');
       if(highlight_circle){ highlight_circle.remove(); }
+
       this.plot.append('circle')
         .attr('id', 'highlight')
         .attr('cx', this.x_scale(datapoint.x))
@@ -274,6 +275,7 @@ export class SvgFeatureModule {
         .attr('stroke-width', stroke_width)
         .attr('opacity', highlight_opacity)
         .style('pointer-events', 'none');
+      
     }else{
       // Remove the circle with id highlight
       let highlight_circle = this.plot.select('#highlight');
@@ -291,7 +293,7 @@ export class SvgFeatureModule {
     this.plot.call(this.tooltip);
 
     let scaled_datapoints = this.scalingFunction(this.datapoints);
-    const circles = this.plot.selectAll('datapoint')
+    const circles = this.plot.selectAll('.datapoint')
         .data(scaled_datapoints, d => d.identifier);
 
     circles.exit()
@@ -330,9 +332,17 @@ export class SvgFeatureModule {
           this.datapoint_hover_out.emit(d.identifier);
         })
         .on('click', (event, d) => {
-          this.locked_on_datapoint = false;
-          this.toggleHighlight(d);
-          this.locked_on_datapoint = true;
+          if((this.locked_datapoint) && (this.locked_datapoint.identifier == d.identifier)){ 
+            // Unhighlight the locked datapoint
+            this.locked_datapoint = undefined;
+            this.toggleHighlight(undefined);
+          }else{
+            // Highlight the clicked datapoint and lock
+            this.locked_datapoint = undefined;
+            this.toggleHighlight(d);
+            this.locked_datapoint = d;
+          }
+
           this.datapoint_click.emit(d.identifier);
          })
         .transition()
@@ -344,7 +354,7 @@ export class SvgFeatureModule {
   }
 
   public resetDatapointEvents(){
-    let circles = this.plot.selectAll('datapoint'); 
+    let circles = this.plot.selectAll('.datapoint'); 
     circles
         .on('mouseover', (event, d) => { 
           this.tooltip.show(d, event.currentTarget);
@@ -355,9 +365,17 @@ export class SvgFeatureModule {
           this.datapoint_hover_out.emit(d.identifier);
          })
         .on('click', (event, d) => {
-          this.locked_on_datapoint = false;
-          this.toggleHighlight(d);
-          this.locked_on_datapoint = true;
+          if((this.locked_datapoint) && (this.locked_datapoint.identifier == d.identifier)){ 
+            // Unhighlight the locked datapoint
+            this.locked_datapoint = undefined;
+            this.toggleHighlight(undefined);
+          }else{
+            // Highlight the clicked datapoint and lock
+            this.locked_datapoint = undefined;
+            this.toggleHighlight(d);
+            this.locked_datapoint = d;
+          }
+
           this.datapoint_click.emit(d.identifier);
          });
   }

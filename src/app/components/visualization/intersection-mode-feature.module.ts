@@ -35,7 +35,7 @@ export class IntersectionModeFeatureModule {
   }
 
   private connectDatapoints(center: DataPoint, intersections:Map<number, number>, intersections_colors: Map<number, string>){
-    let circles = new Map<number, DataPoint>(this.svg_feature.plot.selectAll('circle').data()
+    let circles = new Map<number, DataPoint>(this.svg_feature.plot.selectAll('.datapoint').data()
       .map(d => [d.identifier, d]));
 
     for(let [identifier, percentage] of intersections.entries()){
@@ -71,7 +71,7 @@ export class IntersectionModeFeatureModule {
     let identifiers_set = new Set(identifiers);
     let circles_visibility = 0.2;
 
-    this.svg_feature.plot.selectAll('circle')
+    this.svg_feature.plot.selectAll('.datapoint')
       .raise()
       .transition('mouseover')
       // .duration(this.transition_duration)
@@ -82,7 +82,7 @@ export class IntersectionModeFeatureModule {
       .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${circles_visibility})`)
       .style('stroke', `rgba(255, 0, 0, ${circles_visibility})`);
 
-    let highligthed_circles = this.svg_feature.plot.selectAll('circle')
+    let highligthed_circles = this.svg_feature.plot.selectAll('.datapoint')
       .filter(d => identifiers_set.has(d.identifier));
 
     highligthed_circles
@@ -159,7 +159,7 @@ export class IntersectionModeFeatureModule {
   }
 
   private createIntersectionCharts(identifiers: Array<number>, intersections: Map<number, number>, intersections_colors: Map<number, string>){
-    let clicked_datapoint = this.svg_feature.plot.selectAll('circle')
+    let clicked_datapoint = this.svg_feature.plot.selectAll('.datapoint')
       .filter(d => d.identifier == this.clicked_datapoint_data.identifier);
     let empty = new Map<number, number>();
     empty.set(this.clicked_datapoint_data.identifier, 1);
@@ -168,7 +168,7 @@ export class IntersectionModeFeatureModule {
     this.createIntersectionChart(clicked_datapoint, empty, original_radius, chart_radius, intersections_colors);
   
     let identifiers_set = new Set(identifiers);
-    let circles = this.svg_feature.plot.selectAll('circle')
+    let circles = this.svg_feature.plot.selectAll('.datapoint')
       .filter(d => identifiers_set.has(d.identifier));
 
     circles.each((d, i, nodes) => {
@@ -209,7 +209,7 @@ export class IntersectionModeFeatureModule {
       .attr('y2', d => d.y1)  // End position (y) becomes the start position
       .remove();
 
-    let circles = this.svg_feature.plot.selectAll('circle');
+    let circles = this.svg_feature.plot.selectAll('.datapoint');
     circles
       .transition('mouseout')
       .duration(this.transition_duration)
@@ -232,7 +232,6 @@ export class IntersectionModeFeatureModule {
   }
 
   public async toggleIntersections(identifier: number){
-    return;
     this.hideIntersections();
     await this.updateClickedDatapoint(identifier);
 
@@ -254,7 +253,7 @@ export class IntersectionModeFeatureModule {
       return;
     }
 
-    let clicked_circle = this.svg_feature.plot.selectAll('circle')
+    let clicked_circle = this.svg_feature.plot.selectAll('.datapoint')
       // .filter(d => d.identifier == 13); // Fix black color
       .filter(d => d.identifier == identifier);
     this.clicked_datapoint_data = clicked_circle.node().__data__;
