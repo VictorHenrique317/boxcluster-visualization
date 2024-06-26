@@ -130,7 +130,14 @@ export class AppComponent implements AfterViewInit{
     this.tensor_path = event.tensor_path;
     this.patterns_path = event.patterns_path;
     
-    await this.api_service.initApplication(this.tensor_path, this.patterns_path);
+    try{
+      await this.api_service.initApplication(this.tensor_path, this.patterns_path);
+    } catch(error){
+      console.error(error);
+      this.application_status = ApplicationStatus.UNLOADED;
+      this.cdr.detectChanges();
+      return;
+    }
     
     this.application_status = ApplicationStatus.LOADED;
     this.cdr.detectChanges();

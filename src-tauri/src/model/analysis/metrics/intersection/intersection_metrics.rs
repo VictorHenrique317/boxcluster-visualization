@@ -120,7 +120,7 @@ impl IntersectionMetrics{
             if untouched_percentage < 0.0 || untouched_percentage > 1.0 {
                 unreachable!("Untouched percentage should be between 0 and 1 but it is: {}", untouched_percentage);
             }
-            pattern_intersections_percentages.insert(pattern.identifier, untouched_percentage);
+            pattern_intersections_percentages.insert(pattern.identifier, total_intersection_percentage);
             
             intersections_percentages.lock()
                 .as_mut()

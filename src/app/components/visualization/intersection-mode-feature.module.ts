@@ -102,8 +102,8 @@ export class IntersectionModeFeatureModule {
       .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, 1)`);
   }
 
-  private createIntersectionChart(clicked_circle: any, intersections: Map<number, number>, original_radius: number, chart_radius: number){
-    let clicked_datapoint = clicked_circle.node().__data__;
+  private createIntersectionChart(root_circle: any, intersections: Map<number, number>, original_radius: number, chart_radius: number){
+    let root_datapoint = root_circle.node().__data__;
     let pie = d3.pie()
       .value((d: any) => d.value);
 
@@ -119,7 +119,7 @@ export class IntersectionModeFeatureModule {
 
     let pie_group = this.svg_feature.plot.append('g')
       .attr('class', 'pie_chart')
-      .attr('transform', `translate(${clicked_circle.attr('cx')}, ${clicked_circle.attr('cy')})`);
+      .attr('transform', `translate(${root_circle.attr('cx')}, ${root_circle.attr('cy')})`);
 
     pie_group.selectAll('path')
       .data(pie_data)
@@ -132,13 +132,16 @@ export class IntersectionModeFeatureModule {
       .duration(this.transition_duration)
       .attr('d', pie_chart_arc)
       .attr('fill', (d: any) => {
-        let current_datapoint = this.svg_feature.getDatapoint(d.data.key);
+        let related_datapoint = this.svg_feature.getDatapoint(d.data.key);
         let r = 130;
         let g = 0;
         let b = 173;
         let a = 1;
 
-        if(current_datapoint.identifier == clicked_datapoint.identifier){ a = 0; }
+        if(related_datapoint){ // If it isnt id 0 (which means total intersection to the clicked datapoint)
+          // Dont color the percetage related to intersection with itself   
+          if(related_datapoint.identifier == root_datapoint.identifier){ a = 0; }
+        }
 
         let color = `rgba(${r}, ${g}, ${b}, ${a})`;
         return color;
@@ -148,18 +151,24 @@ export class IntersectionModeFeatureModule {
   private createIntersectionCharts(identifiers: Array<number>, intersections: Map<number, number>){
     let clicked_datapoint = this.svg_feature.plot.selectAll('.datapoint')
       .filter(d => d.identifier == this.clicked_datapoint_data.identifier);
-    let empty = new Map<number, number>();
-    empty.set(this.clicked_datapoint_data.identifier, 1);
+
+    let intersection_data: Map<number, number>  = new Map<number, number>();
+    let parent_current_percentage = intersections.get(this.clicked_datapoint_data.identifier);
+    let complement_percentage = 1 - parent_current_percentage; // Colored with current circle color
+    intersection_data.set(0, parent_current_percentage);
+    intersection_data.set(this.clicked_datapoint_data.identifier, complement_percentage);
+
     let original_radius = this.clicked_datapoint_data.size;
     let chart_radius = this.clicked_datapoint_data.size;
-    this.createIntersectionChart(clicked_datapoint, empty, original_radius, chart_radius);
+    this.createIntersectionChart(clicked_datapoint, intersection_data, original_radius, chart_radius);
+    intersections.delete(this.clicked_datapoint_data.identifier);
   
     let identifiers_set = new Set(identifiers);
     let circles = this.svg_feature.plot.selectAll('.datapoint')
       .filter(d => identifiers_set.has(d.identifier));
 
     circles.each((d, i, nodes) => {
-      let intersection_data: Map<number, number> = new Map<number, number>();
+      intersection_data = new Map<number, number>();
       let parent_current_percentage = intersections.get(d.identifier); // Colored with the parent color
       let complement_percentage = 1 - parent_current_percentage; // Colored with current circle color
 

@@ -173,9 +173,9 @@ impl ApplicationService{
             None => HashMap::new(),
         };
 
-        let total_untouched_percentage = intersection_percentages.get(identifier)
+        let total_intersection_percentage = intersection_percentages.get(identifier)
             .expect("Should have a total untouched percentage, even if its 0").clone();
-        let total_intersection_percentage = 1.0 - total_untouched_percentage;
+        let total_untouched_percentage = 1.0 - total_intersection_percentage;
         
         let current_pattern = self.getIdentifierMapper()?.getIdentifier(identifier)?.asPattern()?;
         let all_dims_intersections: Result<HashMap<u32, (f64, Vec<Vec<String>>)>, GenericError> = intersection_percentages.into_iter()
