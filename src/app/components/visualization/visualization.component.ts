@@ -125,8 +125,10 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
     let new_size = event - 1; // -1 because the first point is the null model rss
     let truncated_datapoints = await this.api_service.truncateModel(new_size);
 
+    this.svg_feature.deactivateHighlight();
     this.intersection_mode_feature.toggleIntersections(null);
     this.svg_feature.drawDataPoints(truncated_datapoints);
+    this.datapoint_click.emit(null);
   }
 
   private onDatapointHoverIn(identifier: number){

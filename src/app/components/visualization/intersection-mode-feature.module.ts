@@ -67,30 +67,28 @@ export class IntersectionModeFeatureModule {
     }
   }
 
-  private highlightDatapoints(identifiers: Array<number>, intersections_colors: Map<number, string>){
-    let identifiers_set = new Set(identifiers);
-    let circles_visibility = 0.2;
+  private highlightDatapoints(relationed_identifiers: Array<number>){
+    let identifiers_set = new Set(relationed_identifiers);
+    let gray_shade = 196;
+    let gray = `rgba(${gray_shade}, ${gray_shade}, ${gray_shade}, 0.5)`;
 
     this.svg_feature.plot.selectAll('.datapoint')
-      .raise()
-      .transition('mouseover')
-      // .duration(this.transition_duration)
-      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
-      .style('stroke', `rgba(255, 0, 0, 1)`)
-      .transition('mouseover')
-      .duration(this.transition_duration)
-      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${circles_visibility})`)
-      .style('stroke', `rgba(255, 0, 0, ${circles_visibility})`);
-
-    let highligthed_circles = this.svg_feature.plot.selectAll('.datapoint')
-      .filter(d => identifiers_set.has(d.identifier));
-
-    highligthed_circles
+      .filter(d => !identifiers_set.has(d.identifier) && d.identifier != this.clicked_datapoint_data.identifier)
       .raise()
       .transition('mouseover')
       .duration(this.transition_duration)
-      .attr('fill', d => intersections_colors.get(d.identifier))
-      .style('stroke', d=> intersections_colors.get(d.identifier));
+      .attr('fill', d => gray)
+      .style('stroke', d=> gray);
+
+    // let highligthed_circles = this.svg_feature.plot.selectAll('.datapoint')
+    //   .filter(d => identifiers_set.has(d.identifier));
+
+    // highligthed_circles
+    //   .raise()
+    //   .transition('mouseover')
+    //   .duration(this.transition_duration)
+    //   .attr('fill', d => gray)
+    //   .style('stroke', d=> gray);
   }
 
   private expandCircle(clicked_circle, expansion_factor, intersections, intersections_colors){
@@ -188,7 +186,8 @@ export class IntersectionModeFeatureModule {
 
     let relationed_datapoints: Array<number> = Array.from(intersections.keys())
       .filter(d => (d != this.clicked_datapoint_data.identifier) && (d != 0));
-    // this.highlightDatapoints(relationed_datapoints, intersections_colors);
+
+    this.highlightDatapoints(relationed_datapoints);
     this.connectDatapoints(this.clicked_datapoint_data, intersections);
     let expansion_factor = 1;
     // this.expandCircle(clicked_circle, expansion_factor, intersections, intersections_colors);

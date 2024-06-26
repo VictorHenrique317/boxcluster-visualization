@@ -41,7 +41,7 @@ impl Reader{
 
     pub fn preProcessLine(line: &String) -> Vec<String> {
         let line_columns: Vec<String> = line.split(" ")
-                .map(|s| s.to_owned())
+                .map(|s| s.to_owned().replace("\r", ""))
                 .collect();
 
         let mut processed_line_columns: Vec<String> = Vec::new();

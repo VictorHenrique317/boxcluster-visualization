@@ -36,8 +36,8 @@
 - [x] Visão geral do padrão mostra uma tabela com todas as dimensões, em vez de uma por vez
 - [x] Highlight do padrão no mouse hover
 - [x] Manter cor da densidade no mouse click, colocar uma cor com mais constraste
-- [] No padrão selecionado, a fatia representa a proporção de área que está coberta por pelo menos um padrão
-- [] Efeito de desfoco cinza em vez de transparente
+- [x] No padrão selecionado, a fatia representa a proporção de área que está coberta por pelo menos um padrão
+- [x] Efeito de desfoco cinza em vez de transparente
 - [] Mostrar sub-tensores de interseção ao clicar nas arestas, a cor deve ser a do padrão de maior densidade
 
 ## Changelogs ??? -> ??? - v0.4.0

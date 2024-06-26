@@ -32,9 +32,9 @@ impl PatternReader<'_>{
 
             if self.file_has_densities{
                 density = line_dims.pop()
-                    .ok_or(GenericError::new("Could not get density", file!(), &line!()))?
+                    .ok_or(GenericError::new(format!("Could not get density, line: {:?}, line_dims: {:?}", line, line_dims).as_str(), file!(), &line!()))?
                     .parse::<f64>()
-                    .map_err(|_| GenericError::new("Could not parse density to f64", file!(), &line!()))?
+                    .map_err(|_| GenericError::new(format!("Could not parse density to f64, line: {:?}, line_dims: {:?}", line, line_dims).as_str(), file!(), &line!()))?
             }
 
             patterns.push(Pattern::new(

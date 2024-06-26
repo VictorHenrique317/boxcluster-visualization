@@ -291,6 +291,11 @@ export class SvgFeatureModule {
     }
   }
 
+  public deactivateHighlight(){
+    this.locked_datapoint = undefined;
+    this.toggleHighlight(undefined);
+  }
+
   public drawDataPoints(datapoints: Array<DataPoint>) {
     if(datapoints == undefined || datapoints == null){ return; }
     if(this.plot == undefined){ return; }
