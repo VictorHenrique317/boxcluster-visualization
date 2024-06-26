@@ -54,7 +54,7 @@ export class IntersectionModeFeatureModule {
         .attr('y1', this.svg_feature.yScale(center.y))  // Start position (y) of the line
         .attr('x2', this.svg_feature.xScale(center.x))  // Initially, end position (x) is the same as start position
         .attr('y2', this.svg_feature.yScale(center.y))  // Initially, end position (y) is the same as start position
-        .attr('stroke', 'rgba(255, 0, 0)')
+        .attr('stroke', 'rgba(255, 0, 0, 0.5)')
         .attr('stroke-width', stroke_width);
       
       let related_circle = circles.get(identifier) || null;
@@ -133,9 +133,9 @@ export class IntersectionModeFeatureModule {
       .attr('d', pie_chart_arc)
       .attr('fill', (d: any) => {
         let current_datapoint = this.svg_feature.getDatapoint(d.data.key);
-        let r = 255;
+        let r = 130;
         let g = 0;
-        let b = 0;
+        let b = 173;
         let a = 1;
 
         if(current_datapoint.identifier == clicked_datapoint.identifier){ a = 0; }

@@ -255,19 +255,19 @@ export class SvgFeatureModule {
 
   private toggleHighlight(datapoint: DataPoint){
     if(this.locked_datapoint){ return; }
+
+    let highlight_circle = this.plot.selectAll('.highlight');
+    if(highlight_circle){ highlight_circle.remove(); }
     
     if(datapoint){ // Add a EMPTY circle with id highlight, the circle should not block mouse hover and click events
        // Draw a new blue circle on the coordinates of datapoint
-      let highlight_radius = datapoint.size * 1.8;
+      let highlight_radius = datapoint.size * 1.6;
       let highlight_color = 'rgba(114, 232, 247)';
-      let highlight_opacity = 0.8;
+      let highlight_opacity = 0.5;
       let stroke_width = highlight_radius/3;
 
-      let highlight_circle = this.plot.select('#highlight');
-      if(highlight_circle){ highlight_circle.remove(); }
-
       this.plot.append('circle')
-        .attr('id', 'highlight')
+        .attr('class', 'highlight')
         .attr('cx', this.x_scale(datapoint.x))
         .attr('cy', this.y_scale(datapoint.y))
         .attr('r', highlight_radius)
@@ -276,11 +276,18 @@ export class SvgFeatureModule {
         .attr('stroke-width', stroke_width)
         .attr('opacity', highlight_opacity)
         .style('pointer-events', 'none');
+
+      this.plot.append('circle')
+        .attr('class', 'highlight')
+        .attr('cx', this.x_scale(datapoint.x))
+        .attr('cy', this.y_scale(datapoint.y))
+        .attr('r', highlight_radius*1.4)
+        .attr('fill', 'none')
+        .attr('stroke', highlight_color)
+        .attr('stroke-width', stroke_width/2)
+        .attr('opacity', highlight_opacity)
+        .style('pointer-events', 'none');
       
-    }else{
-      // Remove the circle with id highlight
-      let highlight_circle = this.plot.select('#highlight');
-      if(highlight_circle){ highlight_circle.remove(); }
     }
   }
 
