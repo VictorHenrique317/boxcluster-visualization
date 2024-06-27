@@ -41,29 +41,38 @@ export class IntersectionModeFeatureModule {
     for(let [identifier, percentage] of intersections.entries()){
       if(identifier == this.clicked_datapoint_data.identifier){ continue; } // itself
       if(identifier == 0){ continue; } // Excess intersections
+      let related_circle = circles.get(identifier) || null;
+      if (related_circle == null) { continue; } // Related circle is a subpattern
 
       let stroke_width = 6 * percentage + 2; // 2 to 8
 
       let x1 = this.svg_feature.xScale(center.x);
       let y1 = this.svg_feature.yScale(center.y);
       let line = this.svg_feature.plot.append('line')
-        .datum({x1: x1, y1: y1})  // Bind the original coordinates to the line
+        .datum({identifier:identifier, x1: x1, y1: y1})  // Bind the original coordinates to the line
+        .raise()
         .attr('class', 'intersection_line')
-        .attr('pointer-events', 'none')
         .attr('x1', this.svg_feature.xScale(center.x))  // Start position (x) of the line
         .attr('y1', this.svg_feature.yScale(center.y))  // Start position (y) of the line
         .attr('x2', this.svg_feature.xScale(center.x))  // Initially, end position (x) is the same as start position
         .attr('y2', this.svg_feature.yScale(center.y))  // Initially, end position (y) is the same as start position
         .attr('stroke', 'rgba(255, 0, 0, 0.5)')
-        .attr('stroke-width', stroke_width);
-      
-      let related_circle = circles.get(identifier) || null;
-      if (related_circle == null) { continue; } // Related circle is a subpattern
-      line
+        .attr('stroke-width', stroke_width)
+        .on('mouseover', (event, l) => {
+          d3.select(event.currentTarget).style('cursor', 'pointer');
+          d3.select(event.currentTarget).attr('stroke-width', stroke_width * 3);
+        })
+        .on('mouseout', (event, l) => {
+          d3.select(event.currentTarget).style('cursor', 'default');
+          d3.select(event.currentTarget).attr('stroke-width', stroke_width);
+        })
+        .on('click', (event, l) => {
+          this.showIntersectionDetails(l.identifier);
+        })
         .transition('mouseover')
         .duration(this.transition_duration*2)
         .attr('x2', this.svg_feature.xScale(related_circle.x))  // Actual end position (x) of the line
-        .attr('y2', this.svg_feature.yScale(related_circle.y));  // Actual end position (y) of the line
+        .attr('y2', this.svg_feature.yScale(related_circle.y))  // Actual end position (y) of the line
     }
   }
 
@@ -263,7 +272,7 @@ export class IntersectionModeFeatureModule {
     return this.intersection_details.intersections.size > 0;
   }
 
-  public async showIntersectionDetails(){
+  public async showIntersectionDetails(intersector_id: number){
     if(this.clicked_datapoint_data == null){
       console.warn("No clicked datapoint to show details.");
       return;
@@ -272,6 +281,7 @@ export class IntersectionModeFeatureModule {
     let intersection_details = await this.api_service.getIntersectionDetails(this.clicked_datapoint_data.identifier);
 
     let dialog_data = {
+      intersector: intersector_id,
       intersection_details: intersection_details
     }
 

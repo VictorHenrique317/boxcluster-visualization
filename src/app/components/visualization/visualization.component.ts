@@ -106,6 +106,9 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
     this.svg_feature.drawDataPoints(datapoints);
 
     this.intersection_mode_feature = new IntersectionModeFeatureModule(this.svg_feature, this.dialog_service, this.api_service);
+
+    // this.intersection_mode_feature.toggleIntersections(1); // TODO: Remove this line
+    // this.intersection_mode_feature.showIntersectionDetails(); // TODO: Remove this line
   }
 
   ngOnDestroy() {

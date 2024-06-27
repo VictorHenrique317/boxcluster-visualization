@@ -7,6 +7,8 @@ import {MatTableDataSource, MatTableModule} from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import {MatIconModule} from '@angular/material/icon';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 
 export interface IntersectedTuple {
   dim_number: String;
@@ -24,7 +26,9 @@ export interface IntersectedTuple {
     MatIconModule,
     MatTabsModule,
     MatSortModule,
-    MatTableModule
+    MatTableModule,
+    MatFormFieldModule, 
+    MatSelectModule
   ],
   templateUrl: './intersection-details-dialog.component.html',
   styleUrls: ['./intersection-details-dialog.component.scss'],
@@ -45,8 +49,8 @@ export class IntersectionDetailsDialogComponent {
   protected total_intersection_percentage: number;
   protected intersections: Map<number, [number, Array<Array<string>>]>;
 
-  protected intersectors_displayed_columns: string[] = ['intersections'];
-  protected intersectors_data_source: MatTableDataSource<Array<number>>;
+  // protected intersectors_displayed_columns: string[] = ['intersections'];
+  // protected intersectors_data_source: MatTableDataSource<Array<number>>;
   protected intersector_id: number;
 
   protected intersector_data_source: IntersectedTuple[];
@@ -57,7 +61,7 @@ export class IntersectionDetailsDialogComponent {
   ]);
   protected intersector_displayed_columns_with_expand = [...this.intersector_displayed_columns, 'expand'];
   protected expanded_element: IntersectedTuple | null;
-  private max_dim_values_preview_length = 26;
+  private max_dim_values_preview_length = 44;
   
   // protected intersector_data_source: MatTableDataSource<IntersectedTuple[]>;
   
@@ -66,20 +70,21 @@ export class IntersectionDetailsDialogComponent {
   
 
   constructor(public dialogRef: MatDialogRef<IntersectionDetailsDialogComponent>, 
-      @Inject(MAT_DIALOG_DATA) public data: {intersection_details: IntersectionDetails}, private cdr: ChangeDetectorRef){
+      @Inject(MAT_DIALOG_DATA) public data: {intersector: number, intersection_details: IntersectionDetails}, private cdr: ChangeDetectorRef){
 
     this.identifier = data.intersection_details.identifier;
     this.total_untouched_percentage = data.intersection_details.total_untouched_percentage;
     this.total_intersection_percentage = data.intersection_details.total_intersection_percentage;
-
+      
+    this.intersector_id = data.intersector;
     let sorted_intersections: Map<number, [number, Array<Array<string>>]> = new Map([...data.intersection_details.intersections.entries()]
     .sort((a, b) => {
       return a[1][0] - b[1][0];
     }));
     this.intersections = sorted_intersections;
 
-    let data_source: Array<Array<number>> = Array.from(this.intersections.keys(), key => [key])
-    this.intersectors_data_source = new MatTableDataSource(data_source);
+    // let data_source: Array<Array<number>> = Array.from(this.intersections.keys(), key => [key])
+    // this.intersectors_data_source = new MatTableDataSource(data_source);
   }
 
   ngOnInit(): void { 
@@ -88,7 +93,8 @@ export class IntersectionDetailsDialogComponent {
 
   ngAfterViewInit(){
     let first_intersector = this.intersections.keys().next().value;
-    this.selectIntersector(first_intersector); // Selects the first intersector
+    this.intersector_id = first_intersector;  // Selects the first intersector
+    this.changeIntersector();
     this.cdr.detectChanges();
   }
 
@@ -100,10 +106,7 @@ export class IntersectionDetailsDialogComponent {
     return this.intersector_displayed_columns_names.get(column);
   }
 
-  protected selectIntersector(intersector_id: number){
-    this.intersector_id = intersector_id;
-
-    console.log(this.intersections.get(this.intersector_id));
+  protected changeIntersector(){
     let intersected_dims: Array<Array<string>> = this.intersections.get(this.intersector_id)[1];
 
     let i = 0;

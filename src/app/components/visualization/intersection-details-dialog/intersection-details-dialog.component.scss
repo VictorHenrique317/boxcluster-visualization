@@ -34,47 +34,30 @@ body{
         padding: 1em 1em 1em 2em;
 
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         align-items: flex-start;
-        justify-content: center;
+        justify-content: flex-start;
         // background-color: yellow;
 
         // overflow: hidden;
 
-        #intersectors_table_wrapper{
-            width: fit-content;
-            max-height: 100%;
-            overflow: auto;
-
-            padding: 0 5% 0 0;            
-
-            // background-color: red;
+        #pattern-dropdown-wrapper{
             
-            table{
-                user-select: none;
-                cursor: pointer;
+        }
 
-                .mat-column-intersections{
-                    text-align: center;
-                }
-
-                th{ // Table header
-                    cursor: default;
-                }
-
-                .intersectors_data_row:hover{
-                    background: whitesmoke;
-                }
-            }
+        h2{
+            font-weight: normal;
         }
 
         #intersector_table_wrapper{
-            width: 70%;
+            width: 100%;
             overflow: auto;
             
             // background-color: blue;
             table{
                 max-width: 90%;
+                // border-left: 1px solid #ccc;
+                // border-right: 1px solid #ccc;
 
                 .mat-column-dim_number{ 
                     text-align: center;
@@ -83,7 +66,7 @@ body{
 
                 .mat-column-dim_values_preview{
                     text-align: center;
-                    width: 5em;
+                    width: 100%;
                     // background-color: blue;
                 }
 
