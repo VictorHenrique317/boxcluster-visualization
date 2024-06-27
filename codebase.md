@@ -838,7 +838,14 @@ export class AppComponent implements AfterViewInit{
     this.tensor_path = event.tensor_path;
     this.patterns_path = event.patterns_path;
     
-    await this.api_service.initApplication(this.tensor_path, this.patterns_path);
+    try{
+      await this.api_service.initApplication(this.tensor_path, this.patterns_path);
+    } catch(error){
+      console.error(error);
+      this.application_status = ApplicationStatus.UNLOADED;
+      this.cdr.detectChanges();
+      return;
+    }
     
     this.application_status = ApplicationStatus.LOADED;
     this.cdr.detectChanges();
@@ -1181,6 +1188,10 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
   @Output() datapoint_hover_out = new EventEmitter<number>();
   @Output() datapoint_click = new EventEmitter();
 
+  private datapoint_hover_in_subscription: Subscription;
+  private datapoint_hover_out_subscription: Subscription;
+  private datapoint_click_subscription: Subscription;
+
   @ViewChild('body') body: ElementRef<HTMLBodyElement>;
   @ViewChild('vizualization_div') visualization_div: ElementRef<HTMLDivElement>;
 
@@ -1201,20 +1212,23 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
     
     this.svg_feature = new SvgFeatureModule(this.cdr);
     this.svg_feature.init(this.visualization_div, svg_width, svg_height);
-    this.svg_feature.datapoint_hover_in.subscribe(identifier => this.onDatapointHoverIn(identifier));
-    this.svg_feature.datapoint_hover_out.subscribe(identifier => this.onDatapointHoverOut(identifier));
-    this.svg_feature.datapoint_click.subscribe(identifier => this.onDatapointClick(identifier));
+    this. datapoint_hover_in_subscription = this.svg_feature.datapoint_hover_in.subscribe(identifier => this.onDatapointHoverIn(identifier));
+    this.datapoint_hover_out_subscription = this.svg_feature.datapoint_hover_out.subscribe(identifier => this.onDatapointHoverOut(identifier));
+    this.datapoint_click_subscription = this.svg_feature.datapoint_click.subscribe(identifier => this.onDatapointClick(identifier));
     
     let datapoints = await this.api_service.getDataPoints();
     this.svg_feature.drawDataPoints(datapoints);
 
     this.intersection_mode_feature = new IntersectionModeFeatureModule(this.svg_feature, this.dialog_service, this.api_service);
+
+    // this.intersection_mode_feature.toggleIntersections(1); // TODO: Remove this line
+    // this.intersection_mode_feature.showIntersectionDetails(); // TODO: Remove this line
   }
 
   ngOnDestroy() {
-    this.svg_feature.datapoint_hover_in.unsubscribe();
-    this.svg_feature.datapoint_hover_out.unsubscribe();
-    this.svg_feature.datapoint_click.unsubscribe();
+    this.datapoint_hover_in_subscription.unsubscribe();
+    this.datapoint_hover_out_subscription.unsubscribe();
+    this.datapoint_click_subscription.unsubscribe();
   }
 
   public onResize(event) {
@@ -1228,8 +1242,10 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
     let new_size = event - 1; // -1 because the first point is the null model rss
     let truncated_datapoints = await this.api_service.truncateModel(new_size);
 
+    this.svg_feature.deactivateHighlight();
     this.intersection_mode_feature.toggleIntersections(null);
     this.svg_feature.drawDataPoints(truncated_datapoints);
+    this.datapoint_click.emit(null);
   }
 
   private onDatapointHoverIn(identifier: number){
@@ -1274,6 +1290,7 @@ export class SvgFeatureModule {
 
   private locked_datapoint: DataPoint;
   private datapoints: Array<DataPoint>;
+  private datapoints_mapping: Map<number, DataPoint>;
   
   private visualization_div: ElementRef;
   public plot: any;
@@ -1509,18 +1526,19 @@ export class SvgFeatureModule {
 
   private toggleHighlight(datapoint: DataPoint){
     if(this.locked_datapoint){ return; }
+
+    let highlight_circle = this.plot.selectAll('.highlight');
+    if(highlight_circle){ highlight_circle.remove(); }
     
     if(datapoint){ // Add a EMPTY circle with id highlight, the circle should not block mouse hover and click events
        // Draw a new blue circle on the coordinates of datapoint
-      let highlight_radius = datapoint.size * 1.8;
+      let highlight_radius = datapoint.size * 1.6;
       let highlight_color = 'rgba(114, 232, 247)';
-      let highlight_opacity = 0.8;
+      let highlight_opacity = 0.5;
       let stroke_width = highlight_radius/3;
 
-      let highlight_circle = this.plot.select('#highlight');
-      if(highlight_circle){ highlight_circle.remove(); }
       this.plot.append('circle')
-        .attr('id', 'highlight')
+        .attr('class', 'highlight')
         .attr('cx', this.x_scale(datapoint.x))
         .attr('cy', this.y_scale(datapoint.y))
         .attr('r', highlight_radius)
@@ -1529,11 +1547,24 @@ export class SvgFeatureModule {
         .attr('stroke-width', stroke_width)
         .attr('opacity', highlight_opacity)
         .style('pointer-events', 'none');
-    }else{
-      // Remove the circle with id highlight
-      let highlight_circle = this.plot.select('#highlight');
-      if(highlight_circle){ highlight_circle.remove(); }
+
+      this.plot.append('circle')
+        .attr('class', 'highlight')
+        .attr('cx', this.x_scale(datapoint.x))
+        .attr('cy', this.y_scale(datapoint.y))
+        .attr('r', highlight_radius*1.4)
+        .attr('fill', 'none')
+        .attr('stroke', highlight_color)
+        .attr('stroke-width', stroke_width/2)
+        .attr('opacity', highlight_opacity)
+        .style('pointer-events', 'none');
+      
     }
+  }
+
+  public deactivateHighlight(){
+    this.locked_datapoint = undefined;
+    this.toggleHighlight(undefined);
   }
 
   public drawDataPoints(datapoints: Array<DataPoint>) {
@@ -1542,11 +1573,13 @@ export class SvgFeatureModule {
     
     console.log("Drawing " + datapoints.length + " datapoints");
     this.datapoints = datapoints;
+    this.datapoints_mapping = new Map<number, DataPoint>();
+    this.datapoints.forEach(datapoint => this.datapoints_mapping.set(datapoint.identifier, datapoint));
 
     this.plot.call(this.tooltip);
 
     let scaled_datapoints = this.scalingFunction(this.datapoints);
-    const circles = this.plot.selectAll('datapoint')
+    const circles = this.plot.selectAll('.datapoint')
         .data(scaled_datapoints, d => d.identifier);
 
     circles.exit()
@@ -1585,9 +1618,16 @@ export class SvgFeatureModule {
           this.datapoint_hover_out.emit(d.identifier);
         })
         .on('click', (event, d) => {
-          this.locked_datapoint = undefined;
-          this.toggleHighlight(d);
-          this.locked_datapoint = d;
+          if((this.locked_datapoint) && (this.locked_datapoint.identifier == d.identifier)){ 
+            // Unhighlight the locked datapoint
+            this.locked_datapoint = undefined;
+            this.toggleHighlight(undefined);
+          }else{
+            // Highlight the clicked datapoint and lock
+            this.locked_datapoint = undefined;
+            this.toggleHighlight(d);
+            this.locked_datapoint = d;
+          }
 
           this.datapoint_click.emit(d.identifier);
          })
@@ -1600,7 +1640,7 @@ export class SvgFeatureModule {
   }
 
   public resetDatapointEvents(){
-    let circles = this.plot.selectAll('datapoint'); 
+    let circles = this.plot.selectAll('.datapoint'); 
     circles
         .on('mouseover', (event, d) => { 
           this.tooltip.show(d, event.currentTarget);
@@ -1611,12 +1651,27 @@ export class SvgFeatureModule {
           this.datapoint_hover_out.emit(d.identifier);
          })
         .on('click', (event, d) => {
-          this.locked_datapoint = undefined;
-          this.toggleHighlight(d);
-          this.locked_datapoint = d;
+          if((this.locked_datapoint) && (this.locked_datapoint.identifier == d.identifier)){ 
+            // Unhighlight the locked datapoint
+            this.locked_datapoint = undefined;
+            this.toggleHighlight(undefined);
+          }else{
+            // Highlight the clicked datapoint and lock
+            this.locked_datapoint = undefined;
+            this.toggleHighlight(d);
+            this.locked_datapoint = d;
+          }
 
           this.datapoint_click.emit(d.identifier);
          });
+  }
+
+  public showTooltip(datapoint: DataPoint, circle: any){
+    this.tooltip.show(datapoint, circle);
+  }
+
+  public hideTooltip(datapoint: DataPoint, circle: any){
+    this.tooltip.hide(datapoint, circle);
   }
 
   public xScale(x: number){
@@ -1637,6 +1692,10 @@ export class SvgFeatureModule {
 
   public getSvgHeight(){
     return this.svg_height;
+  }
+
+  public getDatapoint(identifier: number){
+    return this.datapoints_mapping.get(identifier);
   }
 }
 ### src/app/components/visualization/svg-feature.module.ts END ###
@@ -1678,84 +1737,73 @@ export class IntersectionModeFeatureModule {
     this.api_service = api_service;
   }
 
-  private connectDatapoints(center: DataPoint, intersections:Map<number, number>, intersections_colors: Map<number, string>){
-    let circles = new Map<number, DataPoint>(this.svg_feature.plot.selectAll('datapoint').data()
+  private connectDatapoints(center: DataPoint, intersections:Map<number, number>){
+    let svg_circles = this.svg_feature.plot.selectAll('.datapoint');
+    let id_to_datapoint = new Map<number, DataPoint>(svg_circles.data()
       .map(d => [d.identifier, d]));
 
     for(let [identifier, percentage] of intersections.entries()){
       if(identifier == this.clicked_datapoint_data.identifier){ continue; } // itself
       if(identifier == 0){ continue; } // Excess intersections
+      let related_datapoint = id_to_datapoint.get(identifier) || null;
+      if (related_datapoint == null) { continue; } // Related circle is a subpattern
+
+      let related_circle = svg_circles.filter(d => d.identifier == identifier);
 
       let stroke_width = 6 * percentage + 2; // 2 to 8
 
       let x1 = this.svg_feature.xScale(center.x);
       let y1 = this.svg_feature.yScale(center.y);
       let line = this.svg_feature.plot.append('line')
-        .datum({x1: x1, y1: y1})  // Bind the original coordinates to the line
+        .datum({identifier:identifier, x1: x1, y1: y1})  // Bind the original coordinates to the line
+        .raise()
         .attr('class', 'intersection_line')
-        .attr('pointer-events', 'none')
         .attr('x1', this.svg_feature.xScale(center.x))  // Start position (x) of the line
         .attr('y1', this.svg_feature.yScale(center.y))  // Start position (y) of the line
         .attr('x2', this.svg_feature.xScale(center.x))  // Initially, end position (x) is the same as start position
         .attr('y2', this.svg_feature.yScale(center.y))  // Initially, end position (y) is the same as start position
-        .attr('stroke', intersections_colors.get(identifier))
-        .attr('stroke-width', stroke_width);
-      
-      let related_circle = circles.get(identifier) || null;
-      if (related_circle == null) { continue; } // Related circle is a subpattern
-      line
+        .attr('stroke', 'rgba(255, 0, 0, 0.5)')
+        .attr('stroke-width', stroke_width)
+        .on('mouseover', (event, l) => {
+          d3.select(event.currentTarget).style('cursor', 'pointer');
+          d3.select(event.currentTarget).attr('stroke-width', stroke_width * 3);
+        })
+        .on('mouseout', (event, l) => {
+          d3.select(event.currentTarget).style('cursor', 'default');
+          d3.select(event.currentTarget).attr('stroke-width', stroke_width);
+        })
+        .on('click', (event, l) => {
+          this.showIntersectionDetails(l.identifier);
+        })
         .transition('mouseover')
         .duration(this.transition_duration*2)
-        .attr('x2', this.svg_feature.xScale(related_circle.x))  // Actual end position (x) of the line
-        .attr('y2', this.svg_feature.yScale(related_circle.y));  // Actual end position (y) of the line
+        .attr('x2', this.svg_feature.xScale(related_datapoint.x))  // Actual end position (x) of the line
+        .attr('y2', this.svg_feature.yScale(related_datapoint.y))  // Actual end position (y) of the line
     }
   }
 
-  private highlightDatapoints(identifiers: Array<number>, intersections_colors: Map<number, string>){
-    let identifiers_set = new Set(identifiers);
-    let circles_visibility = 0.2;
+  private highlightDatapoints(relationed_identifiers: Array<number>){
+    let identifiers_set = new Set(relationed_identifiers);
+    let gray_shade = 196;
+    let gray = `rgba(${gray_shade}, ${gray_shade}, ${gray_shade}, 0.5)`;
 
-    this.svg_feature.plot.selectAll('datapoint')
-      .raise()
-      .transition('mouseover')
-      // .duration(this.transition_duration)
-      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
-      .style('stroke', `rgba(255, 0, 0, 1)`)
-      .transition('mouseover')
-      .duration(this.transition_duration)
-      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${circles_visibility})`)
-      .style('stroke', `rgba(255, 0, 0, ${circles_visibility})`);
-
-    let highligthed_circles = this.svg_feature.plot.selectAll('datapoint')
-      .filter(d => identifiers_set.has(d.identifier));
-
-    highligthed_circles
+    this.svg_feature.plot.selectAll('.datapoint')
+      .filter(d => !identifiers_set.has(d.identifier) && d.identifier != this.clicked_datapoint_data.identifier)
       .raise()
       .transition('mouseover')
       .duration(this.transition_duration)
-      .attr('fill', d => intersections_colors.get(d.identifier))
-      .style('stroke', d=> intersections_colors.get(d.identifier));
-  }
+      .attr('fill', d => gray)
+      .style('stroke', d=> gray);
 
-  private createIntesectionColorMapping(intersections: Map<number, number>): Map<number, string>{
-    let colors = ["#eb4da3", "#a614b3", "#8a4aed", "#1731e8", "#3ea6ed", "#0c8e81"]
+    // let highligthed_circles = this.svg_feature.plot.selectAll('.datapoint')
+    //   .filter(d => identifiers_set.has(d.identifier));
 
-    let sorted_intersections = new Map(Array.from(intersections.entries()).sort((a, b) => b[1] - a[1]));
-
-    let intersections_colors: Map<number, string> = new Map();
-    let i = 0;
-    for(const [identifier, percentage] of sorted_intersections.entries()){
-      if(identifier == this.clicked_datapoint_data.identifier){
-        intersections_colors.set(identifier, "#d71610");
-        continue;
-      }
-
-      if(i > colors.length - 1){ console.warn("Not enough colors for intersections.");}
-      intersections_colors.set(identifier, colors[i % colors.length]);
-      i++;
-    }
-
-    return intersections_colors;
+    // highligthed_circles
+    //   .raise()
+    //   .transition('mouseover')
+    //   .duration(this.transition_duration)
+    //   .attr('fill', d => gray)
+    //   .style('stroke', d=> gray);
   }
 
   private expandCircle(clicked_circle, expansion_factor, intersections, intersections_colors){
@@ -1767,8 +1815,8 @@ export class IntersectionModeFeatureModule {
       .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, 1)`);
   }
 
-  private createIntersectionChart(clicked_circle: any, intersections: Map<number, number>, original_radius: number, chart_radius: number, 
-    intersections_colors: Map<number, string>){
+  private createIntersectionChart(root_circle: any, intersections: Map<number, number>, original_radius: number, chart_radius: number){
+    let root_datapoint = root_circle.node().__data__;
     let pie = d3.pie()
       .value((d: any) => d.value);
 
@@ -1784,7 +1832,7 @@ export class IntersectionModeFeatureModule {
 
     let pie_group = this.svg_feature.plot.append('g')
       .attr('class', 'pie_chart')
-      .attr('transform', `translate(${clicked_circle.attr('cx')}, ${clicked_circle.attr('cy')})`);
+      .attr('transform', `translate(${root_circle.attr('cx')}, ${root_circle.attr('cy')})`);
 
     pie_group.selectAll('path')
       .data(pie_data)
@@ -1797,26 +1845,43 @@ export class IntersectionModeFeatureModule {
       .duration(this.transition_duration)
       .attr('d', pie_chart_arc)
       .attr('fill', (d: any) => {
-        let color = intersections_colors.get(d.data.key);
+        let related_datapoint = this.svg_feature.getDatapoint(d.data.key);
+        let r = 130;
+        let g = 0;
+        let b = 173;
+        let a = 1;
+
+        if(related_datapoint){ // If it isnt id 0 (which means total intersection to the clicked datapoint)
+          // Dont color the percetage related to intersection with itself   
+          if(related_datapoint.identifier == root_datapoint.identifier){ a = 0; }
+        }
+
+        let color = `rgba(${r}, ${g}, ${b}, ${a})`;
         return color;
       });
   }
 
-  private createIntersectionCharts(identifiers: Array<number>, intersections: Map<number, number>, intersections_colors: Map<number, string>){
-    let clicked_datapoint = this.svg_feature.plot.selectAll('datapoint')
+  private createIntersectionCharts(identifiers: Array<number>, intersections: Map<number, number>){
+    let clicked_datapoint = this.svg_feature.plot.selectAll('.datapoint')
       .filter(d => d.identifier == this.clicked_datapoint_data.identifier);
-    let empty = new Map<number, number>();
-    empty.set(this.clicked_datapoint_data.identifier, 1);
+
+    let intersection_data: Map<number, number>  = new Map<number, number>();
+    let parent_current_percentage = intersections.get(this.clicked_datapoint_data.identifier);
+    let complement_percentage = 1 - parent_current_percentage; // Colored with current circle color
+    intersection_data.set(0, parent_current_percentage);
+    intersection_data.set(this.clicked_datapoint_data.identifier, complement_percentage);
+
     let original_radius = this.clicked_datapoint_data.size;
     let chart_radius = this.clicked_datapoint_data.size;
-    this.createIntersectionChart(clicked_datapoint, empty, original_radius, chart_radius, intersections_colors);
+    this.createIntersectionChart(clicked_datapoint, intersection_data, original_radius, chart_radius);
+    intersections.delete(this.clicked_datapoint_data.identifier);
   
     let identifiers_set = new Set(identifiers);
-    let circles = this.svg_feature.plot.selectAll('datapoint')
+    let circles = this.svg_feature.plot.selectAll('.datapoint')
       .filter(d => identifiers_set.has(d.identifier));
 
     circles.each((d, i, nodes) => {
-      let intersection_data: Map<number, number> = new Map<number, number>();
+      intersection_data = new Map<number, number>();
       let parent_current_percentage = intersections.get(d.identifier); // Colored with the parent color
       let complement_percentage = 1 - parent_current_percentage; // Colored with current circle color
 
@@ -1825,7 +1890,7 @@ export class IntersectionModeFeatureModule {
 
       original_radius = d.size;
       chart_radius = d.size;
-      this.createIntersectionChart(d3.select(nodes[i]), intersection_data, original_radius, chart_radius, intersections_colors);
+      this.createIntersectionChart(d3.select(nodes[i]), intersection_data, original_radius, chart_radius);
     });
   }
 
@@ -1833,15 +1898,15 @@ export class IntersectionModeFeatureModule {
     if(this.clicked_datapoint_data == null){ return };
 
     let intersections = await this.api_service.getIntersectionsPercentages(this.clicked_datapoint_data.identifier);
-    let intersections_colors = this.createIntesectionColorMapping(intersections);
 
     let relationed_datapoints: Array<number> = Array.from(intersections.keys())
       .filter(d => (d != this.clicked_datapoint_data.identifier) && (d != 0));
-    this.highlightDatapoints(relationed_datapoints, intersections_colors);
-    this.connectDatapoints(this.clicked_datapoint_data, intersections, intersections_colors);
+
+    this.highlightDatapoints(relationed_datapoints);
+    this.connectDatapoints(this.clicked_datapoint_data, intersections);
     let expansion_factor = 1;
     // this.expandCircle(clicked_circle, expansion_factor, intersections, intersections_colors);
-    this.createIntersectionCharts(relationed_datapoints, intersections, intersections_colors);
+    this.createIntersectionCharts(relationed_datapoints, intersections);
   }
 
   private async hideIntersections(){
@@ -1853,7 +1918,7 @@ export class IntersectionModeFeatureModule {
       .attr('y2', d => d.y1)  // End position (y) becomes the start position
       .remove();
 
-    let circles = this.svg_feature.plot.selectAll('datapoint');
+    let circles = this.svg_feature.plot.selectAll('.datapoint');
     circles
       .transition('mouseout')
       .duration(this.transition_duration)
@@ -1879,13 +1944,13 @@ export class IntersectionModeFeatureModule {
     this.hideIntersections();
     await this.updateClickedDatapoint(identifier);
 
-    // if(identifier == null || identifier==undefined){return;}
+    if(identifier == null || identifier==undefined){return;}
 
-    // if((this.old_clicked_datapoint != null) && (identifier == this.old_clicked_datapoint.identifier)){ // Datapoint was clicked again
-    //   await this.updateClickedDatapoint(null);
-    // }
+    if((this.old_clicked_datapoint != null) && (identifier == this.old_clicked_datapoint.identifier)){ // Datapoint was clicked again
+      await this.updateClickedDatapoint(null);
+    }
 
-    // this.showIntersections();
+    this.showIntersections();
   }
 
   private async updateClickedDatapoint(identifier: number) {
@@ -1897,8 +1962,7 @@ export class IntersectionModeFeatureModule {
       return;
     }
 
-    console.log(this.svg_feature.plot.selectAll('datapoint'))
-    let clicked_circle = this.svg_feature.plot.selectAll('datapoint')
+    let clicked_circle = this.svg_feature.plot.selectAll('.datapoint')
       // .filter(d => d.identifier == 13); // Fix black color
       .filter(d => d.identifier == identifier);
     this.clicked_datapoint_data = clicked_circle.node().__data__;
@@ -1914,7 +1978,7 @@ export class IntersectionModeFeatureModule {
     return this.intersection_details.intersections.size > 0;
   }
 
-  public async showIntersectionDetails(){
+  public async showIntersectionDetails(intersector_id: number){
     if(this.clicked_datapoint_data == null){
       console.warn("No clicked datapoint to show details.");
       return;
@@ -1923,6 +1987,7 @@ export class IntersectionModeFeatureModule {
     let intersection_details = await this.api_service.getIntersectionDetails(this.clicked_datapoint_data.identifier);
 
     let dialog_data = {
+      intersector: intersector_id,
       intersection_details: intersection_details
     }
 
@@ -1939,10 +2004,6 @@ export class IntersectionModeFeatureModule {
 <body #body (window:resize)="onResize($event)">
     <section>
         <div #vizualization_div id="vizualization_div"></div>
-
-        <div class="floatable" id="intersection_details" *ngIf="intersection_mode_feature.clickedPatternHasIntersections()">
-            <button mat-raised-button (click)="intersection_mode_feature.showIntersectionDetails()"> Show intersections </button>
-        </div>
     </section>
 </body>
 ### src/app/components/visualization/visualization.component.html END ###
@@ -2038,47 +2099,30 @@ body{
         padding: 1em 1em 1em 2em;
 
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         align-items: flex-start;
-        justify-content: center;
+        justify-content: flex-start;
         // background-color: yellow;
 
         // overflow: hidden;
 
-        #intersectors_table_wrapper{
-            width: fit-content;
-            max-height: 100%;
-            overflow: auto;
-
-            padding: 0 5% 0 0;            
-
-            // background-color: red;
+        #pattern-dropdown-wrapper{
             
-            table{
-                user-select: none;
-                cursor: pointer;
+        }
 
-                .mat-column-intersections{
-                    text-align: center;
-                }
-
-                th{ // Table header
-                    cursor: default;
-                }
-
-                .intersectors_data_row:hover{
-                    background: whitesmoke;
-                }
-            }
+        h2{
+            font-weight: normal;
         }
 
         #intersector_table_wrapper{
-            width: 70%;
+            width: 100%;
             overflow: auto;
             
             // background-color: blue;
             table{
                 max-width: 90%;
+                // border-left: 1px solid #ccc;
+                // border-right: 1px solid #ccc;
 
                 .mat-column-dim_number{ 
                     text-align: center;
@@ -2087,7 +2131,7 @@ body{
 
                 .mat-column-dim_values_preview{
                     text-align: center;
-                    width: 5em;
+                    width: 100%;
                     // background-color: blue;
                 }
 
@@ -2170,6 +2214,8 @@ import {MatTableDataSource, MatTableModule} from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import {MatIconModule} from '@angular/material/icon';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 
 export interface IntersectedTuple {
   dim_number: String;
@@ -2187,7 +2233,9 @@ export interface IntersectedTuple {
     MatIconModule,
     MatTabsModule,
     MatSortModule,
-    MatTableModule
+    MatTableModule,
+    MatFormFieldModule, 
+    MatSelectModule
   ],
   templateUrl: './intersection-details-dialog.component.html',
   styleUrls: ['./intersection-details-dialog.component.scss'],
@@ -2208,8 +2256,6 @@ export class IntersectionDetailsDialogComponent {
   protected total_intersection_percentage: number;
   protected intersections: Map<number, [number, Array<Array<string>>]>;
 
-  protected intersectors_displayed_columns: string[] = ['intersections'];
-  protected intersectors_data_source: MatTableDataSource<Array<number>>;
   protected intersector_id: number;
 
   protected intersector_data_source: IntersectedTuple[];
@@ -2220,29 +2266,24 @@ export class IntersectionDetailsDialogComponent {
   ]);
   protected intersector_displayed_columns_with_expand = [...this.intersector_displayed_columns, 'expand'];
   protected expanded_element: IntersectedTuple | null;
-  private max_dim_values_preview_length = 26;
+  private max_dim_values_preview_length = 44;
   
-  // protected intersector_data_source: MatTableDataSource<IntersectedTuple[]>;
-  
-  // expandedElement: IntersectedTuple | null
-
-  
-
   constructor(public dialogRef: MatDialogRef<IntersectionDetailsDialogComponent>, 
-      @Inject(MAT_DIALOG_DATA) public data: {intersection_details: IntersectionDetails}, private cdr: ChangeDetectorRef){
+      @Inject(MAT_DIALOG_DATA) public data: {intersector: number, intersection_details: IntersectionDetails}, private cdr: ChangeDetectorRef){
 
     this.identifier = data.intersection_details.identifier;
     this.total_untouched_percentage = data.intersection_details.total_untouched_percentage;
     this.total_intersection_percentage = data.intersection_details.total_intersection_percentage;
-
+      
+    this.intersector_id = data.intersector;
     let sorted_intersections: Map<number, [number, Array<Array<string>>]> = new Map([...data.intersection_details.intersections.entries()]
     .sort((a, b) => {
       return a[1][0] - b[1][0];
     }));
     this.intersections = sorted_intersections;
 
-    let data_source: Array<Array<number>> = Array.from(this.intersections.keys(), key => [key])
-    this.intersectors_data_source = new MatTableDataSource(data_source);
+    // let data_source: Array<Array<number>> = Array.from(this.intersections.keys(), key => [key])
+    // this.intersectors_data_source = new MatTableDataSource(data_source);
   }
 
   ngOnInit(): void { 
@@ -2251,7 +2292,8 @@ export class IntersectionDetailsDialogComponent {
 
   ngAfterViewInit(){
     let first_intersector = this.intersections.keys().next().value;
-    this.selectIntersector(first_intersector); // Selects the first intersector
+    this.intersector_id = first_intersector;  // Selects the first intersector
+    this.changeIntersector();
     this.cdr.detectChanges();
   }
 
@@ -2263,10 +2305,7 @@ export class IntersectionDetailsDialogComponent {
     return this.intersector_displayed_columns_names.get(column);
   }
 
-  protected selectIntersector(intersector_id: number){
-    this.intersector_id = intersector_id;
-
-    console.log(this.intersections.get(this.intersector_id));
+  protected changeIntersector(){
     let intersected_dims: Array<Array<string>> = this.intersections.get(this.intersector_id)[1];
 
     let i = 0;
@@ -2316,31 +2355,13 @@ export class IntersectionDetailsDialogComponent {
 ### src/app/components/visualization/intersection-details-dialog/intersection-details-dialog.component.html BEGIN ###
 <body>
     <header>
-        <h1>Intersections for pattern {{identifier}}</h1>
-        <span>Total un-intersected percentage: {{total_untouched_percentage*100 | number:'1.2-2'}}%</span> <br>
-        <span>Total intersected percentage: {{total_intersection_percentage*100 | number:'1.2-2'}}%</span>
+        <h1>Intersection of patterns {{identifier}} and {{intersector_id}} </h1>
+        <span>Total intersected percentage of {{identifier}}: {{total_intersection_percentage*100 | number:'1.2-2'}}%</span><br>
+        <span>Total un-intersected percentage of {{identifier}}: {{total_untouched_percentage*100 | number:'1.2-2'}}%</span> 
     </header>
 
     <section>
-        <div id="intersectors_table_wrapper">
-            <table mat-table [dataSource]="intersectors_data_source">
-                
-                <!-- Intersections column -->
-                <ng-container matColumnDef="intersections">
-                <th mat-header-cell *matHeaderCellDef>Intersections ({{ intersectors_data_source.data.length}})</th>
-                <td mat-cell *matCellDef="let row"> {{row}} </td>
-                </ng-container>
-            
-                <tr mat-header-row *matHeaderRowDef="intersectors_displayed_columns; sticky: true"></tr>
-                <tr class="intersectors_data_row"
-                    mat-row
-                    (click)="selectIntersector(row[0])"
-                    [class.selected-row]="this.intersector_id === row[0]"
-                    *matRowDef="let row; columns: intersectors_displayed_columns;"
-                ></tr>
-                
-            </table>
-        </div>
+        <h2>Intersection subtensor preview:</h2>
 
         <div id="intersector_table_wrapper">
             
@@ -2352,8 +2373,6 @@ export class IntersectionDetailsDialogComponent {
                     <td mat-cell *matCellDef="let element"> {{element[column]}} </td>
                 </ng-container>
 
-                <!-- Defines an additional column for the expand/collapse button. The button changes its icon based on whether the
-                current row is expanded or not -->
                 <ng-container matColumnDef="expand">
                     <th mat-header-cell *matHeaderCellDef aria-label="row actions">&nbsp;</th>
                     <td mat-cell *matCellDef="let element">
@@ -4047,15 +4066,17 @@ export class SvgService {
 ### src/app/services/svg/svg.service.ts END ###
 
 ### src/app/services/dialog/dialog.service.ts BEGIN ###
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { Subscription } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { ErrorDialogComponent } from 'src/app/components/error-dialog/error-dialog.component';
 
 @Injectable({
   providedIn: 'root'
 })
-export class DialogService {
+export class DialogService implements OnDestroy{
+  private dialog_subscription: Subscription;
 
   constructor(public dialog: MatDialog) { }
 
@@ -4072,7 +4093,7 @@ export class DialogService {
       data: dialog_data
     });
 
-    dialogRef.afterClosed().pipe(take(1)).subscribe(result => {
+     this.dialog_subscription = dialogRef.afterClosed().pipe(take(1)).subscribe(result => {
       // Executes when the dialog is closed
       if (result) {
         if (closeFunction){
@@ -4080,6 +4101,12 @@ export class DialogService {
         }
       }
     });
+  }
+
+  ngOnDestroy() {
+    if (this.dialog_subscription) {
+      this.dialog_subscription.unsubscribe();
+    }
   }
 
   public openErrorDialog(error_message: string) {

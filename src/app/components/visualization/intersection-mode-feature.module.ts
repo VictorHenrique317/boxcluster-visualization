@@ -91,16 +91,6 @@ export class IntersectionModeFeatureModule {
       .duration(this.transition_duration)
       .attr('fill', d => gray)
       .style('stroke', d=> gray);
-
-    // let highligthed_circles = this.svg_feature.plot.selectAll('.datapoint')
-    //   .filter(d => identifiers_set.has(d.identifier));
-
-    // highligthed_circles
-    //   .raise()
-    //   .transition('mouseover')
-    //   .duration(this.transition_duration)
-    //   .attr('fill', d => gray)
-    //   .style('stroke', d=> gray);
   }
 
   private expandCircle(clicked_circle, expansion_factor, intersections, intersections_colors){
@@ -238,7 +228,7 @@ export class IntersectionModeFeatureModule {
   }
 
   public async toggleIntersections(identifier: number){
-    this.hideIntersections();
+    await this.hideIntersections();
     await this.updateClickedDatapoint(identifier);
 
     if(identifier == null || identifier==undefined){return;}
@@ -247,7 +237,7 @@ export class IntersectionModeFeatureModule {
       await this.updateClickedDatapoint(null);
     }
 
-    this.showIntersections();
+    await this.showIntersections();
   }
 
   private async updateClickedDatapoint(identifier: number) {

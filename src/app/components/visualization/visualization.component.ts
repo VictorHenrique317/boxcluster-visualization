@@ -129,7 +129,7 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
     let truncated_datapoints = await this.api_service.truncateModel(new_size);
 
     this.svg_feature.deactivateHighlight();
-    this.intersection_mode_feature.toggleIntersections(null);
+    await this.intersection_mode_feature.toggleIntersections(null);
     this.svg_feature.drawDataPoints(truncated_datapoints);
     this.datapoint_click.emit(null);
   }
@@ -142,9 +142,9 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
     this.datapoint_hover_out.emit(identifier); // To communicate with pattern summary
   }
 
-  private onDatapointClick(identifier: number){
+  private async onDatapointClick(identifier: number){
     this.datapoint_click.emit(identifier); // To communicate with pattern summary
-    this.intersection_mode_feature.toggleIntersections(identifier);
+    await this.intersection_mode_feature.toggleIntersections(identifier);
   }
 
   // public toggleIntersectionMode(){
