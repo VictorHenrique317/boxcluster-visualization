@@ -38,7 +38,7 @@
 - [x] Manter cor da densidade no mouse click, colocar uma cor com mais constraste
 - [x] No padrão selecionado, a fatia representa a proporção de área que está coberta por pelo menos um padrão
 - [x] Efeito de desfoco cinza em vez de transparente
-- [] Mostrar sub-tensores de interseção ao clicar nas arestas, a cor deve ser a do padrão de maior densidade
+- [x] Mostrar sub-tensores de interseção ao clicar nas arestas, a cor deve ser a do padrão de maior densidade
 
 ## Changelogs ??? -> ??? - v0.4.0
 - [] Integrar movimentação no dag, mouse-hover deve fornecer possibilidade de entrar no dag
