@@ -23,7 +23,7 @@ NclusterBox is an algorithm that summarizes n-way Boolean and fuzzy tensors usin
 
 ## Installation
 
-Download the appropriate installation files for your operating system from the [Releases page](link-to-github-releases).
+Download the appropriate installation files for your operating system from the [Releases page](https://github.com/VictorHenrique317/boxcluster-visualization/releases).
 
 ## Usage
 
