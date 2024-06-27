@@ -1,8 +1,8 @@
 <body>
     <header>
-        <h1>Intersections for pattern {{identifier}}</h1>
-        <span>Total intersected percentage: {{total_intersection_percentage*100 | number:'1.2-2'}}%</span><br>
-        <span>Total un-intersected percentage: {{total_untouched_percentage*100 | number:'1.2-2'}}%</span> 
+        <h1>Intersection of patterns {{identifier}} and {{intersector_id}} </h1>
+        <span>Total intersected percentage of {{identifier}}: {{total_intersection_percentage*100 | number:'1.2-2'}}%</span><br>
+        <span>Total un-intersected percentage of {{identifier}}: {{total_untouched_percentage*100 | number:'1.2-2'}}%</span> 
     </header>
 
     <section>
@@ -18,8 +18,6 @@
                     <td mat-cell *matCellDef="let element"> {{element[column]}} </td>
                 </ng-container>
 
-                <!-- Defines an additional column for the expand/collapse button. The button changes its icon based on whether the
-                current row is expanded or not -->
                 <ng-container matColumnDef="expand">
                     <th mat-header-cell *matHeaderCellDef aria-label="row actions">&nbsp;</th>
                     <td mat-cell *matCellDef="let element">

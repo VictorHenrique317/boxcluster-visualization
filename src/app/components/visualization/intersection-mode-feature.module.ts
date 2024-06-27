@@ -35,14 +35,17 @@ export class IntersectionModeFeatureModule {
   }
 
   private connectDatapoints(center: DataPoint, intersections:Map<number, number>){
-    let circles = new Map<number, DataPoint>(this.svg_feature.plot.selectAll('.datapoint').data()
+    let svg_circles = this.svg_feature.plot.selectAll('.datapoint');
+    let id_to_datapoint = new Map<number, DataPoint>(svg_circles.data()
       .map(d => [d.identifier, d]));
 
     for(let [identifier, percentage] of intersections.entries()){
       if(identifier == this.clicked_datapoint_data.identifier){ continue; } // itself
       if(identifier == 0){ continue; } // Excess intersections
-      let related_circle = circles.get(identifier) || null;
-      if (related_circle == null) { continue; } // Related circle is a subpattern
+      let related_datapoint = id_to_datapoint.get(identifier) || null;
+      if (related_datapoint == null) { continue; } // Related circle is a subpattern
+
+      let related_circle = svg_circles.filter(d => d.identifier == identifier);
 
       let stroke_width = 6 * percentage + 2; // 2 to 8
 
@@ -71,8 +74,8 @@ export class IntersectionModeFeatureModule {
         })
         .transition('mouseover')
         .duration(this.transition_duration*2)
-        .attr('x2', this.svg_feature.xScale(related_circle.x))  // Actual end position (x) of the line
-        .attr('y2', this.svg_feature.yScale(related_circle.y))  // Actual end position (y) of the line
+        .attr('x2', this.svg_feature.xScale(related_datapoint.x))  // Actual end position (x) of the line
+        .attr('y2', this.svg_feature.yScale(related_datapoint.y))  // Actual end position (y) of the line
     }
   }
 

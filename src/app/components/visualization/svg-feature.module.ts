@@ -395,6 +395,14 @@ export class SvgFeatureModule {
          });
   }
 
+  public showTooltip(datapoint: DataPoint, circle: any){
+    this.tooltip.show(datapoint, circle);
+  }
+
+  public hideTooltip(datapoint: DataPoint, circle: any){
+    this.tooltip.hide(datapoint, circle);
+  }
+
   public xScale(x: number){
     return this.x_scale(x);
   }

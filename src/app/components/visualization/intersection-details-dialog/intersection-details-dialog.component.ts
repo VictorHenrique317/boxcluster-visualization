@@ -49,8 +49,6 @@ export class IntersectionDetailsDialogComponent {
   protected total_intersection_percentage: number;
   protected intersections: Map<number, [number, Array<Array<string>>]>;
 
-  // protected intersectors_displayed_columns: string[] = ['intersections'];
-  // protected intersectors_data_source: MatTableDataSource<Array<number>>;
   protected intersector_id: number;
 
   protected intersector_data_source: IntersectedTuple[];
@@ -63,12 +61,6 @@ export class IntersectionDetailsDialogComponent {
   protected expanded_element: IntersectedTuple | null;
   private max_dim_values_preview_length = 44;
   
-  // protected intersector_data_source: MatTableDataSource<IntersectedTuple[]>;
-  
-  // expandedElement: IntersectedTuple | null
-
-  
-
   constructor(public dialogRef: MatDialogRef<IntersectionDetailsDialogComponent>, 
       @Inject(MAT_DIALOG_DATA) public data: {intersector: number, intersection_details: IntersectionDetails}, private cdr: ChangeDetectorRef){
 
