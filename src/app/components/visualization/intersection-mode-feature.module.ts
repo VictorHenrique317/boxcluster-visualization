@@ -225,6 +225,10 @@ export class IntersectionModeFeatureModule {
         .attr('d', d=> d.size)
         .remove();  // Remove the paths after the transition
     }
+
+    if(this.clicked_datapoint_data != null){
+      this.svg_feature.drawDataPoints(this.svg_feature.getDrawnDataPoints());
+    }
   }
 
   public async toggleIntersections(identifier: number){

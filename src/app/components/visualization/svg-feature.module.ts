@@ -296,11 +296,12 @@ export class SvgFeatureModule {
     this.toggleHighlight(undefined);
   }
 
-  public drawDataPoints(datapoints: Array<DataPoint>) {
+  public drawDataPoints(datapoints: Array<DataPoint>, force_redraw: boolean = false) {
     if(datapoints == undefined || datapoints == null){ return; }
     if(this.plot == undefined){ return; }
     
     console.log("Drawing " + datapoints.length + " datapoints");
+    // this.plot.selectAll('.datapoint').remove();
     this.datapoints = datapoints;
     this.datapoints_mapping = new Map<number, DataPoint>();
     this.datapoints.forEach(datapoint => this.datapoints_mapping.set(datapoint.identifier, datapoint));
