@@ -107,7 +107,7 @@ impl Translator {
             // dbg!(self.translator.len());
             
             let dim_translator = self.translator.get(i)
-                .ok_or(GenericError::new(format!("Could not get translator for dimension index {}", i).as_str(), file!(), &line!()))?;
+                .ok_or(GenericError::new(format!("Could not get translator for dimension: {:?}", dim).as_str(), file!(), &line!()))?;
 
             let values: Vec<String> = dim.split(",").map(|i| i.to_owned()).collect();
             let mut translated_dim: Vec<usize> = Vec::new();

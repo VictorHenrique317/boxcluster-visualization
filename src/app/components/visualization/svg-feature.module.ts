@@ -301,7 +301,12 @@ export class SvgFeatureModule {
     if(this.plot == undefined){ return; }
     
     console.log("Drawing " + datapoints.length + " datapoints");
-    // this.plot.selectAll('.datapoint').remove();
+    let transition_duration = this.transition_duration;
+    if(force_redraw){ 
+      this.plot.selectAll('.datapoint').remove();
+      transition_duration = 0; 
+    }
+
     this.datapoints = datapoints;
     this.datapoints_mapping = new Map<number, DataPoint>();
     this.datapoints.forEach(datapoint => this.datapoints_mapping.set(datapoint.identifier, datapoint));
@@ -314,12 +319,12 @@ export class SvgFeatureModule {
 
     circles.exit()
         .transition()
-        .duration(this.transition_duration)
+        .duration(transition_duration)
         .attr('r', 0)
         .remove(); 
 
     circles.transition()
-        .duration(this.transition_duration) 
+        .duration(transition_duration) 
         .attr('cx', d => {
             const result = this.x_scale(parseFloat(d.x));
             return result;
@@ -362,7 +367,7 @@ export class SvgFeatureModule {
           this.datapoint_click.emit(d.identifier);
          })
         .transition()
-        .duration(this.transition_duration)
+        .duration(transition_duration)
         .attr('r', d => d.size);
     
     this.drawCircleLegend();

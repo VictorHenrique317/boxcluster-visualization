@@ -198,20 +198,12 @@ export class IntersectionModeFeatureModule {
 
   private async hideIntersections(){
     let intersection_lines = this.svg_feature.svg.selectAll('.intersection_line');
-    intersection_lines
+    await intersection_lines
       .transition('mouseout')
       .duration(this.transition_duration)
       .attr('x2', d => d.x1)  // End position (x) becomes the start position
       .attr('y2', d => d.y1)  // End position (y) becomes the start position
       .remove();
-
-    let circles = this.svg_feature.plot.selectAll('.datapoint');
-    circles
-      .transition('mouseout')
-      .duration(this.transition_duration)
-      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, ${d.a})`)
-      .attr('r', d => d.size)
-      .style('stroke', `rgba(255, 0, 0, 1)`);
 
     if(this.clicked_datapoint_data != null){
       let circle_arc = d3.arc()
@@ -219,15 +211,13 @@ export class IntersectionModeFeatureModule {
       .outerRadius(d => this.clicked_datapoint_data.size);
 
       let pie_chart = this.svg_feature.svg.selectAll('.pie_chart');
-      pie_chart.selectAll('path')
+      await pie_chart.selectAll('path')
         .transition('mouseout')
         .duration(this.transition_duration)
         .attr('d', d=> d.size)
         .remove();  // Remove the paths after the transition
-    }
 
-    if(this.clicked_datapoint_data != null){
-      this.svg_feature.drawDataPoints(this.svg_feature.getDrawnDataPoints());
+      this.svg_feature.drawDataPoints(this.svg_feature.getDrawnDataPoints(), true);
     }
   }
 

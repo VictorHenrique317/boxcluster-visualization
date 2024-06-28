@@ -11,7 +11,7 @@ impl Reader{
         let lines: Vec<String> = fs::read_to_string(file_path)
             .map_err(|_| GenericError::new(format!("Could not open file ({})", file_path).as_str(), file!(), &line!()))?
             .split("\n")
-            .map(|i| i.to_owned())
+            .map(|i| i.to_owned().replace("\r", ""))
             .filter(|i| !i.is_empty())
             .collect();
             

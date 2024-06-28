@@ -112,11 +112,11 @@ fn testDag(){
     // let tensor_path = "tests/test_data/tensors/retweets3d.txt".to_owned();
     // let patterns_path = "tests/test_data/other_patterns/retweets3d_patterns.txt".to_owned();
 
-    // let tensor_path = "tests/test_data/tensors/retweets2d.txt".to_owned();
-    // let patterns_path = "tests/test_data/other_patterns/retweets2d_patterns.txt".to_owned();
+    let tensor_path = "tests/test_data/tensors/retweets2d.txt".to_owned();
+    let patterns_path = "tests/test_data/other_patterns/retweets2d_patterns.txt".to_owned();
     
-    let tensor_path = "tests/test_data/dissimilarity_matrix/8.tensor".to_owned();
-    let patterns_path = "tests/test_data/dissimilarity_matrix/8.patterns".to_owned();
+    // let tensor_path = "tests/test_data/dissimilarity_matrix/8.tensor".to_owned();
+    // let patterns_path = "tests/test_data/dissimilarity_matrix/8.patterns".to_owned();
 
     // let tensor_path = "tests/test_data/rss_evolution_test/synth_co1.txt".to_owned();
     // let patterns_path = "tests/test_data/rss_evolution_test/synth_co1_patterns.txt".to_owned();
@@ -127,5 +127,8 @@ fn testDag(){
 
     let mut application_manager = ApplicationService::default();
     application_manager.init(&tensor_path, &patterns_path).unwrap();
+
+    let rss_evolution = application_manager.getFullRssEvolution();
+    dbg!(rss_evolution);
 
 }

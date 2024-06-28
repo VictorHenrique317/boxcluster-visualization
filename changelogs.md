@@ -23,7 +23,7 @@
 - [x] Implementar preview do padrão no evento de hovering do mouse
 - [x] Ativar o modo de interseção no hovering do mouse
 
-## Changelogs 20/05/2024 -> ??? - v0.3.2
+## Changelogs 20/05/2024 -> 27/06/2024 - v0.3.2
 - [x] Bugfixes gerais
 - [x] FIX: Retirar o botão de configurações
 - [x] FIX: Erros de vocabulário
@@ -39,6 +39,9 @@
 - [x] No padrão selecionado, a fatia representa a proporção de área que está coberta por pelo menos um padrão
 - [x] Efeito de desfoco cinza em vez de transparente
 - [x] Mostrar sub-tensores de interseção ao clicar nas arestas, a cor deve ser a do padrão de maior densidade
+
+## Changelogs 27/06/2024 -> 27/06/2024 - v0.3.3
+- [x] FIX: Bug visual no modo de interseção
 
 ## Changelogs ??? -> ??? - v0.4.0
 - [] Integrar movimentação no dag, mouse-hover deve fornecer possibilidade de entrar no dag
