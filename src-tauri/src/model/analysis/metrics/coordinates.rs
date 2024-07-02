@@ -39,6 +39,22 @@ impl Coordinates {
         println!("");
     }
 
+    // fn printHashMapAsMatrix(map: &HashMap<u32, HashMap<u32, f64>>){
+    //     let mut lines = map.keys().cloned().collect::<Vec<u32>>();
+    //     lines.sort();
+
+    //     for i in lines.iter(){
+    //         let mut columns = map.get(i).expect("Key not found").keys().cloned().collect::<Vec<u32>>();
+    //         columns.sort();
+
+    //         for j in columns.iter(){
+    //             print!("{:.2} ", map.get(i).expect("Key not found").get(j).expect("Key not found"));
+    //         }
+
+    //         println!("");
+    //     }
+    // }
+
     fn buildDissimilarityMatrix<T: DistancesTrait>(distances: &T, n: usize) -> Result<DMatrix<f64>, GenericError> {
         let size: Vec<usize> = vec![n, n];
         let distance_matrix: Arc<Mutex<ArrayD<f64>>> = Arc::new(Mutex::new(Array::zeros(Dim(size.clone())).into_dyn()));
@@ -151,6 +167,7 @@ impl Coordinates {
         }
 
         println!("  Applying Multi Dimensional Scaling...");
+        dbg!(distances.get());
         let n: usize = distances.get().len();
         let dissimilarity_matrix: DMatrix<f64> = Coordinates::buildDissimilarityMatrix(distances, n)?;
         let xys: HashMap<u32, (f64, f64)> = Coordinates::mds(dissimilarity_matrix, 2)?;

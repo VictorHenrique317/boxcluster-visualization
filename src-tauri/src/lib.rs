@@ -91,8 +91,8 @@ fn testDag(){
     // let tensor_path = "../tests/test_data/tensors/4k-big-patterns-fuzzytensor.txt".to_owned();
     // let patterns_path = "../tests/test_data/4k-big-patterns.txt".to_owned();
 
-    // let tensor_path = "../tests/test_data/distance_test/a.txt".to_owned();
-    // let patterns_path = "../tests/test_data/distance_test/a_patterns.txt".to_owned();
+    let tensor_path = "tests/test_data/dissimilarity_matrix/2.tensor".to_owned();
+    let patterns_path = "tests/test_data/dissimilarity_matrix/2.patterns".to_owned();
     
     // let tensor_path = "../tests/test_data/distance_test/b.txt".to_owned();
     // let patterns_path = "../tests/test_data/distance_test/b_patterns.txt".to_owned();
@@ -112,8 +112,8 @@ fn testDag(){
     // let tensor_path = "tests/test_data/tensors/retweets3d.txt".to_owned();
     // let patterns_path = "tests/test_data/other_patterns/retweets3d_patterns.txt".to_owned();
 
-    let tensor_path = "tests/test_data/tensors/retweets2d.txt".to_owned();
-    let patterns_path = "tests/test_data/other_patterns/retweets2d_patterns.txt".to_owned();
+    // let tensor_path = "tests/test_data/tensors/retweets2d.txt".to_owned();
+    // let patterns_path = "tests/test_data/other_patterns/retweets2d_patterns.txt".to_owned();
     
     // let tensor_path = "tests/test_data/dissimilarity_matrix/8.tensor".to_owned();
     // let patterns_path = "tests/test_data/dissimilarity_matrix/8.patterns".to_owned();
@@ -128,7 +128,7 @@ fn testDag(){
     let mut application_manager = ApplicationService::default();
     application_manager.init(&tensor_path, &patterns_path).unwrap();
 
-    let rss_evolution = application_manager.getFullRssEvolution();
-    dbg!(rss_evolution);
+    // let rss_evolution = application_manager.getFullRssEvolution();
+    // dbg!(rss_evolution);
 
 }
