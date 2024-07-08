@@ -220,7 +220,7 @@ export class SvgFeatureModule {
 
     let legend_x = svg_width - (legend_width + legend_x_padding);
 
-    let legend = Legend(d3.scaleLinear([0, 1], ["rgba(255,0,0,0)", "red"]), {
+    let legend = Legend(d3.scaleLinear([0, 1], ["rgba(255,255,255,1)", "rgba(255,0,0,1)"]), {
       title: "Density",
       width: legend_width,
     })

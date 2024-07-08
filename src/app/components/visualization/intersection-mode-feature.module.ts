@@ -47,6 +47,11 @@ export class IntersectionModeFeatureModule {
 
       let related_circle = svg_circles.filter(d => d.identifier == identifier);
 
+      let greatest_density_color = `rgba(${center.r}, ${center.g}, ${center.b}, ${center.a})`;
+      if(related_datapoint.density > center.density){
+        greatest_density_color = `rgba(${related_datapoint.r}, ${related_datapoint.g}, ${related_datapoint.b}, ${related_datapoint.a})`;
+      }
+
       let stroke_width = 6 * percentage + 2; // 2 to 8
 
       let x1 = this.svg_feature.xScale(center.x);
@@ -59,7 +64,7 @@ export class IntersectionModeFeatureModule {
         .attr('y1', this.svg_feature.yScale(center.y))  // Start position (y) of the line
         .attr('x2', this.svg_feature.xScale(center.x))  // Initially, end position (x) is the same as start position
         .attr('y2', this.svg_feature.yScale(center.y))  // Initially, end position (y) is the same as start position
-        .attr('stroke', 'rgba(255, 0, 0, 0.5)')
+        .attr('stroke', greatest_density_color)
         .attr('stroke-width', stroke_width)
         .on('mouseover', (event, l) => {
           d3.select(event.currentTarget).style('cursor', 'pointer');
@@ -93,15 +98,6 @@ export class IntersectionModeFeatureModule {
       .style('stroke', d=> gray);
   }
 
-  private expandCircle(clicked_circle, expansion_factor, intersections, intersections_colors){
-    clicked_circle
-      .attr('r', this.clicked_datapoint_data.size)
-      .transition('mouseover')
-      .duration(this.transition_duration)
-      .attr('r', this.clicked_datapoint_data.size * expansion_factor)
-      .attr('fill', d => `rgba(${d.r}, ${d.g}, ${d.b}, 1)`);
-  }
-
   private createIntersectionChart(root_circle: any, intersections: Map<number, number>, original_radius: number, chart_radius: number){
     let root_datapoint = root_circle.node().__data__;
     let pie = d3.pie()
@@ -133,9 +129,9 @@ export class IntersectionModeFeatureModule {
       .attr('d', pie_chart_arc)
       .attr('fill', (d: any) => {
         let related_datapoint = this.svg_feature.getDatapoint(d.data.key);
-        let r = 130;
-        let g = 0;
-        let b = 173;
+        let r = 2;
+        let g = 178;
+        let b = 227;
         let a = 1;
 
         if(related_datapoint){ // If it isnt id 0 (which means total intersection to the clicked datapoint)
