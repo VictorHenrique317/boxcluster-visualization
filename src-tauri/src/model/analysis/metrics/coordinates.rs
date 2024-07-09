@@ -2,10 +2,14 @@
 
 use std::{collections::HashMap, sync::{Mutex, Arc}};
 use nalgebra::{DMatrix, SVD};
-use ndarray::{IxDynImpl, Dim, ArrayD, Array};
+use ndarray::{Array, Array1, ArrayD, Dim, IxDynImpl};
 use rayon::{iter::IndexedParallelIterator, prelude::{IntoParallelRefIterator, ParallelIterator}};
 use crate::{common::generic_error::GenericError, model::identifier_mapper::IdentifierMapper};
 use super::{metric::Metric, distances::DistancesTrait};
+use ndarray::{Array2, Axis};
+use rand::prelude::*;
+use rand::SeedableRng;
+use ndarray_rand::rand_distr::Uniform;
 
 pub struct Coordinates {
     value: HashMap<u32, (f64, f64)>,
@@ -111,52 +115,134 @@ impl Coordinates {
         return Ok(dissimilarity_matrix);
     }
 
-    fn mds(dissimilarity_matrix: DMatrix<f64>, dimensions: usize) -> Result<HashMap<u32, (f64, f64)>, GenericError> {
-        // Returns a hashmap of the points in the new space, the indices DO NOT represent the identifiers
-        // dbg!(&dissimilarity_matrix);
-        let mut m = dissimilarity_matrix.map(|x| -0.5 * x.powi(2));
+    // fn mds(dissimilarity_matrix: DMatrix<f64>, dimensions: usize) -> Result<HashMap<u32, (f64, f64)>, GenericError> {
+    //     // Returns a hashmap of the points in the new space, the indices DO NOT represent the identifiers
+    //     // dbg!(&dissimilarity_matrix);
+    //     let mut m = dissimilarity_matrix.map(|x| -0.5 * x.powi(2));
 
-        // double centre the rows/columns
-        let row_means = m.row_mean();
-        let col_means = m.column_mean();
-        let total_mean = row_means.mean();
+    //     // double centre the rows/columns
+    //     let row_means = m.row_mean();
+    //     let col_means = m.column_mean();
+    //     let total_mean = row_means.mean();
 
-        for i in 0..m.nrows() {
-            for j in 0..m.ncols() {
-                m[(i, j)] += total_mean - row_means[i] - col_means[j];
-            }
+    //     for i in 0..m.nrows() {
+    //         for j in 0..m.ncols() {
+    //             m[(i, j)] += total_mean - row_means[i] - col_means[j];
+    //         }
+    //     }
+
+    //     // dbg!(&m);
+
+    //     // take the SVD of the double centred matrix, and return the
+    //     // points from it
+    //     let svd = SVD::new(m, true, true);
+    //     let eigen_values = svd.singular_values.map(|x| x.sqrt());
+
+    //     let u = svd.u
+    //         .ok_or(GenericError::new("Error getting U matrix from SVD", file!(), &line!()))?;
+
+    //     let mut result = DMatrix::zeros(u.nrows(), dimensions);
+    //     // dbg!(&eigen_values);
+    //     // dbg!(&result);
+
+    //     for i in 0..u.nrows() {
+    //         for j in 0..dimensions {
+    //             result[(i, j)] = u[(i, j)] * eigen_values[j];
+    //         }
+    //     }
+
+    //     // Convert result to hashmap
+    //     let n_rows = result.nrows();
+    //     let mut xys: HashMap<u32, (f64, f64)> = HashMap::new();
+    //     for i in 0..n_rows {
+    //         let x = result[(i, 0)];
+    //         let y = result[(i, 1)];
+    //         xys.insert(i as u32, (x, y));
+    //     }
+
+    //     return Ok(xys);
+    // }
+
+    fn euclideanNorm(v: &Array1<f64>) -> f64 {
+        let mut sum = 0.0;
+        for i in 0..v.len(){
+            sum += v[i].powi(2);
         }
 
-        // dbg!(&m);
+        return sum.sqrt();
+    }
 
-        // take the SVD of the double centred matrix, and return the
-        // points from it
-        let svd = SVD::new(m, true, true);
-        let eigen_values = svd.singular_values.map(|x| x.sqrt());
-
-        let u = svd.u
-            .ok_or(GenericError::new("Error getting U matrix from SVD", file!(), &line!()))?;
-
-        let mut result = DMatrix::zeros(u.nrows(), dimensions);
-        // dbg!(&eigen_values);
-        // dbg!(&result);
-
-        for i in 0..u.nrows() {
-            for j in 0..dimensions {
-                result[(i, j)] = u[(i, j)] * eigen_values[j];
+    fn SMACOF(d: &Array2<f64>, p: usize, max_iter: usize, tol: f64, random_state: Option<u64>) -> HashMap<u32, (f64, f64)> {
+        let n = d.shape()[0];
+        let mut rng = match random_state {
+            Some(seed) => StdRng::seed_from_u64(seed),
+            None => StdRng::from_entropy(),
+        };
+    
+        // Initialize points randomly in p-dimensional space
+        let mut x: Array2<f64> = Array::zeros((n, p));
+        let step = Uniform::new(0.0, 1.0);
+        for i in 0..n {
+            for j in 0..p {
+                x[[i, j]] = step.sample(&mut rng);
             }
         }
-
+    
+        // Add a small epsilon to avoid division by zero
+        let epsilon = 1e-10;
+        let d = d + epsilon;
+        let w = 1.0 / (d.mapv(|v| v.powi(2)));
+    
+        // Compute stress function
+        let compute_stress = |x: &Array2<f64>| -> f64 {
+            let mut stress = 0.0;
+            for i in 0..n {
+                for j in (i + 1)..n {
+                    let dist_ij = Coordinates::euclideanNorm(&(&x.row(i) - &x.row(j)));
+                    stress += w[[i, j]] * (dist_ij - d[[i, j]]).powi(2);
+                }
+            }
+            stress
+        };
+    
+        for _ in 0..max_iter {
+            let stress_prev = compute_stress(&x);
+    
+            // Update each point using the majorization step
+            for i in 0..n {
+                let mut numerator = Array2::zeros((1, p));
+                let mut denominator = 0.0;
+                for j in 0..n {
+                    if i != j {
+                        let dist_ij = Coordinates::euclideanNorm(&(&x.row(i) - &x.row(j)));
+                        let dist_ij = if dist_ij == 0.0 { epsilon } else { dist_ij };
+                        let term1 = x.row(j).to_owned() + ((d[[i, j]] / dist_ij) * (&x.row(i) - &x.row(j)).to_owned());
+                        let contrib = w[[i, j]] * d[[i, j]] * term1;
+                        numerator = numerator + contrib.insert_axis(Axis(0));
+                        denominator += w[[i, j]] * d[[i, j]];
+                    }
+                }
+                x.row_mut(i).assign(&(numerator.sum_axis(Axis(0)) / denominator));
+            }
+    
+            // Compute new stress
+            let stress_new = compute_stress(&x);
+    
+            // Check for convergence
+            if (stress_prev - stress_new).abs() < tol {
+                break;
+            }
+        }
+    
         // Convert result to hashmap
-        let n_rows = result.nrows();
         let mut xys: HashMap<u32, (f64, f64)> = HashMap::new();
-        for i in 0..n_rows {
-            let x = result[(i, 0)];
-            let y = result[(i, 1)];
-            xys.insert(i as u32, (x, y));
+        for i in 0..n {
+            let n_x: f64 = x[[i, 0]];
+            let n_y: f64 = x[[i, 1]];
+            xys.insert(i as u32, (n_x, n_y));
         }
 
-        return Ok(xys);
+        return xys;
     }
 
     fn calculate<T: DistancesTrait>(distances: &T) -> Result<HashMap<u32, (f64, f64)>, GenericError> {
@@ -170,7 +256,11 @@ impl Coordinates {
         dbg!(distances.get());
         let n: usize = distances.get().len();
         let dissimilarity_matrix: DMatrix<f64> = Coordinates::buildDissimilarityMatrix(distances, n)?;
-        let xys: HashMap<u32, (f64, f64)> = Coordinates::mds(dissimilarity_matrix, 2)?;
+        let dissimilarity_matrix: Array2<f64> = Array2::from_shape_vec((n, n), dissimilarity_matrix.data.as_vec().clone())
+            .map_err(|_| GenericError::new("Error converting dissimilarity matrix to ndarray", file!(), &line!()))?;
+        
+        // let xys: HashMap<u32, (f64, f64)> = Coordinates::mds(dissimilarity_matrix, 2)?;
+        let xys: HashMap<u32, (f64, f64)> = Coordinates::SMACOF(&dissimilarity_matrix, 2, 300, 1e-6, None);
 
         let mut visible_identifiers: Vec<u32> = distances.get().keys().cloned().collect();
         visible_identifiers.sort();
