@@ -245,6 +245,42 @@ impl Coordinates {
         return xys;
     }
 
+    fn scaleCoordinates(xys: &HashMap<u32, (f64, f64)>) -> HashMap<u32, (f64, f64)> {
+        let mut x_max = f64::MIN;
+        let mut x_min = f64::MAX;
+
+        let mut y_max = f64::MIN;
+        let mut y_min = f64::MAX;
+        for (_, (x, y)) in xys.iter() {
+            if x > &x_max { x_max = *x; }
+            if x < &x_min { x_min = *x; }
+
+            if y > &y_max { y_max = *y; }
+            if y < &y_min { y_min = *y; }
+        }
+
+        // let x_abs_max = x_max.abs().max(x_min.abs());
+        // let y_abs_max = y_max.abs().max(y_min.abs());
+
+        // let mut smallest_x_extreme = x_max.min(x_min.abs());
+        // let mut smallest_y_extreme = y_max.min(y_min.abs());
+
+        // let mut scaled_coordinates: HashMap<u32, (f64, f64)> = HashMap::new();
+        // for(identifier, (x, y)) in xys.iter() {
+        //     let mut x_scaled = *x;
+        //     let mut y_scaled = *y;
+        //     if x_abs_max != 0.0 { x_scaled = x / x_abs_max; }
+        //     if y_abs_max != 0.0 { y_scaled = y / &y_abs_max; }
+
+        //     let x_translation = (1.0 - smallest_x_extreme)/2.0;
+        //     let y_translation = (1.0 - y_abs_max)/2.0;
+
+        //     scaled_coordinates.insert(*identifier, (x_scaled, y_scaled));
+        // }
+
+        return scaled_coordinates;
+    }
+
     fn calculate<T: DistancesTrait>(distances: &T) -> Result<HashMap<u32, (f64, f64)>, GenericError> {
         if distances.get().len() == 0{ // Only one datapoint, no need to calculate MDS
             let mut xys = HashMap::new();
@@ -253,20 +289,19 @@ impl Coordinates {
         }
 
         println!("  Applying Multi Dimensional Scaling...");
-        dbg!(distances.get());
         let n: usize = distances.get().len();
         let dissimilarity_matrix: DMatrix<f64> = Coordinates::buildDissimilarityMatrix(distances, n)?;
         let dissimilarity_matrix: Array2<f64> = Array2::from_shape_vec((n, n), dissimilarity_matrix.data.as_vec().clone())
             .map_err(|_| GenericError::new("Error converting dissimilarity matrix to ndarray", file!(), &line!()))?;
         
-        // let xys: HashMap<u32, (f64, f64)> = Coordinates::mds(dissimilarity_matrix, 2)?;
-        let xys: HashMap<u32, (f64, f64)> = Coordinates::SMACOF(&dissimilarity_matrix, 2, 300, 1e-6, None);
+        let xys: HashMap<u32, (f64, f64)> = Coordinates::SMACOF(&dissimilarity_matrix, 2, 300, 1e-6, Some(42));
+        let scaled_xys: HashMap<u32, (f64, f64)> = Coordinates::scaleCoordinates(&xys);
 
         let mut visible_identifiers: Vec<u32> = distances.get().keys().cloned().collect();
         visible_identifiers.sort();
 
         let mut result: HashMap<u32, (f64, f64)> = HashMap::new();
-        for entry in xys.iter(){
+        for entry in scaled_xys.iter(){
             let i = entry.0;
             let identifier = visible_identifiers.get(*i as usize)
                 .ok_or(GenericError::new("Identifier not found", file!(), &line!()))?;

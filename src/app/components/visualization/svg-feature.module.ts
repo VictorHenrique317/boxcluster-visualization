@@ -233,21 +233,22 @@ export class SvgFeatureModule {
   }
 
   private scalingFunction(datapoints: Array<DataPoint>) {
-    let x_max_module = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.x)));
-    let y_max_module = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.y)));
-    let max_module = Math.max(x_max_module, y_max_module);
+    // let x_max_module = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.x)));
+    // let y_max_module = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.y)));
+    // let max_module = Math.max(x_max_module, y_max_module);
 
     let scaled_datapoints: Array<DataPoint> = datapoints;
     let screen_coverage = 0.5;
+    // let screen_coverage = 0.8;
     datapoints.forEach(datapoint => {
-        let result_x = datapoint.x / x_max_module;
-        let result_y = datapoint.y / y_max_module;
+      //   let result_x = datapoint.x / x_max_module;
+      //   let result_y = datapoint.y / y_max_module;
 
-      if (isNaN(result_x) || !isFinite(result_x)) { result_x = datapoint.x; }
-      if (isNaN(result_y) || !isFinite(result_y)) { result_y = datapoint.y; }
+      // if (isNaN(result_x) || !isFinite(result_x)) { result_x = datapoint.x; }
+      // if (isNaN(result_y) || !isFinite(result_y)) { result_y = datapoint.y; }
 
-        datapoint.x = result_x / ((1-screen_coverage) + 1);
-        datapoint.y = result_y / ((1-screen_coverage) + 1);
+        datapoint.x = datapoint.x / ((1-screen_coverage) + 1);
+        datapoint.y = datapoint.y / ((1-screen_coverage) + 1);
     });
 
     return scaled_datapoints;
