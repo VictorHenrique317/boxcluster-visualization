@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use core::panic;
 use std::{collections::HashMap, sync::{Mutex, Arc}};
 use nalgebra::{DMatrix, SVD};
 use ndarray::{Array, Array1, ArrayD, Dim, IxDynImpl};
@@ -245,9 +246,10 @@ impl Coordinates {
         return xys;
     }
 
-    fn scaleCoordinates(xys: &HashMap<u32, (f64, f64)>) -> HashMap<u32, (f64, f64)> {
+    fn scaleCoordinates(xys: &HashMap<u32, (f64, f64)>, dissimilarity_matrix: &Array2<f64>) -> HashMap<u32, (f64, f64)> {
         if xys.len() == 0 { return HashMap::new(); }
 
+        let mut minimum_dissimilarity_pair: Option<(u32, u32)> = None;
         let mut x_min = f64::MAX;
         let mut x_max = f64::MIN;
         
@@ -269,8 +271,8 @@ impl Coordinates {
         y_min /= y_abs_max;
         y_max /= y_abs_max;
 
-        let mut scaled_coordinates: HashMap<u32, (f64, f64)> = xys.iter()
-            .map(|(identifier, coords)| (*identifier, (coords.0.clone() / x_abs_max, coords.1.clone() / y_abs_max)))
+        let xys: HashMap<u32, (f64, f64)> = xys.iter()
+            .map(|(i, coords)| (*i, (coords.0.clone() / x_abs_max, coords.1.clone() / y_abs_max)))
             .collect(); // Scale to [-1, 1]
 
         let left_space = 1.0 + x_min; // This one or bellow is going to be zero
@@ -278,7 +280,8 @@ impl Coordinates {
 
         let top_space = 1.0 - y_max; // This one or bellow is going to be zero
         let bottom_space = 1.0 + y_min; // This one or bellow is going to be zero
-        for (identifier, (x, y)) in xys.iter(){
+        let mut scaled_coordinates: HashMap<u32, (f64, f64)> = HashMap::new();
+        for (i, (x, y)) in xys.iter(){
             let mut scaled_x = *x;
             let x_delta = (left_space + right_space) / 2.0;
 
@@ -291,7 +294,11 @@ impl Coordinates {
             if top_space > bottom_space { scaled_y = y + y_delta;} // Shift to the top
             else if bottom_space > top_space { scaled_y = y - y_delta;} // Shift to the bottom
 
-            scaled_coordinates.insert(*identifier, (scaled_x, scaled_y));
+            if scaled_x > 1.0 || scaled_y > 1.0 {
+                panic!("Scaled coordinates are out of bounds: x: {}, y: {}", scaled_x, scaled_y);
+            }
+
+            scaled_coordinates.insert(*i, (scaled_x, scaled_y));
         }
 
         return scaled_coordinates;
@@ -311,7 +318,7 @@ impl Coordinates {
             .map_err(|_| GenericError::new("Error converting dissimilarity matrix to ndarray", file!(), &line!()))?;
         
         let xys: HashMap<u32, (f64, f64)> = Coordinates::SMACOF(&dissimilarity_matrix, 2, 300, 1e-6, Some(42));
-        let scaled_xys: HashMap<u32, (f64, f64)> = Coordinates::scaleCoordinates(&xys);
+        let scaled_xys: HashMap<u32, (f64, f64)> = Coordinates::scaleCoordinates(&xys, &dissimilarity_matrix);
 
         let mut visible_identifiers: Vec<u32> = distances.get().keys().cloned().collect();
         visible_identifiers.sort();
