@@ -246,11 +246,14 @@ impl Coordinates {
     }
 
     fn scaleCoordinates(xys: &HashMap<u32, (f64, f64)>) -> HashMap<u32, (f64, f64)> {
-        let mut x_max = f64::MIN;
-        let mut x_min = f64::MAX;
+        if xys.len() == 0 { return HashMap::new(); }
 
-        let mut y_max = f64::MIN;
+        let mut x_min = f64::MAX;
+        let mut x_max = f64::MIN;
+        
         let mut y_min = f64::MAX;
+        let mut y_max = f64::MIN;
+        
         for (_, (x, y)) in xys.iter() {
             if x > &x_max { x_max = *x; }
             if x < &x_min { x_min = *x; }
@@ -259,24 +262,37 @@ impl Coordinates {
             if y < &y_min { y_min = *y; }
         }
 
-        // let x_abs_max = x_max.abs().max(x_min.abs());
-        // let y_abs_max = y_max.abs().max(y_min.abs());
+        let x_abs_max = x_max.abs().max(x_min.abs());
+        let y_abs_max = y_max.abs().max(y_min.abs());
+        x_min /= x_abs_max;
+        x_max /= x_abs_max;
+        y_min /= y_abs_max;
+        y_max /= y_abs_max;
 
-        // let mut smallest_x_extreme = x_max.min(x_min.abs());
-        // let mut smallest_y_extreme = y_max.min(y_min.abs());
+        let mut scaled_coordinates: HashMap<u32, (f64, f64)> = xys.iter()
+            .map(|(identifier, coords)| (*identifier, (coords.0.clone() / x_abs_max, coords.1.clone() / y_abs_max)))
+            .collect(); // Scale to [-1, 1]
 
-        // let mut scaled_coordinates: HashMap<u32, (f64, f64)> = HashMap::new();
-        // for(identifier, (x, y)) in xys.iter() {
-        //     let mut x_scaled = *x;
-        //     let mut y_scaled = *y;
-        //     if x_abs_max != 0.0 { x_scaled = x / x_abs_max; }
-        //     if y_abs_max != 0.0 { y_scaled = y / &y_abs_max; }
+        let left_space = 1.0 + x_min; // This one or bellow is going to be zero
+        let right_space = 1.0 - x_max; // This one or bellow is going to be zero
 
-        //     let x_translation = (1.0 - smallest_x_extreme)/2.0;
-        //     let y_translation = (1.0 - y_abs_max)/2.0;
+        let top_space = 1.0 - y_max; // This one or bellow is going to be zero
+        let bottom_space = 1.0 + y_min; // This one or bellow is going to be zero
+        for (identifier, (x, y)) in xys.iter(){
+            let mut scaled_x = *x;
+            let x_delta = (left_space + right_space) / 2.0;
 
-        //     scaled_coordinates.insert(*identifier, (x_scaled, y_scaled));
-        // }
+            if left_space > right_space { scaled_x = x - x_delta;} // Shift to the left
+            else if right_space > left_space { scaled_x = x + x_delta;} // Shift to the right
+
+            let mut scaled_y = *y;
+            let y_delta = (top_space + bottom_space) / 2.0;
+
+            if top_space > bottom_space { scaled_y = y + y_delta;} // Shift to the top
+            else if bottom_space > top_space { scaled_y = y - y_delta;} // Shift to the bottom
+
+            scaled_coordinates.insert(*identifier, (scaled_x, scaled_y));
+        }
 
         return scaled_coordinates;
     }

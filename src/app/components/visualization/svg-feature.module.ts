@@ -302,6 +302,7 @@ export class SvgFeatureModule {
     if(this.plot == undefined){ return; }
     
     console.log("Drawing " + datapoints.length + " datapoints");
+    console.log(datapoints);
     let transition_duration = this.transition_duration;
     if(force_redraw){ 
       this.plot.selectAll('.datapoint').remove();
