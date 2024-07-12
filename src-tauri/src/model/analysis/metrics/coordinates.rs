@@ -5,7 +5,7 @@ use std::{collections::HashMap, sync::{Mutex, Arc}};
 use nalgebra::{DMatrix, SVD};
 use ndarray::{Array, Array1, ArrayD, Dim, IxDynImpl};
 use rayon::{iter::IndexedParallelIterator, prelude::{IntoParallelRefIterator, ParallelIterator}};
-use crate::{common::generic_error::GenericError, model::identifier_mapper::IdentifierMapper};
+use crate::{common::generic_error::GenericError, model::identifier_mapper::{self, IdentifierMapper}};
 use super::{metric::Metric, distances::DistancesTrait};
 use ndarray::{Array2, Axis};
 use rand::prelude::*;
@@ -246,10 +246,15 @@ impl Coordinates {
         return xys;
     }
 
-    fn scaleCoordinates(xys: &HashMap<u32, (f64, f64)>, dissimilarity_matrix: &Array2<f64>) -> HashMap<u32, (f64, f64)> {
-        if xys.len() == 0 { return HashMap::new(); }
+    fn indexToIdentifier(index: &u32, ordered_visible_identifiers: &Vec<u32>) -> Result<u32, GenericError> {
+        return Ok(*ordered_visible_identifiers.get(*index as usize)
+            .ok_or(GenericError::new("Identifier not found", file!(), &line!()))?);
+    }
 
-        let mut minimum_dissimilarity_pair: Option<(u32, u32)> = None;
+
+    fn scaleCoordinates(xys: &HashMap<u32, (f64, f64)>) -> Result<HashMap<u32, (f64, f64)>, GenericError> {
+        if xys.len() == 0 { return Ok(HashMap::new()); }
+
         let mut x_min = f64::MAX;
         let mut x_max = f64::MIN;
         
@@ -280,28 +285,40 @@ impl Coordinates {
 
         let top_space = 1.0 - y_max; // This one or bellow is going to be zero
         let bottom_space = 1.0 + y_min; // This one or bellow is going to be zero
+
+        let x_delta = match right_space > left_space {
+            true => (left_space + right_space) / 2.0, // Shift to the right
+            false => -(left_space + right_space) / 2.0, // Shift to the left
+        };
+
+        let y_delta = match top_space > bottom_space {
+            true => (top_space + bottom_space) / 2.0, // Shift to the top
+            false => -(top_space + bottom_space) / 2.0, // Shift to the bottom
+        };
+
+        let x_max = x_max + x_delta; // x_max and x_min should be equal
+        let x_min = x_min + x_delta; // x_max and x_min should be equal
+        let y_max = y_max + y_delta; // y_max and y_min should be equal
+        let y_min = y_min + y_delta; // y_max and y_min should be equal
+        let x_scaling_factor = 1.0/x_max; // x_max will be 1 and x_min will be -1
+        let y_scaling_factor = 1.0/y_max; // y_max will be 1 and y_min will be -1
+    
         let mut scaled_coordinates: HashMap<u32, (f64, f64)> = HashMap::new();
         for (i, (x, y)) in xys.iter(){
-            let mut scaled_x = *x;
-            let x_delta = (left_space + right_space) / 2.0;
+            let scaled_x = x_scaling_factor * (*x + x_delta);
+            let scaled_y = y_scaling_factor * (*y + y_delta);
 
-            if left_space > right_space { scaled_x = x - x_delta;} // Shift to the left
-            else if right_space > left_space { scaled_x = x + x_delta;} // Shift to the right
-
-            let mut scaled_y = *y;
-            let y_delta = (top_space + bottom_space) / 2.0;
-
-            if top_space > bottom_space { scaled_y = y + y_delta;} // Shift to the top
-            else if bottom_space > top_space { scaled_y = y - y_delta;} // Shift to the bottom
-
-            if scaled_x > 1.0 || scaled_y > 1.0 {
+            if scaled_x > 1.001 || scaled_y > 1.001 {
                 panic!("Scaled coordinates are out of bounds: x: {}, y: {}", scaled_x, scaled_y);
             }
 
             scaled_coordinates.insert(*i, (scaled_x, scaled_y));
         }
 
-        return scaled_coordinates;
+        dbg!(x_scaling_factor, y_scaling_factor);
+        dbg!(x_max, x_min);
+        dbg!(y_max, y_min);
+        return Ok(scaled_coordinates);
     }
 
     fn calculate<T: DistancesTrait>(distances: &T) -> Result<HashMap<u32, (f64, f64)>, GenericError> {
@@ -318,18 +335,17 @@ impl Coordinates {
             .map_err(|_| GenericError::new("Error converting dissimilarity matrix to ndarray", file!(), &line!()))?;
         
         let xys: HashMap<u32, (f64, f64)> = Coordinates::SMACOF(&dissimilarity_matrix, 2, 300, 1e-6, Some(42));
-        let scaled_xys: HashMap<u32, (f64, f64)> = Coordinates::scaleCoordinates(&xys, &dissimilarity_matrix);
 
-        let mut visible_identifiers: Vec<u32> = distances.get().keys().cloned().collect();
-        visible_identifiers.sort();
+        let mut ordered_visible_identifiers: Vec<u32> = distances.get().keys().cloned().collect();
+        ordered_visible_identifiers.sort();
+        let scaled_xys: HashMap<u32, (f64, f64)> = Coordinates::scaleCoordinates(&xys)?;
 
         let mut result: HashMap<u32, (f64, f64)> = HashMap::new();
         for entry in scaled_xys.iter(){
             let i = entry.0;
-            let identifier = visible_identifiers.get(*i as usize)
-                .ok_or(GenericError::new("Identifier not found", file!(), &line!()))?;
+            let identifier = Coordinates::indexToIdentifier(i, &ordered_visible_identifiers)?;
 
-            result.insert(*identifier, *entry.1);
+            result.insert(identifier, *entry.1);
         }
 
         return Ok(result);
