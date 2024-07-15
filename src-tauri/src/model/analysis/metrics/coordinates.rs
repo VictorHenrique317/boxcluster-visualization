@@ -174,7 +174,6 @@ impl Coordinates {
     }
 
     fn SMACOF(d: &Array2<f64>, p: usize, max_iter: usize, tol: f64, random_state: Option<u64>) -> HashMap<u32, (f64, f64)> {
-        // 20s, 
         println!("      Initializing SMACOF...");
         let n = d.shape()[0];
         let mut rng = match random_state {
@@ -201,13 +200,13 @@ impl Coordinates {
             let mut stress = 0.0;
             for i in 0..n {
                 for j in (i + 1)..n {
-                    let dist_ij = Coordinates::euclideanNorm(&(&x.row(i) - &x.row(j)));
+                    let dist_ij = (&x.row(i) - &x.row(j)).mapv(f64::abs).sum();
                     stress += w[[i, j]] * (dist_ij - d[[i, j]]).powi(2);
                 }
             }
             stress
         };
-
+    
         // Majorization loop
         let initial_stress = compute_stress(&x);
         println!("\t\tInitial stress: {}", initial_stress);
@@ -221,9 +220,9 @@ impl Coordinates {
                 let mut denominator = 0.0;
                 for j in 0..n {
                     if i != j {
-                        let dist_ij = Coordinates::euclideanNorm(&(&x.row(i) - &x.row(j)));
+                        let dist_ij = (&x.row(i) - &x.row(j)).mapv(f64::abs).sum();
                         let dist_ij = if dist_ij == 0.0 { epsilon } else { dist_ij };
-                        let term1 = x.row(j).to_owned() + ((d[[i, j]] / dist_ij) * (&x.row(i) - &x.row(j)).to_owned());
+                        let term1 = x.row(j).to_owned() + ((d[[i, j]] / dist_ij) * (&x.row(j) - &x.row(i)).to_owned());
                         let contrib = w[[i, j]] * d[[i, j]] * term1;
                         numerator = numerator + contrib.insert_axis(Axis(0));
                         denominator += w[[i, j]] * d[[i, j]];
@@ -231,7 +230,7 @@ impl Coordinates {
                 }
                 x.row_mut(i).assign(&(numerator.sum_axis(Axis(0)) / denominator));
             }
-
+    
             bar.inc(1);
     
             // Compute new stress
@@ -254,7 +253,7 @@ impl Coordinates {
             let n_y: f64 = x[[i, 1]];
             xys.insert(i as u32, (n_x, n_y));
         }
-
+    
         return xys;
     }
 
