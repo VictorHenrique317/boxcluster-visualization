@@ -174,7 +174,7 @@ impl Coordinates {
     }
 
     fn SMACOF(d: &Array2<f64>, p: usize, max_iter: usize, tol: f64, random_state: Option<u64>) -> HashMap<u32, (f64, f64)> {
-        // 5s, 
+        // 20s, 
         println!("      Initializing SMACOF...");
         let n = d.shape()[0];
         let mut rng = match random_state {
@@ -244,6 +244,7 @@ impl Coordinates {
         }
         bar.finish();
         let final_stress = compute_stress(&x);
+        println!();
         println!("\t\tFinal stress: {}", final_stress);
     
         // Convert result to hashmap
