@@ -315,7 +315,9 @@ export class SvgFeatureModule {
 
     this.plot.call(this.tooltip);
 
-    let scaled_datapoints = this.scalingFunction(this.datapoints);
+    let scaled_datapoints = this.datapoints;
+    if(!force_redraw){ scaled_datapoints = this.scalingFunction(datapoints); }
+    
     const circles = this.plot.selectAll('.datapoint')
         .data(scaled_datapoints, d => d.identifier);
 
