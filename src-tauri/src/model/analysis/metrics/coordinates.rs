@@ -5,7 +5,7 @@ use std::{collections::HashMap, sync::{Mutex, Arc}};
 use nalgebra::{DMatrix, SVD};
 use ndarray::{Array, Array1, ArrayD, Dim, IxDynImpl};
 use rayon::{iter::IndexedParallelIterator, prelude::{IntoParallelRefIterator, ParallelIterator}};
-use crate::{common::generic_error::GenericError, model::identifier_mapper::{self, IdentifierMapper}};
+use crate::{common::{generic_error::GenericError, progress_bar}, model::identifier_mapper::{self, IdentifierMapper}};
 use super::{metric::Metric, distances::DistancesTrait};
 use ndarray::{Array2, Axis};
 use rand::prelude::*;
@@ -174,6 +174,8 @@ impl Coordinates {
     }
 
     fn SMACOF(d: &Array2<f64>, p: usize, max_iter: usize, tol: f64, random_state: Option<u64>) -> HashMap<u32, (f64, f64)> {
+        // 5s, 
+        println!("      Initializing SMACOF...");
         let n = d.shape()[0];
         let mut rng = match random_state {
             Some(seed) => StdRng::seed_from_u64(seed),
@@ -205,7 +207,11 @@ impl Coordinates {
             }
             stress
         };
-    
+
+        // Majorization loop
+        let initial_stress = compute_stress(&x);
+        println!("\t\tInitial stress: {}", initial_stress);
+        let bar = progress_bar::new(max_iter as u64, "\t\tIterations");
         for _ in 0..max_iter {
             let stress_prev = compute_stress(&x);
     
@@ -225,6 +231,8 @@ impl Coordinates {
                 }
                 x.row_mut(i).assign(&(numerator.sum_axis(Axis(0)) / denominator));
             }
+
+            bar.inc(1);
     
             // Compute new stress
             let stress_new = compute_stress(&x);
@@ -234,6 +242,9 @@ impl Coordinates {
                 break;
             }
         }
+        bar.finish();
+        let final_stress = compute_stress(&x);
+        println!("\t\tFinal stress: {}", final_stress);
     
         // Convert result to hashmap
         let mut xys: HashMap<u32, (f64, f64)> = HashMap::new();
@@ -315,9 +326,6 @@ impl Coordinates {
             scaled_coordinates.insert(*i, (scaled_x, scaled_y));
         }
 
-        dbg!(x_scaling_factor, y_scaling_factor);
-        dbg!(x_max, x_min);
-        dbg!(y_max, y_min);
         return Ok(scaled_coordinates);
     }
 
