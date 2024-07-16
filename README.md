@@ -1,6 +1,7 @@
 # BoxCluster Visualization
 
 This application provides an interactive visualization tool for exploring patterns discovered by the NclusterBox algorithm in Boolean and fuzzy tensors. 
+![BoxCluster Visualization Screenshot](./images/screenshot1.png)
 
 ## About NclusterBox
 
