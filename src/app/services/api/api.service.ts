@@ -170,5 +170,21 @@ export class ApiService {
 
     return subpatterns_identifiers;
   }
+
+  public async getDatapointsWithSubPatterns(): Promise<Array<DataPoint>> {
+    let datapoints;
+    if(!environment.dev_mode){
+      datapoints = await invoke("getDatapointsWithSubPatterns").catch((error: any) => {
+        // console.error(error);
+        this.dialog_service.openErrorDialog("Error while fetching datapoints with subpatterns.");
+        throw error;
+      });
+    }else{
+      let rawdata = await fs.readTextFile(await resolveResource('resources/datapoints_with_subpatterns.json'));
+      datapoints = JSON.parse(rawdata);
+    }
+
+    return datapoints;
+  }
   
 }

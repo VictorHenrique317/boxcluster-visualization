@@ -47,6 +47,14 @@ pub fn getTruncatedRssEvolution(application_service: State<ApplicationServiceSta
 }
 
 #[tauri::command]
+pub fn getAllSubPatternsIdentifiers(application_service: State<ApplicationServiceState>) -> Result<Vec<u32>, GenericError> {
+    println!("Calling getAllSubPatternsIdentifiers...");
+
+    let application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
+    return application_service.getAllSubPatternsIdentifiers();
+}
+
+#[tauri::command]
 pub fn getDatapointsWithSubPatterns(application_service: State<ApplicationServiceState>) -> Result<Vec<DataPoint>, GenericError> {
     println!("Calling getDatapointsWithSubPatterns...");
 

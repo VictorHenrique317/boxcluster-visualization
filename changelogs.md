@@ -43,10 +43,10 @@
 ## Changelogs 27/06/2024 -> 27/06/2024 - v0.3.3
 - [x] FIX: Bug visual no modo de interseção
 
-## Changelogs 27/06/2024 -> ????? - v0.3.4
+## Changelogs 27/06/2024 -> 12/07/2024 - v0.3.4
 - [x] FIX: Ajuste de cores
 - [x] UPDATE: Re-implementacão do MDS
 - [x] UPDATE: Re-implementacão do algoritmo de distribuição de pontos 
 
-## Changelogs ??? -> ??? - v0.4.0
+## Changelogs 16/07/2024 -> ??? - v0.4.0
 - [] Integrar movimentação no dag, mouse-hover deve fornecer possibilidade de entrar no dag

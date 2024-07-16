@@ -135,6 +135,8 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
   }
 
   public toggleHighlightSuperpatterns(toggle: boolean){
+    let superpatterns = this.api_service.getDatapointsWithSubPatterns();
+
     this.svg_feature.toggleHighlightSuperpatterns(toggle);
   }
 
