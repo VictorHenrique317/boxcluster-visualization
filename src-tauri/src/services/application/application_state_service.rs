@@ -3,11 +3,10 @@ use crate::common::generic_error::GenericError;
 use crate::database::pattern::Pattern;
 use crate::database::tensor::Tensor;
 
-use crate::model::analysis::metrics::metric::Metric;
-use crate::model::identifier_mapper::{IdentifierMapper, self};
+use crate::model::identifier_mapper::IdentifierMapper;
 use crate::services::dag::dag_service::DagService;
 use crate::services::datapoint_service::DataPointService;
-use crate::services::metrics_service::{MetricsService, self};
+use crate::services::metrics_service::MetricsService;
 
 #[derive(Default)]
 pub struct ApplicationStateService{

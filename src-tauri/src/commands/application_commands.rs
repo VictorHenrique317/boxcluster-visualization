@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use tauri::State;
-use crate::{common::generic_error::GenericError, controller::states::states::{ApplicationServiceState, PaginatorServiceState}, database::{datapoint::DataPoint, intersections_details::IntersectionsDetails, raw_pattern::RawPattern}};
+use crate::{common::generic_error::GenericError, controller::states::states::ApplicationServiceState, database::{datapoint::DataPoint, intersections_details::IntersectionsDetails, raw_pattern::RawPattern}};
 
 #[tauri::command]
 pub fn initApplication(application_service: State<ApplicationServiceState>, tensor_path: String, patterns_path: String) 
@@ -47,7 +47,15 @@ pub fn getTruncatedRssEvolution(application_service: State<ApplicationServiceSta
 }
 
 #[tauri::command]
-pub fn descendDag(application_service: State<ApplicationServiceState>, next_identifier: u32) -> Result<(), GenericError>{
+pub fn getDatapointsWithSubPatterns(application_service: State<ApplicationServiceState>) -> Result<Vec<DataPoint>, GenericError> {
+    println!("Calling getDatapointsWithSubPatterns...");
+
+    let application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
+    return application_service.getDatapointsWithSubPatterns();
+}
+
+#[tauri::command]
+pub fn descendDag(application_service: State<ApplicationServiceState>, next_identifier: u32) -> Result<Vec<DataPoint>, GenericError>{
     println!("Calling descendDag...");
 
     let mut application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
@@ -55,7 +63,7 @@ pub fn descendDag(application_service: State<ApplicationServiceState>, next_iden
 }
 
 #[tauri::command]
-pub fn ascendDag(application_service: State<ApplicationServiceState>) -> Result<(), GenericError>{
+pub fn ascendDag(application_service: State<ApplicationServiceState>) -> Result<Vec<DataPoint>, GenericError>{
     println!("Calling ascendDag...");
 
     let mut application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
@@ -68,14 +76,6 @@ pub fn getDataPoints(application_service: State<ApplicationServiceState>) -> Res
 
     let application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
     return application_service.getDataPoints();
-}
-
-#[tauri::command]
-pub fn getAllSubPatternsIdentifiers(application_service: State<ApplicationServiceState>) -> Result<Vec<u32>, GenericError> {
-    println!("Calling getAllSubPatternsIdentifiers...");
-
-    let application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
-    return application_service.getAllSubPatternsIdentifiers();
 }
 
 #[tauri::command]

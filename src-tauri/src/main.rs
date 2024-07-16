@@ -31,7 +31,7 @@ fn main() {
             getFullRssEvolution,
             getTruncatedRssEvolution,
             getDataPoints,
-            getAllSubPatternsIdentifiers,
+            getDatapointsWithSubPatterns,
             getPattern,
             getIntersectionsPercentages,
             getIntersectionDetails,

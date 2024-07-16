@@ -10,7 +10,7 @@ pub trait DistancesTrait {
 
 pub struct DistancesView {
     view: HashMap<u32, HashMap<u32, f64>>,
-    mapping: HashMap<u32, u32>,
+    // mapping: HashMap<u32, u32>,
 
 }
 
@@ -29,9 +29,10 @@ impl DistancesTrait for DistancesView {
 #[allow(non_camel_case_types)]
 impl DistancesView {
     fn new(view: &HashMap<u32, HashMap<u32, f64>> , mapping: HashMap<u32, u32>) -> DistancesView{
+        mapping.len();
         return DistancesView { 
             view: view.clone(),
-            mapping: mapping,
+            // mapping: mapping,
         };
     }
 }

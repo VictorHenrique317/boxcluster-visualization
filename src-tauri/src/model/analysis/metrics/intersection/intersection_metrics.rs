@@ -2,11 +2,10 @@ use std::{collections::{HashMap, HashSet}, sync::{Arc, Mutex}};
 
 use ndarray::{Dim, IxDynImpl};
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use tauri::utils::pattern;
 
 use crate::{common::generic_error::GenericError, database::{pattern::Pattern, tensor::Tensor}, model::identifier_mapper::IdentifierMapper};
 
-use super::{intersections_percentages::{self, IntersectionsPercentages}, intersections_indices::{self, IntersectionsIndices}, prediction_matrix::PredictionMatrix, untouched_delta_rss::UntouchedDeltaRss};
+use super::{intersections_percentages::IntersectionsPercentages, intersections_indices::IntersectionsIndices, prediction_matrix::PredictionMatrix, untouched_delta_rss::UntouchedDeltaRss};
 
 pub struct IntersectionMetrics {}
 
@@ -50,7 +49,7 @@ impl IntersectionMetrics{
         patterns.par_iter().try_for_each(|pattern| -> Result<(), GenericError> {
 
             let mut pattern_intersections: HashMap<u32, Vec<Dim<IxDynImpl>>> = HashMap::new();
-            let MAX_PATTERN_INTERSECTIONS = 6;
+            // let MAX_PATTERN_INTERSECTIONS = 6;
             let mut pattern_intersections_percentages: HashMap<u32, f64> = HashMap::new();
             let mut all_intersection_indices: HashSet<Dim<IxDynImpl>> = HashSet::new();
 

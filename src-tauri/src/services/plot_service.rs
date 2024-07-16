@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
-use plotters::{prelude::{BitMapBackend, IntoDrawingArea, ChartBuilder, Circle}, style::{WHITE, Color, IntoFont, RGBAColor, RGBColor, TextStyle}};
+// use plotters::{prelude::{BitMapBackend, IntoDrawingArea, ChartBuilder, Circle}, style::{WHITE, Color, IntoFont, RGBAColor, RGBColor, TextStyle}};
 
-use crate::{model::{identifier_representation::IdentifierRepresentation}};
+// use crate::{model::{identifier_representation::IdentifierRepresentation}};
 
 use super::application::application_state_service::ApplicationStateService;
 
@@ -9,6 +9,7 @@ pub struct PlotService{}
 
 impl PlotService{
     pub fn plot(application_state: &ApplicationStateService){
+        let _ = application_state;
         // let root = BitMapBackend::new("scatter.png", (1600, 900)).into_drawing_area();
         // root.fill(&WHITE).unwrap();
 

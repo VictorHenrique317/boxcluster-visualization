@@ -45,7 +45,8 @@
 
 ## Changelogs 27/06/2024 -> ????? - v0.3.4
 - [x] FIX: Ajuste de cores
-- [] Re-implementacão do MDS
+- [x] UPDATE: Re-implementacão do MDS
+- [x] UPDATE: Re-implementacão do algoritmo de distribuição de pontos 
 
 ## Changelogs ??? -> ??? - v0.4.0
 - [] Integrar movimentação no dag, mouse-hover deve fornecer possibilidade de entrar no dag

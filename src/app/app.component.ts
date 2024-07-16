@@ -42,7 +42,8 @@ export enum MainOption {
   MODEL_SELECTOR,
   SETTINGS,
   TRUNCATE_MODEL,
-  INTERSECTION_MODE
+  INTERSECTION_MODE,
+  HIGHLIGHT_SUPERPATTERNS
 };
 
 export enum ApplicationStatus {
@@ -81,6 +82,7 @@ export class AppComponent implements AfterViewInit{
   protected settings_enabled: boolean = false;
   protected truncate_model_enabled: boolean;
   protected intersection_mode_enabled: boolean = false;
+  protected highlight_superpatterns_enabled: boolean = false;
 
   @ViewChild("aside") aside: ElementRef<HTMLElement>;
   public matList_height: number;
@@ -157,18 +159,18 @@ export class AppComponent implements AfterViewInit{
       case MainOption.TRUNCATE_MODEL:
         this.toggleTruncateModel();
         break;
+      case MainOption.HIGHLIGHT_SUPERPATTERNS:
+        this.toggleHighlightSuperpatterns();
+        break;
       case null:
         break
-      // case MainOption.INTERSECTION_MODE:
-      //   this.toggleIntersectionMode();
-      //   break;
     }
   }
 
   private deactivateMainOptionsExcept(option: MainOption){
     if(this.settings_enabled && option != MainOption.SETTINGS){ this.toggleSettings(); }
     if(this.truncate_model_enabled && option != MainOption.TRUNCATE_MODEL){ this.toggleTruncateModel(); }
-    // if(this.intersection_mode_enabled && option != MainOption.INTERSECTION_MODE){ this.toggleIntersectionMode(); }
+    if(this.highlight_superpatterns_enabled && option != MainOption.HIGHLIGHT_SUPERPATTERNS){ this.toggleHighlightSuperpatterns(); }
   }
 
   private openModelSelection(): void {
@@ -200,6 +202,15 @@ export class AppComponent implements AfterViewInit{
   //   this.intersection_mode_enabled = !this.intersection_mode_enabled;
   //   this.visualization_view.toggleIntersectionMode();
   //  }
+
+  private toggleHighlightSuperpatterns(){
+    if(this.highlight_superpatterns_enabled == undefined){ return; }
+
+    this.highlight_superpatterns_enabled = !this.highlight_superpatterns_enabled;
+
+    this.visualization_view.toggleHighlightSuperpatterns(this.highlight_superpatterns_enabled);
+    this.cdr.detectChanges();
+  }
 
   protected disableRssView(){
     this.truncate_model_enabled = false;

@@ -1,5 +1,4 @@
 use ndarray::{ArrayD, Dim, IxDynImpl};
-use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use std::iter::Iterator;
 use crate::common::generic_error::GenericError;
 use crate::common::progress_bar;
@@ -8,10 +7,8 @@ use crate::{model::identifier_mapper::IdentifierMapper, database::tensor::Tensor
 use super::empty_model_rss::EmptyModelRss;
 use super::intersection::intersections_indices::IntersectionsIndices;
 use super::intersection::prediction_matrix::PredictionMatrix;
-use super::intersection::untouched_delta_rss::{self, UntouchedDeltaRss};
+use super::intersection::untouched_delta_rss::UntouchedDeltaRss;
 use super::metric::Metric;
-use std::collections::{HashMap, HashSet};
-use std::sync::{Arc, Mutex};
 
 pub struct RssEvolution{
     value: Vec<(u32, f64)>,
@@ -50,7 +47,7 @@ impl RssEvolution{
                         new_prediction: &f64, prediction_matrix: &mut PredictionMatrix) -> Result<f64, GenericError>{
         
         prediction_matrix.insert(index.clone(), *new_prediction);
-        drop(prediction_matrix);
+        // drop(prediction_matrix);
 
         let actual_value = tensor_matrix.get(index)
             .ok_or(GenericError::new(&format!("Index {:?} not found", index), file!(), &line!()))?;

@@ -13,8 +13,16 @@
                 *ngIf="application_status == applicationStatusLoaded"
                 (click)="toggleMainOption(MainOption.TRUNCATE_MODEL)"
                 matTooltip="Truncate summary">
-                <mat-icon aria-hidden="false" aria-label="settings" fontIcon="show_chart"></mat-icon>
+                    <mat-icon aria-hidden="false" aria-label="settings" fontIcon="show_chart"></mat-icon>
             </header>
+
+            <!-- <header class="main-option" id="highlight-superpatterns"
+                [ngClass]="{'buttonToggled': this.highlight_superpatterns_enabled}"
+                *ngIf="application_status == applicationStatusLoaded"
+                (click)="toggleMainOption(MainOption.HIGHLIGHT_SUPERPATTERNS)"
+                matTooltip="Highlight super-patterns">
+                    <mat-icon>all_out</mat-icon>
+            </header> -->
 <!-- 
             <header class="main-option" id="settings-button" matRipple [matRippleCentered]="true" 
                 [ngClass]="{'buttonToggled': this.settings_enabled}"

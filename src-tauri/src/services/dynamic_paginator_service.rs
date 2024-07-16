@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::{model::{identifier_mapper::IdentifierMapper, io::translator::{self, Translator}}, database::{pattern::Pattern, raw_pattern::RawPattern}, common::generic_error::GenericError};
+use crate::{model::{identifier_mapper::IdentifierMapper, io::translator::Translator}, database::raw_pattern::RawPattern, common::generic_error::GenericError};
 
 pub struct DynamicPaginatorService{
     current_page: u32,

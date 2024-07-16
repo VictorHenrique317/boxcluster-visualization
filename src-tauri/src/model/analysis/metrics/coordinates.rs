@@ -2,10 +2,10 @@
 
 use core::panic;
 use std::{collections::HashMap, sync::{Mutex, Arc}};
-use nalgebra::{DMatrix, SVD};
-use ndarray::{Array, Array1, ArrayD, Dim, IxDynImpl};
+use nalgebra::DMatrix;
+use ndarray::{Array, ArrayD, Dim, IxDynImpl};
 use rayon::{iter::IndexedParallelIterator, prelude::{IntoParallelRefIterator, ParallelIterator}};
-use crate::{common::{generic_error::GenericError, progress_bar}, model::identifier_mapper::{self, IdentifierMapper}};
+use crate::common::{generic_error::GenericError, progress_bar};
 use super::{metric::Metric, distances::DistancesTrait};
 use ndarray::{Array2, Axis};
 use rand::prelude::*;
@@ -33,31 +33,15 @@ impl Coordinates {
         );
     }
 
-    fn printMatrix(matrix: &DMatrix<f64>){
-        println!("Printing matrix:");
-        for i in 0..matrix.nrows(){
-            for j in 0..matrix.ncols(){
-                print!("{:.2} ", matrix[(i, j)]);
-            }
-            println!("");
-        }
-        println!("");
-    }
-
-    // fn printHashMapAsMatrix(map: &HashMap<u32, HashMap<u32, f64>>){
-    //     let mut lines = map.keys().cloned().collect::<Vec<u32>>();
-    //     lines.sort();
-
-    //     for i in lines.iter(){
-    //         let mut columns = map.get(i).expect("Key not found").keys().cloned().collect::<Vec<u32>>();
-    //         columns.sort();
-
-    //         for j in columns.iter(){
-    //             print!("{:.2} ", map.get(i).expect("Key not found").get(j).expect("Key not found"));
+    // fn printMatrix(matrix: &DMatrix<f64>){
+    //     println!("Printing matrix:");
+    //     for i in 0..matrix.nrows(){
+    //         for j in 0..matrix.ncols(){
+    //             print!("{:.2} ", matrix[(i, j)]);
     //         }
-
     //         println!("");
     //     }
+    //     println!("");
     // }
 
     fn buildDissimilarityMatrix<T: DistancesTrait>(distances: &T, n: usize) -> Result<DMatrix<f64>, GenericError> {
@@ -114,63 +98,6 @@ impl Coordinates {
         }
 
         return Ok(dissimilarity_matrix);
-    }
-
-    // fn mds(dissimilarity_matrix: DMatrix<f64>, dimensions: usize) -> Result<HashMap<u32, (f64, f64)>, GenericError> {
-    //     // Returns a hashmap of the points in the new space, the indices DO NOT represent the identifiers
-    //     // dbg!(&dissimilarity_matrix);
-    //     let mut m = dissimilarity_matrix.map(|x| -0.5 * x.powi(2));
-
-    //     // double centre the rows/columns
-    //     let row_means = m.row_mean();
-    //     let col_means = m.column_mean();
-    //     let total_mean = row_means.mean();
-
-    //     for i in 0..m.nrows() {
-    //         for j in 0..m.ncols() {
-    //             m[(i, j)] += total_mean - row_means[i] - col_means[j];
-    //         }
-    //     }
-
-    //     // dbg!(&m);
-
-    //     // take the SVD of the double centred matrix, and return the
-    //     // points from it
-    //     let svd = SVD::new(m, true, true);
-    //     let eigen_values = svd.singular_values.map(|x| x.sqrt());
-
-    //     let u = svd.u
-    //         .ok_or(GenericError::new("Error getting U matrix from SVD", file!(), &line!()))?;
-
-    //     let mut result = DMatrix::zeros(u.nrows(), dimensions);
-    //     // dbg!(&eigen_values);
-    //     // dbg!(&result);
-
-    //     for i in 0..u.nrows() {
-    //         for j in 0..dimensions {
-    //             result[(i, j)] = u[(i, j)] * eigen_values[j];
-    //         }
-    //     }
-
-    //     // Convert result to hashmap
-    //     let n_rows = result.nrows();
-    //     let mut xys: HashMap<u32, (f64, f64)> = HashMap::new();
-    //     for i in 0..n_rows {
-    //         let x = result[(i, 0)];
-    //         let y = result[(i, 1)];
-    //         xys.insert(i as u32, (x, y));
-    //     }
-
-    //     return Ok(xys);
-    // }
-
-    fn euclideanNorm(v: &Array1<f64>) -> f64 {
-        let mut sum = 0.0;
-        for i in 0..v.len(){
-            sum += v[i].powi(2);
-        }
-
-        return sum.sqrt();
     }
 
     fn SMACOF(d: &Array2<f64>, p: usize, max_iter: usize, tol: f64, random_state: Option<u64>) -> HashMap<u32, (f64, f64)> {
@@ -308,9 +235,9 @@ impl Coordinates {
         };
 
         let x_max = x_max + x_delta; // x_max and x_min should be equal
-        let x_min = x_min + x_delta; // x_max and x_min should be equal
+        // let x_min = x_min + x_delta; // x_max and x_min should be equal
         let y_max = y_max + y_delta; // y_max and y_min should be equal
-        let y_min = y_min + y_delta; // y_max and y_min should be equal
+        // let y_min = y_min + y_delta; // y_max and y_min should be equal
         let x_scaling_factor = 1.0/x_max; // x_max will be 1 and x_min will be -1
         let y_scaling_factor = 1.0/y_max; // y_max will be 1 and y_min will be -1
     

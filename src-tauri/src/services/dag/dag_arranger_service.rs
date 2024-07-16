@@ -60,7 +60,7 @@ impl DagArrangerService{
     }
 
     pub fn moveSubtreeBellow(&mut self, moving_node: &u32, new_parent: &u32) -> Result<(), GenericError>{
-        let mut moving_node_p = self.nodes.get_mut(&moving_node)
+        let moving_node_p = self.nodes.get_mut(&moving_node)
             .ok_or(GenericError::new("Error moving node", file!(), &line!()))?;
 
         let old_parents: Vec<u32> = moving_node_p.supers.clone();

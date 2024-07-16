@@ -134,6 +134,10 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
     this.datapoint_click.emit(null);
   }
 
+  public toggleHighlightSuperpatterns(toggle: boolean){
+    this.svg_feature.toggleHighlightSuperpatterns(toggle);
+  }
+
   private onDatapointHoverIn(identifier: number){
     this.datapoint_hover_in.emit(identifier); // To communicate with pattern summary
   }

@@ -1,9 +1,8 @@
 #![allow(non_snake_case)]
 use std::{collections::HashMap, time::Instant};
 use itertools::Itertools;
-use plotters::data;
 
-use crate::{common::generic_error::GenericError, database::{datapoint::DataPoint, intersections_details::IntersectionsDetails, pattern::Pattern, raw_pattern::RawPattern}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper, io::translator::Translator}, services::{io_service::IoService, plot_service::PlotService}};
+use crate::{common::generic_error::GenericError, database::{datapoint::DataPoint, intersections_details::IntersectionsDetails, raw_pattern::RawPattern}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper, io::translator::Translator}, services::{io_service::IoService, plot_service::PlotService}};
 use super::application_state_service::ApplicationStateService;
 
 pub struct ApplicationService{
@@ -81,20 +80,34 @@ impl ApplicationService{
         return Ok(());
     }
 
-    pub fn ascendDag(&mut self) -> Result<(), GenericError>{
+    pub fn getDatapointsWithSubPatterns(&self) -> Result<Vec<DataPoint>, GenericError>{
+        let datapoints = self.getDataPoints()?;
+        let mut datapoints_with_subpatterns: Vec<DataPoint> = vec![];
+
+        for datapoint in datapoints.iter(){
+            let identifier = datapoint.identifier;
+
+            let subpatterns = &self.getIdentifierMapper()?.getRepresentation(&identifier)?.asDagNode()?.subs;
+            if subpatterns.len() > 0{ datapoints_with_subpatterns.push(datapoint.clone()); }
+        }
+        
+        return Ok(datapoints_with_subpatterns);
+    }
+
+    pub fn ascendDag(&mut self) -> Result<Vec<DataPoint>, GenericError>{
         println!("\nAscending dag");
         self.application_state_service.ascendDag()?;
         PlotService::plot(&self.application_state_service);
 
-        return Ok(());
+        return self.getDataPoints();
     }
 
-    pub fn descendDag(&mut self, next_identifier: &u32) -> Result<(), GenericError> {
+    pub fn descendDag(&mut self, next_identifier: &u32) -> Result<Vec<DataPoint>, GenericError> {
         println!("\nDescending dag to: {}", next_identifier);
         self.application_state_service.descendDag(next_identifier)?;
         PlotService::plot(&self.application_state_service);
 
-        return Ok(());
+        return self.getDataPoints();
     }
 
     pub fn truncateModel(&mut self, new_size: &u32) -> Result<Vec<(f32, f32)>, GenericError> {
@@ -121,10 +134,6 @@ impl ApplicationService{
             .collect();
 
         return Ok(datapoints);
-    }
-
-    pub fn getAllSubPatternsIdentifiers(&self) -> Result<Vec<u32>, GenericError>{
-        return self.application_state_service.getAllSubPatternsIdentifiers();
     }
 
     pub fn getRawPattern(&self, identifier: &u32) -> Result<RawPattern, GenericError>{
