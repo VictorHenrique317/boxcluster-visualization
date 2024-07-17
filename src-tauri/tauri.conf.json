@@ -16,7 +16,8 @@
         "all": true,
         "scope": [
           "$RESOURCE/*",
-          "$RESOURCE/resources/*"
+          "$RESOURCE/resources/*",
+          "$RESOURCE/resources/datapoints_with_subpatterns.json"
         ]
       },
       "all": true,
@@ -51,7 +52,8 @@
         "signingIdentity": null
       },
       "resources": [
-        "resources/*"
+        "resources/*",
+        "resources/datapoints_with_subpatterns.json"
       ],
       "shortDescription": "",
       "targets": "all",

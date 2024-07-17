@@ -24,10 +24,13 @@ import { Pattern } from "src/app/models/pattern";
 import { DialogService } from "src/app/services/dialog/dialog.service";
 import { legendCircle } from 'src/js/circle_legend.js';
 import { Legend } from 'src/js/color_legend.js';
-import { IntersectionModeFeatureModule } from 'src/app/components/visualization/intersection-mode-feature.module';
-import { SvgFeatureModule } from "./svg-feature.module";
+import { IntersectionModeFeatureModule } from 'src/app/components/visualization/modules/intersection-mode-feature.module';
+import { SvgFeatureModule } from "./modules/svg-feature.module";
 import {MatButtonModule} from '@angular/material/button';
 import { ApiService } from "src/app/services/api/api.service";
+import { DagFeatureModule } from "./modules/dag-feature.module";
+import { MatIconModule } from "@angular/material/icon";
+import { MatTooltipModule } from "@angular/material/tooltip";
 
 @Component({
     selector: 'app-visualization',
@@ -65,7 +68,9 @@ import { ApiService } from "src/app/services/api/api.service";
         PortalModule,
         RssViewComponent,
         DataPointTooltipComponent,
-        MatButtonModule
+        MatButtonModule,
+        MatIconModule,
+        MatTooltipModule
     ]
 })
 
@@ -83,6 +88,7 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
 
   private svg_feature: SvgFeatureModule;
   protected intersection_mode_feature: IntersectionModeFeatureModule;
+  protected dag_feature: DagFeatureModule;
 
   constructor(private api_service: ApiService, private dialog_service: DialogService, private cdr: ChangeDetectorRef){ }
 
@@ -107,6 +113,8 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
 
     this.intersection_mode_feature = new IntersectionModeFeatureModule(this.svg_feature, this.dialog_service, this.api_service);
 
+    this.dag_feature = new DagFeatureModule(this.svg_feature, this.api_service);
+
     // this.intersection_mode_feature.toggleIntersections(1); // TODO: Remove this line
     // this.intersection_mode_feature.showIntersectionDetails(); // TODO: Remove this line
   }
@@ -124,22 +132,6 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
     this.svg_feature.resizeSvg(width, height);
   }
 
-  public async onTruncation(event){
-    let new_size = event - 1; // -1 because the first point is the null model rss
-    let truncated_datapoints = await this.api_service.truncateModel(new_size);
-
-    this.svg_feature.deactivateHighlight();
-    await this.intersection_mode_feature.toggleIntersections(null);
-    this.svg_feature.drawDataPoints(truncated_datapoints);
-    this.datapoint_click.emit(null);
-  }
-
-  public toggleHighlightSuperpatterns(toggle: boolean){
-    let superpatterns = this.api_service.getDatapointsWithSubPatterns();
-
-    this.svg_feature.toggleHighlightSuperpatterns(toggle);
-  }
-
   private onDatapointHoverIn(identifier: number){
     this.datapoint_hover_in.emit(identifier); // To communicate with pattern summary
   }
@@ -151,9 +143,28 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
   private async onDatapointClick(identifier: number){
     this.datapoint_click.emit(identifier); // To communicate with pattern summary
     await this.intersection_mode_feature.toggleIntersections(identifier);
+    this.dag_feature.setClickedDatapoint(identifier);
   }
 
-  // public toggleIntersectionMode(){
-  //   this.intersection_mode_feature.toggleIntersectionMode();
-  // }
+  public async onTruncation(event){
+    let new_size = event - 1; // -1 because the first point is the null model rss
+    let truncated_datapoints = await this.api_service.truncateModel(new_size);
+
+    this.svg_feature.deactivateHighlight();
+    await this.intersection_mode_feature.toggleIntersections(null);
+    this.svg_feature.drawDataPoints(truncated_datapoints);
+    this.datapoint_click.emit(null);
+  }
+
+  public toggleHighlightSuperpatterns(toggle: boolean){
+    this.dag_feature.toggleHighlightSuperpatterns(toggle);
+  }
+
+  public ascendDag(){
+    this.dag_feature.ascendDag();
+  }
+
+  public descendDag(){
+    this.dag_feature.descendDag();
+  }
 }

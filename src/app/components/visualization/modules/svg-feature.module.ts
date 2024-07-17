@@ -405,10 +405,6 @@ export class SvgFeatureModule {
   //        });
   // }
 
-  public toggleHighlightSuperpatterns(toggle: boolean){
-    
-  }
-
   public showTooltip(datapoint: DataPoint, circle: any){
     this.tooltip.show(datapoint, circle);
   }

@@ -7,7 +7,7 @@ import { environment } from 'src/environments/environment';
 import { fs, invoke } from '@tauri-apps/api';
 import { DialogService } from 'src/app/services/dialog/dialog.service';
 import { resolveResource } from '@tauri-apps/api/path';
-import { IntersectionDetailsDialogComponent } from './intersection-details-dialog/intersection-details-dialog.component';
+import { IntersectionDetailsDialogComponent } from '../intersection-details-dialog/intersection-details-dialog.component';
 import { IntersectionDetails } from 'src/app/models/intersection_details';
 import { ApiService } from 'src/app/services/api/api.service';
 
@@ -18,7 +18,6 @@ import { ApiService } from 'src/app/services/api/api.service';
   ]
 })
 export class IntersectionModeFeatureModule {
-  private intersection_mode:boolean = false;
   private old_clicked_datapoint = null;
   private clicked_datapoint_data: DataPoint = null;
   private intersection_details: IntersectionDetails;
@@ -253,6 +252,10 @@ export class IntersectionModeFeatureModule {
     }
 
     return this.intersection_details.intersections.size > 0;
+  }
+
+  public getClickedDataPoint(): DataPoint {
+    return this.clicked_datapoint_data;
   }
 
   public async showIntersectionDetails(intersector_id: number){
