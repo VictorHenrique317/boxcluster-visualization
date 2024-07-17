@@ -10,12 +10,12 @@ import { ApiService } from 'src/app/services/api/api.service';
     CommonModule
   ]
 })
-export class DagFeatureModule implements OnInit{
+export class DagFeatureModule{
     private supers_highlighted: boolean = false;
-    private datapoints_with_subpatterns: DataPoint[] = [];
+    private datapoints_with_subpatterns: Set<number>;
 
     private clicked_datapoint: number;
-    private clicked_datapont_has_subpatterns: boolean;
+    public clicked_datapont_has_subpatterns: boolean = false;
     
     private svg_feature: SvgFeatureModule;
     private api_service: ApiService
@@ -25,27 +25,28 @@ export class DagFeatureModule implements OnInit{
       this.api_service = api_service;
     }
 
-    async ngOnInit() {
-        this.datapoints_with_subpatterns = await this.api_service.getDatapointsWithSubPatterns();
+    public async init() {
+        this.datapoints_with_subpatterns = new Set(
+            (await this.api_service.getDatapointsWithSubPatterns()).map(datapoint => datapoint.identifier));
     }
 
     public setClickedDatapoint(identifier: number){
         this.clicked_datapoint = identifier;
+        this.clicked_datapont_has_subpatterns = this.datapoints_with_subpatterns.has(identifier);
     }
 
     public toggleHighlightSuperpatterns(toggle: boolean){
         this.supers_highlighted = toggle;
 
-        if(toggle){
-            if(this.datapoints_with_subpatterns.length == 0){ return; }
-            let identifiers: number[] = this.datapoints_with_subpatterns.map(datapoint => datapoint.identifier);
-            let identifiers_set = new Set(identifiers);
+        console.log("Toggling superpatterns");
 
+        if(toggle){
+            if(this.datapoints_with_subpatterns.size == 0){ return; }
             let gray_shade = 196;
             let gray = `rgba(${gray_shade}, ${gray_shade}, ${gray_shade}, 0.5)`;
 
             this.svg_feature.plot.selectAll('.datapoint')
-                .filter(d => !identifiers_set.has(d.identifier))
+                .filter(d => !this.datapoints_with_subpatterns.has(d.identifier))
                 .raise()
                 .transition('mouseover')
                 .duration(300)

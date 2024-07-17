@@ -1,6 +1,6 @@
 <body #body (window:resize)="onResize($event)">
     <section>
-        <div id="dag-controls" class="floatable">
+        <div id="dag-controls" class="floatable" *ngIf="dag_feature.clicked_datapont_has_subpatterns">
             <mat-icon id="arrow-up" class="arrow-button" fontIcon="keyboard_arrow_up"  matTooltip="Ascend on DAG" matTooltipPosition="above"
             (click)="ascendDag()"></mat-icon>
             

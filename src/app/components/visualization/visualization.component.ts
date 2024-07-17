@@ -1,6 +1,6 @@
 import * as d3Tip from "d3-tip";
 import { resolveResource } from '@tauri-apps/api/path'
-import { ChangeDetectorRef, Component, ComponentFactoryResolver, EventEmitter, InjectionToken, Input, OnDestroy, Output, Renderer2, ViewContainerRef } from '@angular/core';
+import { ChangeDetectorRef, Component, ComponentFactoryResolver, EventEmitter, InjectionToken, Input, OnDestroy, OnInit, Output, Renderer2, ViewContainerRef } from '@angular/core';
 import { ComponentPortal, PortalModule } from '@angular/cdk/portal';
 import { CommonModule } from '@angular/common';
 import {MatCardModule} from '@angular/material/card';
@@ -74,7 +74,7 @@ import { MatTooltipModule } from "@angular/material/tooltip";
     ]
 })
 
-export class VisualizationComponent implements AfterViewInit, OnDestroy{
+export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
   @Output() datapoint_hover_in = new EventEmitter<number>();
   @Output() datapoint_hover_out = new EventEmitter<number>();
   @Output() datapoint_click = new EventEmitter();
@@ -92,8 +92,10 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
 
   constructor(private api_service: ApiService, private dialog_service: DialogService, private cdr: ChangeDetectorRef){ }
 
-  ngOnInit(): void {
+  async ngOnInit() {
     this.intersection_mode_feature = new IntersectionModeFeatureModule(null, null, null);
+    this.dag_feature = new DagFeatureModule(null, this.api_service);
+    await this.dag_feature.init();
   }
 
   async ngAfterViewInit() {
@@ -114,6 +116,7 @@ export class VisualizationComponent implements AfterViewInit, OnDestroy{
     this.intersection_mode_feature = new IntersectionModeFeatureModule(this.svg_feature, this.dialog_service, this.api_service);
 
     this.dag_feature = new DagFeatureModule(this.svg_feature, this.api_service);
+    await this.dag_feature.init();
 
     // this.intersection_mode_feature.toggleIntersections(1); // TODO: Remove this line
     // this.intersection_mode_feature.showIntersectionDetails(); // TODO: Remove this line
