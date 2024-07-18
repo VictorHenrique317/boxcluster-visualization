@@ -4,7 +4,7 @@
 // https://br.pinterest.com/pin/800022321275429738/
 // import * as numeric from 'numeric';
 
-import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, ViewChild , Renderer2} from "@angular/core";
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, ViewChild , Renderer2, OnDestroy} from "@angular/core";
 import { invoke } from "@tauri-apps/api/tauri";
 import { VisualizationComponent } from "./components/visualization/visualization.component";
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -37,6 +37,7 @@ import { fs } from "@tauri-apps/api";
 import { resolveResource } from "@tauri-apps/api/path";
 import { ApiService } from "./services/api/api.service";
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
+import { Subscription } from "rxjs";
 
 export enum MainOption {
   MODEL_SELECTOR,
@@ -74,7 +75,7 @@ export enum ApplicationStatus {
         MatProgressSpinnerModule]
 })
 
-export class AppComponent implements AfterViewInit{
+export class AppComponent implements AfterViewInit, OnDestroy{
   protected all_application_status = Object.values(ApplicationStatus);
   protected application_status: ApplicationStatus = ApplicationStatus.UNLOADED;
 
@@ -97,6 +98,8 @@ export class AppComponent implements AfterViewInit{
   
   @ViewChild('visualization_view') visualization_view: VisualizationComponent;
   protected hovered_pattern: Pattern;
+
+  private datapoint_click_subscription: Subscription;
   
   constructor(private cdr: ChangeDetectorRef, private dialog_service: DialogService, private api_service: ApiService){}
 
@@ -107,15 +110,13 @@ export class AppComponent implements AfterViewInit{
       this.application_status = ApplicationStatus.LOADED;
       this.cdr.detectChanges();
     }
+
+    this.datapoint_click_subscription = this.visualization_view.datapoint_click.subscribe(identifier => this.onDatapointClick(identifier));
   }
 
-  // private reloadApplication(){
-  //   this.application_status = ApplicationStatus.UNLOADED;
-  //   this.cdr.detectChanges();
-
-  //   this.application_status = ApplicationStatus.LOADED;
-  //   this.cdr.detectChanges();
-  // }
+  ngOnDestroy(){
+    this.datapoint_click_subscription.unsubscribe();
+  }
 
   private async handleModelChange(event: any){
     console.log("Handling model change");
@@ -198,11 +199,6 @@ export class AppComponent implements AfterViewInit{
     this.cdr.detectChanges();
   }
 
-  // private toggleIntersectionMode(){
-  //   this.intersection_mode_enabled = !this.intersection_mode_enabled;
-  //   this.visualization_view.toggleIntersectionMode();
-  //  }
-
   private toggleHighlightSuperpatterns(){
     if(this.highlight_superpatterns_enabled == undefined){ return; }
 
@@ -210,6 +206,10 @@ export class AppComponent implements AfterViewInit{
 
     this.visualization_view.toggleHighlightSuperpatterns(this.highlight_superpatterns_enabled);
     this.cdr.detectChanges();
+  }
+
+  private onDatapointClick(identifier){
+    this.highlight_superpatterns_enabled = false;
   }
 
   protected disableRssView(){

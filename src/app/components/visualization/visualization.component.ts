@@ -145,6 +145,7 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
 
   private async onDatapointClick(identifier: number){
     this.datapoint_click.emit(identifier); // To communicate with pattern summary
+    this.toggleHighlightSuperpatterns(false);
     await this.intersection_mode_feature.toggleIntersections(identifier);
     this.dag_feature.setClickedDatapoint(identifier);
   }
@@ -160,7 +161,11 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
   }
 
   public toggleHighlightSuperpatterns(toggle: boolean){
-    this.dag_feature.toggleHighlightSuperpatterns(toggle);
+    this.svg_feature.deactivateHighlight();
+    this.intersection_mode_feature.toggleIntersections(null).then(() => {
+      this.dag_feature.setClickedDatapoint(null);
+      this.dag_feature.toggleHighlightSuperpatterns(toggle);
+    });
   }
 
   public ascendDag(){

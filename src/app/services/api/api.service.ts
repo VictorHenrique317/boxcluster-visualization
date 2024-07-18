@@ -186,5 +186,37 @@ export class ApiService {
 
     return datapoints;
   }
+
+  public async descendDag(identifier: number): Promise<Array<DataPoint>> {
+    let datapoints;
+    if(!environment.dev_mode){
+      datapoints = await invoke("descendDag", {identifier: identifier}).catch((error: any) => {
+        // console.error(error);
+        this.dialog_service.openErrorDialog("Error while descending DAG.");
+        throw error;
+      });
+    }else{
+      let rawdata = await fs.readTextFile(await resolveResource('resources/subpatterns.json'));
+      datapoints = JSON.parse(rawdata);
+    }
+
+    return datapoints;
+  }
+
+  public async ascendDag(): Promise<Array<DataPoint>> {
+    let datapoints;
+    if(!environment.dev_mode){
+      datapoints = await invoke("ascendDag").catch((error: any) => {
+        // console.error(error);
+        this.dialog_service.openErrorDialog("Error while ascending DAG.");
+        throw error;
+      });
+    }else{
+      let rawdata = await fs.readTextFile(await resolveResource('resources/root_patterns.json'));
+      datapoints = JSON.parse(rawdata);
+    }
+
+    return datapoints;
+  }
   
 }

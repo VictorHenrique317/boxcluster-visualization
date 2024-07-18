@@ -17,7 +17,8 @@
         "scope": [
           "$RESOURCE/*",
           "$RESOURCE/resources/*",
-          "$RESOURCE/resources/datapoints_with_subpatterns.json"
+          "$RESOURCE/resources/subpatterns.json",
+          "$RESOURCE/resources/root_patterns.json"
         ]
       },
       "all": true,
@@ -53,7 +54,10 @@
       },
       "resources": [
         "resources/*",
-        "resources/datapoints_with_subpatterns.json"
+        "resources/datapoints_with_subpatterns.json",
+        "resources/subpatterns.json",
+        "resources/root_patterns.json"
+        
       ],
       "shortDescription": "",
       "targets": "all",

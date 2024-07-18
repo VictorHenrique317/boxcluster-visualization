@@ -378,33 +378,6 @@ export class SvgFeatureModule {
     this.drawColorLegend();
   }
 
-  // public resetDatapointEvents(){
-  //   let circles = this.plot.selectAll('.datapoint'); 
-  //   circles
-  //       .on('mouseover', (event, d) => { 
-  //         this.tooltip.show(d, event.currentTarget);
-  //         this.datapoint_hover_in.emit(d.identifier)
-  //        })
-  //       .on('mouseout', (event, d) => { 
-  //         this.tooltip.hide(d, event.currentTarget); 
-  //         this.datapoint_hover_out.emit(d.identifier);
-  //        })
-  //       .on('click', (event, d) => {
-  //         if((this.locked_datapoint) && (this.locked_datapoint.identifier == d.identifier)){ 
-  //           // Unhighlight the locked datapoint
-  //           this.locked_datapoint = undefined;
-  //           this.toggleHighlight(undefined);
-  //         }else{
-  //           // Highlight the clicked datapoint and lock
-  //           this.locked_datapoint = undefined;
-  //           this.toggleHighlight(d);
-  //           this.locked_datapoint = d;
-  //         }
-
-  //         this.datapoint_click.emit(d.identifier);
-  //        });
-  // }
-
   public showTooltip(datapoint: DataPoint, circle: any){
     this.tooltip.show(datapoint, circle);
   }
