@@ -30,11 +30,17 @@ html, body{
             align-items: center;
             justify-content: center;
 
+            padding: 1em 1em 1em 1em;
+
             border-radius: 10px;
 
             background-color: mat.get-color-from-palette($primary-palette, 500);
 
-            .arrow-button{
+            span{
+                color: white;
+            }
+
+            mat-icon{
                 padding-top: 0.5em;
                 padding-bottom: 0.5em;
                 padding-left: 0.5em;
@@ -42,13 +48,13 @@ html, body{
 
                 border-radius: 10px;
 
-                background-color: mat.get-color-from-palette($primary-palette, 500);
+                background-color: rgb(75, 142, 230);
                 color: white;
             }
 
-            .arrow-button:hover{
+            mat-icon:hover{
                 cursor: pointer;
-                background-color: mat.get-color-from-palette($primary-palette, 600);
+                background-color: rgb(103, 157, 228);
             }
         }
 
@@ -86,4 +92,13 @@ html, body{
 
 .dashed-outline {
     border:  2px dashed #000;
+}
+
+.button-disabled{
+    color: rgb(145, 145, 145) !important;
+    background-color: rgb(209, 209, 209) !important;
+}
+
+.button-disabled:hover{
+    cursor: not-allowed !important;
 }

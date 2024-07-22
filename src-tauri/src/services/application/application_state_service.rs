@@ -17,6 +17,7 @@ pub struct ApplicationStateService{
     dag_service: Option<DagService>,
 
     current_identifier: u32,
+    current_level: u32,
     current_level_identifiers: Vec<u32>,
     visible_identifiers: Vec<u32>,
 }
@@ -41,6 +42,7 @@ impl ApplicationStateService{
         let dag_service = DagService::new(&identifier_mapper)?;
         self.dag_service = Some(dag_service);
 
+        self.current_level = 0;
         self.current_level_identifiers = self.dag_service.as_ref()
             .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()))?
             .getFontNodes();
@@ -103,27 +105,30 @@ impl ApplicationStateService{
         return Ok(());
     }
 
-    pub fn ascendDag(&mut self) -> Result<(), GenericError>{
-        if self.current_identifier == 0{ return Ok(()); }
+    pub fn ascendDag(&mut self) -> Result<bool, GenericError>{
+        if self.current_identifier == 0 || self.current_level == 0 { return Ok(false); }
 
         let previous_identifiers = self.dag_service.as_ref()
             .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()))?
             .ascendDag(self.identifierMapper()?, &self.current_identifier)?;
 
+        if self.current_level > 0 { self.current_level -= 1; }
+
         self.update(&Some(previous_identifiers))?;
 
-        return Ok(());
+        return Ok(true);
     }
 
-    pub fn descendDag(&mut self, next_identifier: &u32) -> Result<(), GenericError>{
+    pub fn descendDag(&mut self, next_identifier: &u32) -> Result<bool, GenericError>{
         let next_identifiers = self.dag_service.as_ref()
             .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()))?
             .descendDag(self.identifierMapper()?, next_identifier)?;
 
-        if next_identifiers.len() == 0{ return Ok(()); }
-
+        if next_identifiers.len() == 0{ return Ok(false); }
+        
+        self.current_level += 1;
         self.update(&Some(next_identifiers))?;
-        return Ok(());
+        return Ok(true);
     }
 
     pub fn truncateModel(&mut self, new_size: &u32) -> Result<(), GenericError>{
@@ -179,5 +184,9 @@ impl ApplicationStateService{
     pub fn getDagService(&self) -> Result<&DagService, GenericError>{
         return self.dag_service.as_ref()
             .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()));
+    }
+
+    pub fn getCurrentDagLevel(&self) -> u32{
+        return self.current_level;
     }
 }

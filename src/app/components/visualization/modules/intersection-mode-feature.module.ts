@@ -191,11 +191,12 @@ export class IntersectionModeFeatureModule {
     this.createIntersectionCharts(relationed_datapoints, intersections);
   }
 
-  private async hideIntersections(){
+  private async hideIntersections(no_transition: boolean = false){
+    let transition_duration = no_transition? 0 : this.transition_duration;
     let intersection_lines = this.svg_feature.svg.selectAll('.intersection_line');
     await intersection_lines
       .transition('mouseout')
-      .duration(this.transition_duration)
+      .duration(transition_duration)
       .attr('x2', d => d.x1)  // End position (x) becomes the start position
       .attr('y2', d => d.y1)  // End position (y) becomes the start position
       .remove();
@@ -208,7 +209,7 @@ export class IntersectionModeFeatureModule {
       let pie_chart = this.svg_feature.svg.selectAll('.pie_chart');
       await pie_chart.selectAll('path')
         .transition('mouseout')
-        .duration(this.transition_duration)
+        .duration(transition_duration)
         .attr('d', d=> d.size)
         .remove();  // Remove the paths after the transition
 
@@ -216,8 +217,8 @@ export class IntersectionModeFeatureModule {
     }
   }
 
-  public async toggleIntersections(identifier: number){
-    await this.hideIntersections();
+  public async toggleIntersections(identifier: number, no_transition: boolean = false){
+    await this.hideIntersections(no_transition);
     await this.updateClickedDatapoint(identifier);
 
     if(identifier == null || identifier==undefined){return;}

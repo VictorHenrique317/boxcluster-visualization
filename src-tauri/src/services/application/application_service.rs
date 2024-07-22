@@ -96,17 +96,19 @@ impl ApplicationService{
 
     pub fn ascendDag(&mut self) -> Result<Vec<DataPoint>, GenericError>{
         println!("\nAscending dag");
-        self.application_state_service.ascendDag()?;
-        PlotService::plot(&self.application_state_service);
+        let result = self.application_state_service.ascendDag()?;
+        if !result { return Ok(Vec::new());}
 
+        PlotService::plot(&self.application_state_service);
         return self.getDataPoints();
     }
 
     pub fn descendDag(&mut self, next_identifier: &u32) -> Result<Vec<DataPoint>, GenericError> {
         println!("\nDescending dag to: {}", next_identifier);
-        self.application_state_service.descendDag(next_identifier)?;
-        PlotService::plot(&self.application_state_service);
+        let result = self.application_state_service.descendDag(next_identifier)?;
+        if !result { return Ok(Vec::new());}
 
+        PlotService::plot(&self.application_state_service);
         return self.getDataPoints();
     }
 
@@ -217,6 +219,8 @@ impl ApplicationService{
         return Ok(intersections_details);
     }
 
-    
+    pub fn getCurrentDagLevel(&self) -> u32{
+        return self.application_state_service.getCurrentDagLevel();
+    }
 
 }

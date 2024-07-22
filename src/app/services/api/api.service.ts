@@ -190,7 +190,7 @@ export class ApiService {
   public async descendDag(identifier: number): Promise<Array<DataPoint>> {
     let datapoints;
     if(!environment.dev_mode){
-      datapoints = await invoke("descendDag", {identifier: identifier}).catch((error: any) => {
+      datapoints = await invoke("descendDag", {nextIdentifier: identifier}).catch((error: any) => {
         // console.error(error);
         this.dialog_service.openErrorDialog("Error while descending DAG.");
         throw error;
@@ -218,5 +218,4 @@ export class ApiService {
 
     return datapoints;
   }
-  
 }

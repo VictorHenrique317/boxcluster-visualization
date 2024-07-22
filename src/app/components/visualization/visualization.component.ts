@@ -94,7 +94,7 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
 
   async ngOnInit() {
     this.intersection_mode_feature = new IntersectionModeFeatureModule(null, null, null);
-    this.dag_feature = new DagFeatureModule(null, this.api_service);
+    this.dag_feature = new DagFeatureModule(null, null, this.api_service);
     await this.dag_feature.init();
   }
 
@@ -115,7 +115,7 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
 
     this.intersection_mode_feature = new IntersectionModeFeatureModule(this.svg_feature, this.dialog_service, this.api_service);
 
-    this.dag_feature = new DagFeatureModule(this.svg_feature, this.api_service);
+    this.dag_feature = new DagFeatureModule(this.intersection_mode_feature, this.svg_feature, this.api_service);
     await this.dag_feature.init();
 
     // this.intersection_mode_feature.toggleIntersections(1); // TODO: Remove this line
@@ -161,6 +161,9 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
   }
 
   public toggleHighlightSuperpatterns(toggle: boolean){
+    if(toggle == true && this.dag_feature.isHighlightingSuperpatterns()){ return; }
+    if(toggle == false && !this.dag_feature.isHighlightingSuperpatterns()){ return; }
+    
     this.svg_feature.deactivateHighlight();
     this.intersection_mode_feature.toggleIntersections(null).then(() => {
       this.dag_feature.setClickedDatapoint(null);
