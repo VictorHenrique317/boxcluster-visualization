@@ -103,15 +103,19 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   
   constructor(private cdr: ChangeDetectorRef, private dialog_service: DialogService, private api_service: ApiService){}
 
-  ngAfterViewInit(){
-    // this.matList_height = this.aside.nativeElement.clientHeight - this.model_selector.nativeElement.clientHeight;
+  async ngAfterViewInit(){
+    if(environment.dev_mode){
+      console.log("Entering dev mode");
+      
+      // await fs.readTextFile(await resolveResource('resources/'))
 
-    if(environment.dev_mode){ 
-      this.application_status = ApplicationStatus.LOADED;
-      this.cdr.detectChanges();
+      // let base_path = "../../src-tauri/tests/test_data"
+      let tensor_path = await resolveResource('resources/dev_tensor.txt');
+      let patterns_path = await resolveResource('resources/dev_patterns.txt');
+      
+      // let patterns_path = `${base_path}/other_patterns/primary_school.txt`
+      this.handleModelChange({tensor_path: tensor_path, patterns_path: patterns_path});
     }
-
-    this.datapoint_click_subscription = this.visualization_view.datapoint_click.subscribe(identifier => this.onDatapointClick(identifier));
   }
 
   ngOnDestroy(){
@@ -144,6 +148,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     
     this.application_status = ApplicationStatus.LOADED;
     this.cdr.detectChanges();
+
+    this.datapoint_click_subscription = this.visualization_view.datapoint_click.subscribe(identifier => this.onDatapointClick(identifier));
     // this.reloadApplication();
   }
 

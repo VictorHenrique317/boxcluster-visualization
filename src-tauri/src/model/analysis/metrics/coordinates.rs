@@ -257,9 +257,15 @@ impl Coordinates {
     }
 
     fn calculate<T: DistancesTrait>(distances: &T) -> Result<HashMap<u32, (f64, f64)>, GenericError> {
-        if distances.get().len() == 0{ // Only one datapoint, no need to calculate MDS
-            let mut xys = HashMap::new();
-            xys.insert(1, (0.0, 0.0));
+        if distances.get().len() == 0 {
+            println!("  WARNING: No datapoints to calculate coordinates");
+            return Ok(HashMap::new());
+        }
+
+        if distances.get().len() == 1{ // Only one datapoint, no need to calculate MDS
+            let identifier = distances.get().keys().next().expect("if len() == 1 then should have first element").clone();
+            let mut xys: HashMap<u32, (f64, f64)> = HashMap::new();
+            xys.insert(identifier, (0.0, 0.0));
             return Ok(xys);
         }
 

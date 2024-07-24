@@ -61,13 +61,15 @@ impl DagService{
         return self.sub_nodes.clone();
     }
 
-    pub fn ascendDag(&self, identifier_mapper: &IdentifierMapper, current_identifier: &u32) -> Result<Vec<u32>, GenericError> {
-        let supers = &identifier_mapper.getRepresentation(current_identifier)?.asDagNode()?.supers;
-        if supers.len() == 0{
-            return Ok(self.getFontNodes());
-        }
+    pub fn ascendDag(&self, identifier_mapper: &IdentifierMapper) -> Result<Vec<u32>, GenericError> {
+        // let supers = &identifier_mapper.getRepresentation(current_identifier)?.asDagNode()?.supers;
+        // if supers.len() == 0{
+        //     return Ok(self.getFontNodes());
+        // }
 
-        return Ok(supers.clone());
+        // return Ok(supers.clone());
+
+        todo!()
     }
 
     pub fn descendDag(&self, identifier_mapper: &IdentifierMapper, next_identifier: &u32) -> Result<Vec<u32> , GenericError> {

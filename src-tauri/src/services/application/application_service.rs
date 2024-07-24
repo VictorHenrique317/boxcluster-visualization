@@ -95,7 +95,7 @@ impl ApplicationService{
     }
 
     pub fn ascendDag(&mut self) -> Result<Vec<DataPoint>, GenericError>{
-        println!("\nAscending dag");
+        println!("Ascending dag");
         let result = self.application_state_service.ascendDag()?;
         if !result { return Ok(Vec::new());}
 
@@ -104,7 +104,7 @@ impl ApplicationService{
     }
 
     pub fn descendDag(&mut self, next_identifier: &u32) -> Result<Vec<DataPoint>, GenericError> {
-        println!("\nDescending dag to: {}", next_identifier);
+        println!("Descending dag to: {}", next_identifier);
         let result = self.application_state_service.descendDag(next_identifier)?;
         if !result { return Ok(Vec::new());}
 

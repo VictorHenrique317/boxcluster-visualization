@@ -111,6 +111,9 @@ export class DagFeatureModule{
         this.api_service.descendDag(super_datapoint).then((datapoints: Array<DataPoint>) => {
             if(datapoints.length == 0){ return; }
 
+            this.upper_dag_arrow_active = true;
+            this.lower_dag_arrow_active = false;
+
             this.drawNewLevelDatapoints(datapoints);
 
             this.current_dag_level += 1;

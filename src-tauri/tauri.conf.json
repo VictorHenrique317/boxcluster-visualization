@@ -18,7 +18,9 @@
           "$RESOURCE/*",
           "$RESOURCE/resources/*",
           "$RESOURCE/resources/subpatterns.json",
-          "$RESOURCE/resources/root_patterns.json"
+          "$RESOURCE/resources/root_patterns.json",
+          "$RESOURCE/resources/dev_tensor.txt",
+          "$RESOURCE/resources/dev_patterns.txt"
         ]
       },
       "all": true,
@@ -56,7 +58,9 @@
         "resources/*",
         "resources/datapoints_with_subpatterns.json",
         "resources/subpatterns.json",
-        "resources/root_patterns.json"
+        "resources/root_patterns.json",
+        "resources/dev_tensor.txt",
+        "resources/dev_patterns.txt"
         
       ],
       "shortDescription": "",

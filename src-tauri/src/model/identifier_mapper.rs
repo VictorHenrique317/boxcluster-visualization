@@ -138,14 +138,14 @@ impl IdentifierMapper{
     pub fn getOrderedDataPoints(&self) -> Vec<&DataPoint> {
         return self.getOrderedRepresentations().iter()
             .map(|representation| representation.asDataPoint()
-                .expect("Should have gotten data point representation"))
+                .expect(format!("Should have gotten data point representation for id: {}", representation.asPattern().unwrap().identifier).as_str()))
             .collect();
     }
 
     pub fn getOrderedDataPointsFrom(&self, identifiers: &Vec<u32>) -> Vec<&DataPoint> {
         return self.getOrderedRepresentationsFrom(identifiers).iter()
             .map(|representation| representation.asDataPoint()
-                .expect("Should have gotten data point representation"))
+                .expect(format!("Should have gotten data point representation for id: {}", representation.asPattern().unwrap().identifier).as_str()))
             .collect();
     }
 

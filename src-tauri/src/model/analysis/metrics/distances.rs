@@ -258,6 +258,18 @@ impl Distances{
     }
 
     pub fn getView(&self, identifier_mapper: &IdentifierMapper, identifiers: &Vec<u32>) -> Result<DistancesView, GenericError>{
+        let mut distances_view: HashMap<u32, HashMap<u32, f64>> = HashMap::new();
+
+        if identifiers.len() == 1 {
+            let identifier = *identifiers.get(0).expect("If len() == 1 then should have the first element");
+            
+            let mut self_distance: HashMap<u32, f64> = HashMap::new();
+            self_distance.insert(identifier, 0.0);
+
+            distances_view.insert(identifier, self_distance);
+            return Ok(DistancesView::new(&distances_view, HashMap::new()));
+        }
+
         let mut patterns: Vec<&Pattern> = Vec::new();
         // Maps the identifier of the pattern INSIDE the view to the REAL identifier
         let mut mapping: HashMap<u32, u32> = HashMap::new();
@@ -270,8 +282,7 @@ impl Distances{
             patterns.push(pattern);
             mapping.insert(view_identifier, *real_identifier);
         }
-
-        let mut distances_view: HashMap<u32, HashMap<u32, f64>> = HashMap::new();
+        
         for (row, x) in patterns.iter().enumerate(){
             if row != 0 {
                 for (col, y) in patterns.iter().enumerate() { 

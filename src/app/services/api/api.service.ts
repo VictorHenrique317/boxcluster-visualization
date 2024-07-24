@@ -26,17 +26,11 @@ export class ApiService {
     console.log("Invoking getFullRssEvolution");
 
     let rss_evolution;
-    if(!environment.dev_mode){
-      rss_evolution = await invoke("getFullRssEvolution").catch((error: any) => {
-        // console.error(error);
-        this.dialog_service.openErrorDialog("Could not load rss graph.");
-        throw error;
-      });
-
-    } else if(environment.dev_mode){
-      let rawdata = await fs.readTextFile(await resolveResource('resources/rss_evolution.json'));
-      rss_evolution = JSON.parse(rawdata);
-    }
+    rss_evolution = await invoke("getFullRssEvolution").catch((error: any) => {
+      // console.error(error);
+      this.dialog_service.openErrorDialog("Could not load rss graph.");
+      throw error;
+    });
 
     console.log("Received rss_evolution:");
     console.log(rss_evolution);
@@ -47,37 +41,25 @@ export class ApiService {
   public async truncateModel(new_size: number): Promise<any>{
     console.log("Truncating datapoints to only: " + new_size);
     let truncated_datapoints;
-    if(!environment.dev_mode){
-      await invoke("truncateModel", {newSize: new_size}).catch((error: any) => {
-        // console.error(error);
-        this.dialog_service.openErrorDialog("Error while truncating datapoints.");
-        throw error;
-      });
-  
-      truncated_datapoints = await this.getDataPoints();
-    }
-    else if(environment.dev_mode) {
-      let datapoints = await this.getDataPoints(); // Getting all original datapoints in dev mode
-      truncated_datapoints = datapoints.slice(0, new_size);
-    }
+    await invoke("truncateModel", {newSize: new_size}).catch((error: any) => {
+      // console.error(error);
+      this.dialog_service.openErrorDialog("Error while truncating datapoints.");
+      throw error;
+    });
+
+    truncated_datapoints = await this.getDataPoints();
 
     return truncated_datapoints;
   }
 
   public async getIntersectionsPercentages(identifier: number): Promise<Map<number, number>> {
     let raw_data;
-    if(!environment.dev_mode){
-      raw_data = await invoke("getIntersectionsPercentages", {identifier: identifier})
-        .catch((error: any) => {
-          // console.error(error);
-          this.dialog_service.openErrorDialog("Error while getting intersections.");
-          throw error;
-      });
-      
-    }else{
-      raw_data = await fs.readTextFile(await resolveResource('resources/intersections2.json'));
-      raw_data = JSON.parse(raw_data);
-    }
+    raw_data = await invoke("getIntersectionsPercentages", {identifier: identifier})
+      .catch((error: any) => {
+        // console.error(error);
+        this.dialog_service.openErrorDialog("Error while getting intersections.");
+        throw error;
+    });
 
     let intersections = new Map<number, number>();
     for (let key in raw_data) { intersections.set(Number(key), Number(raw_data[key])); }
@@ -87,17 +69,11 @@ export class ApiService {
 
   public async getIntersectionDetails(identifier: number): Promise<IntersectionDetails>{
     let data: any;
-    if(!environment.dev_mode){
-      data = await invoke("getIntersectionDetails", {identifier: identifier}).catch((error: any) => {
-        // console.error(error);
-        this.dialog_service.openErrorDialog("Error while fetching intersection details.");
-        throw error;
-      });
-
-    }else if(environment.dev_mode){
-      let rawdata = await fs.readTextFile(await resolveResource('resources/intersection_details.json'));
-      data = JSON.parse(rawdata);
-    }
+    data = await invoke("getIntersectionDetails", {identifier: identifier}).catch((error: any) => {
+      // console.error(error);
+      this.dialog_service.openErrorDialog("Error while fetching intersection details.");
+      throw error;
+    });
 
     let intersections: Map<number, [number, Array<Array<string>>]> = new Map();
     for (let key in data.intersections) { 
@@ -119,17 +95,11 @@ export class ApiService {
 
   public async getPattern(identifier: number): Promise<Pattern> {
     let pattern;
-    if(!environment.dev_mode){
-      pattern = await invoke("getPattern", {identifier: identifier}).catch((error: any) => {
-        // console.error(error);
-        this.dialog_service.openErrorDialog("Error while fetching pattern.");
-        throw error;
-      });
-    }else{
-      let rawdata = await fs.readTextFile(await resolveResource('resources/pattern.json'));
-      pattern = JSON.parse(rawdata);
-      pattern.identifier = identifier;
-    }
+    pattern = await invoke("getPattern", {identifier: identifier}).catch((error: any) => {
+      // console.error(error);
+      this.dialog_service.openErrorDialog("Error while fetching pattern.");
+      throw error;
+    });
     
     return Pattern.fromResponse(pattern);
   }
@@ -137,17 +107,11 @@ export class ApiService {
   public async getDataPoints(): Promise<Array<DataPoint>> {
     console.log("Invoking getDataPoints");
     let datapoints;
-    if(!environment.dev_mode){
-      datapoints = await invoke("getDataPoints").catch((error: any) => {
-        // console.error(error);
-        this.dialog_service.openErrorDialog("Error while fetching data points.");
-        throw error;
-      });
-
-    } else if (environment.dev_mode){
-      let rawdata = await fs.readTextFile(await resolveResource('resources/datapoints2.json'));
-      datapoints = JSON.parse(rawdata);
-    }
+    datapoints = await invoke("getDataPoints").catch((error: any) => {
+      // console.error(error);
+      this.dialog_service.openErrorDialog("Error while fetching data points.");
+      throw error;
+    });
 
     console.log("Received datapoints:");
     console.log(datapoints);
@@ -157,64 +121,44 @@ export class ApiService {
 
   public async getAllSubpatternsIdentifiers(): Promise<Array<number>> {
     let subpatterns_identifiers;
-    if(!environment.dev_mode){
-      subpatterns_identifiers = await invoke("getAllSubPatternsIdentifiers").catch((error: any) => {
-        // console.error(error);
-        this.dialog_service.openErrorDialog("Error while fetching subpatterns identifiers.");
-        throw error;
-      });
-    }else{
-      let rawdata = await fs.readTextFile(await resolveResource('resources/subpatterns_identifiers.json'));
-      subpatterns_identifiers = JSON.parse(rawdata);
-    }
+    subpatterns_identifiers = await invoke("getAllSubPatternsIdentifiers").catch((error: any) => {
+      // console.error(error);
+      this.dialog_service.openErrorDialog("Error while fetching subpatterns identifiers.");
+      throw error;
+    });
 
     return subpatterns_identifiers;
   }
 
   public async getDatapointsWithSubPatterns(): Promise<Array<DataPoint>> {
     let datapoints;
-    if(!environment.dev_mode){
-      datapoints = await invoke("getDatapointsWithSubPatterns").catch((error: any) => {
-        // console.error(error);
-        this.dialog_service.openErrorDialog("Error while fetching datapoints with subpatterns.");
-        throw error;
-      });
-    }else{
-      let rawdata = await fs.readTextFile(await resolveResource('resources/datapoints_with_subpatterns.json'));
-      datapoints = JSON.parse(rawdata);
-    }
+    datapoints = await invoke("getDatapointsWithSubPatterns").catch((error: any) => {
+      // console.error(error);
+      this.dialog_service.openErrorDialog("Error while fetching datapoints with subpatterns.");
+      throw error;
+    });
 
     return datapoints;
   }
 
   public async descendDag(identifier: number): Promise<Array<DataPoint>> {
     let datapoints;
-    if(!environment.dev_mode){
-      datapoints = await invoke("descendDag", {nextIdentifier: identifier}).catch((error: any) => {
-        // console.error(error);
-        this.dialog_service.openErrorDialog("Error while descending DAG.");
-        throw error;
-      });
-    }else{
-      let rawdata = await fs.readTextFile(await resolveResource('resources/subpatterns.json'));
-      datapoints = JSON.parse(rawdata);
-    }
+    datapoints = await invoke("descendDag", {nextIdentifier: identifier}).catch((error: any) => {
+      // console.error(error);
+      this.dialog_service.openErrorDialog("Error while descending DAG.");
+      throw error;
+    });
 
     return datapoints;
   }
 
   public async ascendDag(): Promise<Array<DataPoint>> {
     let datapoints;
-    if(!environment.dev_mode){
-      datapoints = await invoke("ascendDag").catch((error: any) => {
-        // console.error(error);
-        this.dialog_service.openErrorDialog("Error while ascending DAG.");
-        throw error;
-      });
-    }else{
-      let rawdata = await fs.readTextFile(await resolveResource('resources/root_patterns.json'));
-      datapoints = JSON.parse(rawdata);
-    }
+    datapoints = await invoke("ascendDag").catch((error: any) => {
+      // console.error(error);
+      this.dialog_service.openErrorDialog("Error while ascending DAG.");
+      throw error;
+    });
 
     return datapoints;
   }

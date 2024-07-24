@@ -3,6 +3,7 @@ use crate::common::generic_error::GenericError;
 use crate::database::pattern::Pattern;
 use crate::database::tensor::Tensor;
 
+use crate::model::analysis::metrics::metric::Metric;
 use crate::model::identifier_mapper::IdentifierMapper;
 use crate::services::dag::dag_service::DagService;
 use crate::services::datapoint_service::DataPointService;
@@ -16,7 +17,7 @@ pub struct ApplicationStateService{
     metrics_service: Option<MetricsService>,
     dag_service: Option<DagService>,
 
-    current_identifier: u32,
+    // current_identifier: u32,
     current_level: u32,
     current_level_identifiers: Vec<u32>,
     visible_identifiers: Vec<u32>,
@@ -91,7 +92,7 @@ impl ApplicationStateService{
             .ok_or(GenericError::new("Metrics service not initialized", file!(), &line!()))?
             .coordinates;
 
-        identifier_mapper.insertDataPointRepresentations(
+            identifier_mapper.insertDataPointRepresentations(
             DataPointService::createDataPoints(&identifier_mapper, coordinates)?
         )?;
 
@@ -106,11 +107,11 @@ impl ApplicationStateService{
     }
 
     pub fn ascendDag(&mut self) -> Result<bool, GenericError>{
-        if self.current_identifier == 0 || self.current_level == 0 { return Ok(false); }
+        if self.current_level == 0 { return Ok(false); }
 
         let previous_identifiers = self.dag_service.as_ref()
             .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()))?
-            .ascendDag(self.identifierMapper()?, &self.current_identifier)?;
+            .ascendDag(self.identifierMapper()?)?;
 
         if self.current_level > 0 { self.current_level -= 1; }
 
