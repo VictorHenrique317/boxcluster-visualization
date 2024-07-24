@@ -12,6 +12,7 @@ use rand::prelude::*;
 use rand::SeedableRng;
 use ndarray_rand::rand_distr::Uniform;
 
+#[derive(Clone)]
 pub struct Coordinates {
     value: HashMap<u32, (f64, f64)>,
 }

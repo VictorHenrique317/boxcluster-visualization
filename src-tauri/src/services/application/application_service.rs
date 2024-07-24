@@ -95,7 +95,6 @@ impl ApplicationService{
     }
 
     pub fn ascendDag(&mut self) -> Result<Vec<DataPoint>, GenericError>{
-        println!("Ascending dag");
         let result = self.application_state_service.ascendDag()?;
         if !result { return Ok(Vec::new());}
 
@@ -104,7 +103,6 @@ impl ApplicationService{
     }
 
     pub fn descendDag(&mut self, next_identifier: &u32) -> Result<Vec<DataPoint>, GenericError> {
-        println!("Descending dag to: {}", next_identifier);
         let result = self.application_state_service.descendDag(next_identifier)?;
         if !result { return Ok(Vec::new());}
 
@@ -128,10 +126,10 @@ impl ApplicationService{
     }
 
     pub fn getDataPoints(&self) -> Result<Vec<DataPoint>, GenericError>{
-        let visible_identifiers = self.application_state_service.getVisibleIdentifiers();
+        let visible_identifiers = self.application_state_service.getVisibleIdentifiers()?;
         // let identifiers = self.application_state_service.getAllIdentifiers()?;
         let datapoints: Vec<DataPoint> = self.application_state_service.identifierMapper()?
-            .getOrderedDataPointsFrom(visible_identifiers).into_iter()
+            .getOrderedDataPointsFrom(&visible_identifiers).into_iter()
             .map(|datapoint| datapoint.clone())
             .collect();
 
@@ -143,7 +141,7 @@ impl ApplicationService{
     }
 
     pub fn getRawPattern(&self, identifier: &u32) -> Result<RawPattern, GenericError>{
-        let visible_identifiers = self.application_state_service.getVisibleIdentifiers();
+        let visible_identifiers = self.application_state_service.getVisibleIdentifiers()?;
 
         if !visible_identifiers.contains(identifier){
             return Err(GenericError::new("Identifier not visible", file!(), &line!()));
@@ -219,8 +217,8 @@ impl ApplicationService{
         return Ok(intersections_details);
     }
 
-    pub fn getCurrentDagLevel(&self) -> u32{
-        return self.application_state_service.getCurrentDagLevel();
+    pub fn getCurrentDagLevel(&self) -> Result<u32, GenericError>{
+        return Ok(self.application_state_service.getCurrentDagLevel()?);
     }
 
 }

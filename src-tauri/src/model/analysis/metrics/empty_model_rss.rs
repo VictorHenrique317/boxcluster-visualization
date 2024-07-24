@@ -2,7 +2,7 @@ use crate::database::tensor::Tensor;
 
 use super::metric::Metric;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct EmptyModelRss{
     value: f64, 
 }

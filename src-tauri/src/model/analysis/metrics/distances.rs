@@ -39,7 +39,7 @@ impl DistancesView {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Distances{
     value: HashMap<u32, HashMap<u32, f64>>, 
 }

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::model::analysis::metrics::metric::Metric;
 
+#[derive(Clone)]
 pub struct IntersectionsPercentages{
     value: HashMap<u32, HashMap<u32, f64>>,
 }

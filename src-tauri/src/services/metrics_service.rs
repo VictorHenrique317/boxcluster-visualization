@@ -5,16 +5,20 @@ use crate::model::analysis::metrics::intersection::intersections_percentages::In
 use crate::model::analysis::metrics::intersections_predictions::IntersectionsPredictions;
 use crate::{model::{analysis::metrics::{empty_model_rss::EmptyModelRss, distances::Distances, coordinates::Coordinates, rss_evolution::RssEvolution}, identifier_mapper::IdentifierMapper}, database::{tensor::Tensor, pattern::Pattern}, common::generic_error::GenericError};
 
+use super::application::application_state_service::State;
+
 pub struct MetricsService{
     pub empty_model_rss: EmptyModelRss,
     pub rss_evolution: RssEvolution,
     pub all_initial_visible_distances: Distances,
     pub coordinates: Coordinates,
     pub intersections_percentages: IntersectionsPercentages,
+
+    pub visible_identifiers: Vec<u32>,
 }
 
 impl MetricsService{
-    pub fn new(identifier_mapper: &IdentifierMapper, tensor: &Tensor, visible_identifiers: &Vec<u32>) -> Result<MetricsService, GenericError>{
+    pub fn new(identifier_mapper: &IdentifierMapper, tensor: &Tensor, visible_identifiers: Vec<u32>) -> Result<MetricsService, GenericError>{
         println!("Calculating metrics...");
 
         let intersections_predictions = IntersectionsPredictions::new(identifier_mapper)?;
@@ -60,13 +64,21 @@ impl MetricsService{
                 all_initial_visible_distances: distances,
                 coordinates: coordinates,
                 intersections_percentages: intersections_percentages,
+                visible_identifiers: visible_identifiers.clone(),
              }
         );
     }
 
+    pub fn loadFrom(&mut self, state: State){
+        self.rss_evolution = state.rss_evolution;
+        self.coordinates = state.coordinates;
+        self.intersections_percentages = state.intersections_percentages;
+    }
+
     pub fn update(&mut self, tensor: &Tensor, identifier_mapper: &IdentifierMapper, visible_identifiers: &Vec<u32>, lazy: &bool)
             -> Result<(), GenericError>{
-
+        
+        self.visible_identifiers = visible_identifiers.clone();
         let visible_patterns = identifier_mapper.getOrderedPatternsFrom(visible_identifiers);
         
         let coordinates = Coordinates::new(

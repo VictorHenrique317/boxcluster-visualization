@@ -1,33 +1,90 @@
 #![allow(non_snake_case)]
+use std::collections::HashMap;
+use std::fmt::format;
+
 use crate::common::generic_error::GenericError;
 use crate::database::pattern::Pattern;
 use crate::database::tensor::Tensor;
 
+use crate::model::analysis::metrics::coordinates::Coordinates;
+use crate::model::analysis::metrics::intersection::intersections_percentages::IntersectionsPercentages;
 use crate::model::analysis::metrics::metric::Metric;
+use crate::model::analysis::metrics::rss_evolution::RssEvolution;
 use crate::model::identifier_mapper::IdentifierMapper;
 use crate::services::dag::dag_service::DagService;
 use crate::services::datapoint_service::DataPointService;
 use crate::services::metrics_service::MetricsService;
+
+#[derive(Eq, Hash, PartialEq)]
+struct StateIdentifier{
+    font_identifier: u32,
+    dag_level: u32,
+    nb_visible_identifiers: u32,
+}
+
+impl StateIdentifier{
+    pub fn new(font_identifier: u32, dag_level: u32, nb_visible_identifiers: u32) -> StateIdentifier{
+        return StateIdentifier{
+            font_identifier: font_identifier,
+            dag_level: dag_level,
+            nb_visible_identifiers: nb_visible_identifiers,
+        };
+    }
+}
+
+#[derive(Clone)]
+pub struct State{
+    pub rss_evolution: RssEvolution,
+    pub coordinates: Coordinates,
+    pub intersections_percentages: IntersectionsPercentages,
+}
 
 #[derive(Default)]
 pub struct ApplicationStateService{
     tensor: Option<Tensor>,
     identifier_mapper: Option<IdentifierMapper>,
 
-    metrics_service: Option<MetricsService>,
-    dag_service: Option<DagService>,
+    states: HashMap<StateIdentifier, State>,
 
-    // current_identifier: u32,
-    current_level: u32,
-    current_level_identifiers: Vec<u32>,
-    visible_identifiers: Vec<u32>,
+    dag_service: Option<DagService>,
+    metrics_service: Option<MetricsService>,
 }
 
 impl ApplicationStateService{
     pub fn init(&mut self, tensor: Tensor, patterns: Vec<Pattern>) -> Result<(), GenericError>{
         self.tensor = Some(tensor);
         self.changePatterns(patterns)?;
+        self.storeCurrentState()?;
 
+        return Ok(());
+    }
+
+    fn loadState(&mut self, state_identifier: &StateIdentifier) -> Result<(), GenericError>{
+        let state = self.states.get(state_identifier)
+            .ok_or(GenericError::new("State not found", file!(), &line!()))?
+            .clone();
+        self.getMutMetricsService()?.loadFrom(state);
+
+        return Ok(());
+    }
+
+    fn storeCurrentState(&mut self) -> Result<(), GenericError>{
+        let state_identifier = StateIdentifier::new(
+            self.getDagService()?.getCurrentFontIdentifier(),
+            self.getDagService()?.getCurrentLevel(),
+            self.getVisibleIdentifiers()?.len() as u32,
+        );
+
+        let rss_evolution = self.getMetricsService()?.rss_evolution.clone();
+        let coordinates = self.getMetricsService()?.coordinates.clone();
+        let intersections_percentages = self.getMetricsService()?.intersections_percentages.clone();
+        let state = State{
+            rss_evolution: rss_evolution,
+            coordinates: coordinates,
+            intersections_percentages: intersections_percentages,
+        };
+
+        self.states.insert(state_identifier,state);
         return Ok(());
     }
 
@@ -41,21 +98,15 @@ impl ApplicationStateService{
         )?;
         
         let dag_service = DagService::new(&identifier_mapper)?;
+        let visible_identifiers = dag_service.getCurrentLevelIdentifiers().clone();
         self.dag_service = Some(dag_service);
-
-        self.current_level = 0;
-        self.current_level_identifiers = self.dag_service.as_ref()
-            .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()))?
-            .getFontNodes();
-
-        self.visible_identifiers = self.current_level_identifiers.clone();
 
         // Inserts the data point representations
         let metrics_service = MetricsService::new(
             &identifier_mapper,
             self.tensor.as_ref()
                 .ok_or(GenericError::new("Tensor not initialized", file!(), &line!()))?,
-            &self.visible_identifiers
+                visible_identifiers,
         )?;
 
         identifier_mapper.insertDataPointRepresentations(
@@ -68,67 +119,57 @@ impl ApplicationStateService{
         return Ok(());
     }
 
-    fn update(&mut self, new_current_level_identifiers: &Option<Vec<u32>>) -> Result<(), GenericError>{
+    fn update(&mut self, new_visible_identifiers: Vec<u32>, lazy: bool, use_states: bool) -> Result<(), GenericError>{
+        if use_states { 
+            // // Try to load the state from the states hashmap, if it exists
+            // let current_level = self.getDagService()?.getCurrentLevel();
+            // if self.states.contains_key(&current_level){
+            //     self.loadState(current_level)?;
+            //     return Ok(());
+            // }
+        }
+
         let tensor = self.tensor.as_ref()
             .ok_or(GenericError::new("Tensor not initialized", file!(), &line!()))?;
 
         let identifier_mapper = self.identifier_mapper.as_mut()
             .ok_or(GenericError::new("Identifier mapper not initialized", file!(), &line!()))?;
 
-        let lazy = match new_current_level_identifiers {
-            Some(_) => false, // Changing the current level identifiers has to be done eagerly
-            None => true, // Here we do not need to re-calculate rss_evolution
-        };
-
-        let identifiers_used_to_update = match new_current_level_identifiers {
-            Some(new_current_level_identifiers) => new_current_level_identifiers, // Updates all identifiers and reset visible identifiers (dag movement)
-            None => &self.visible_identifiers, // Updates only the visible identifiers, (truncation)
-        };
-
         self.metrics_service.as_mut().ok_or(GenericError::new("Metrics service not initialized", file!(), &line!()))?
-            .update(tensor, identifier_mapper, identifiers_used_to_update, &lazy)?;
+            .update(tensor, identifier_mapper, &new_visible_identifiers, &lazy)?;
 
         let coordinates = &self.metrics_service.as_ref()
             .ok_or(GenericError::new("Metrics service not initialized", file!(), &line!()))?
             .coordinates;
 
-            identifier_mapper.insertDataPointRepresentations(
+        identifier_mapper.insertDataPointRepresentations(
             DataPointService::createDataPoints(&identifier_mapper, coordinates)?
-        )?;
+            )?;
 
-        // Should also insert dagNode representations
-        
-        if !lazy{ // Reset everything because current_level_identifiers is gonna be changed
-            self.current_level_identifiers = identifiers_used_to_update.clone();
-            self.visible_identifiers = identifiers_used_to_update.clone();
-        }
+        if use_states { self.storeCurrentState()?; }
 
         return Ok(());
     }
 
     pub fn ascendDag(&mut self) -> Result<bool, GenericError>{
-        if self.current_level == 0 { return Ok(false); }
+        let result = self.getMutDagService()?.ascendDag();
+        if !result{ return Ok(false); }
+        println!("  Ascended dag to level {:?}", self.getDagService()?.getCurrentLevelIdentifiers());
 
-        let previous_identifiers = self.dag_service.as_ref()
-            .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()))?
-            .ascendDag(self.identifierMapper()?)?;
-
-        if self.current_level > 0 { self.current_level -= 1; }
-
-        self.update(&Some(previous_identifiers))?;
-
+        let new_visible_identifiers = self.getMutDagService()?.getCurrentLevelIdentifiers().clone();
+        self.update(new_visible_identifiers, false, true)?;
         return Ok(true);
     }
 
     pub fn descendDag(&mut self, next_identifier: &u32) -> Result<bool, GenericError>{
-        let next_identifiers = self.dag_service.as_ref()
-            .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()))?
-            .descendDag(self.identifierMapper()?, next_identifier)?;
+        let subs = self.identifierMapper()?.getRepresentation(next_identifier)?
+            .asDagNode()?.subs.clone();
+        let result = self.getMutDagService()?.descendDag(next_identifier, &subs);
+        if !result{ return Ok(false); }
+        println!("  Descended dag to {}", next_identifier);
 
-        if next_identifiers.len() == 0{ return Ok(false); }
-        
-        self.current_level += 1;
-        self.update(&Some(next_identifiers))?;
+        let new_visible_identifiers = self.getDagService()?.getCurrentLevelIdentifiers().clone();
+        self.update(new_visible_identifiers, false, true)?;
         return Ok(true);
     }
 
@@ -139,17 +180,27 @@ impl ApplicationStateService{
         all_identifiers.sort();
         all_identifiers.truncate(*new_size as usize);
 
-        let mut current_level_identifiers = self.current_level_identifiers.clone();
+        let mut current_level_identifiers = self.getDagService()?.getCurrentLevelIdentifiers().clone();
         current_level_identifiers.sort();
 
-        self.visible_identifiers = current_level_identifiers.iter()
+        let visible_identifiers: Vec<u32> = current_level_identifiers.iter()
             .filter(|identifier| all_identifiers.contains(&identifier))
             .map(|identifier| identifier.clone())
             .collect();
 
-        self.update(&None)?;
+        self.update(visible_identifiers, true, false)?;
 
         return Ok(());
+    }
+
+    pub fn getDagService(&self) -> Result<&DagService, GenericError>{
+        return self.dag_service.as_ref()
+            .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()));
+    }
+
+    fn getMutDagService(&mut self) -> Result<&mut DagService, GenericError>{
+        return self.dag_service.as_mut()
+            .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()));
     }
 
     pub fn identifierMapper(&self) -> Result<&IdentifierMapper, GenericError>{
@@ -157,14 +208,8 @@ impl ApplicationStateService{
             .ok_or(GenericError::new("Identifier mapper not initialized", file!(), &line!()));
     }
 
-    pub fn getAllIdentifiers(&self) -> Result<&Vec<u32>, GenericError>{
-        return Ok(
-            &self.current_level_identifiers
-        );
-    }
-
-    pub fn getVisibleIdentifiers(&self) -> &Vec<u32>{
-        return &self.visible_identifiers;
+    pub fn getVisibleIdentifiers(&self) -> Result<Vec<u32>, GenericError>{
+        return Ok(self.getMetricsService()?.visible_identifiers.clone());
     }
 
     pub fn getAllSubPatternsIdentifiers(&self) -> Result<Vec<u32>, GenericError>{
@@ -175,6 +220,13 @@ impl ApplicationStateService{
         );
     }
 
+    fn getMutMetricsService(&mut self) -> Result<&mut MetricsService, GenericError>{
+        return Ok(
+            self.metrics_service.as_mut()
+            .ok_or(GenericError::new("Metrics service not initialized", file!(), &line!()))?
+        );
+    }
+
     pub fn getMetricsService(&self) -> Result<&MetricsService, GenericError>{
         return Ok(
             self.metrics_service.as_ref()
@@ -182,12 +234,7 @@ impl ApplicationStateService{
         );
     }
 
-    pub fn getDagService(&self) -> Result<&DagService, GenericError>{
-        return self.dag_service.as_ref()
-            .ok_or(GenericError::new("Dag service not initialized", file!(), &line!()));
-    }
-
-    pub fn getCurrentDagLevel(&self) -> u32{
-        return self.current_level;
+    pub fn getCurrentDagLevel(&self) -> Result<u32, GenericError>{
+        return Ok(self.getDagService()?.getCurrentLevel());
     }
 }
