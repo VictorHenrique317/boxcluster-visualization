@@ -187,6 +187,7 @@ impl RssEvolution{
     }
 
     pub fn truncate(&mut self, new_size: &u32){
+        if *new_size == 0 { return; }
         self.last_element_index = *new_size - 1;
     }
 

@@ -59,12 +59,21 @@ impl ApplicationStateService{
         return Ok(());
     }
 
-    fn loadState(&mut self, state_identifier: &StateIdentifier) -> Result<(), GenericError>{
+    fn loadState(&mut self, state_identifier: &StateIdentifier, new_visible_identifiers: &Vec<u32>) -> Result<(), GenericError>{
+        self.getMutMetricsService()?.setVisibleIdentifiers(new_visible_identifiers);
+
         let state = self.states.get(state_identifier)
             .ok_or(GenericError::new("State not found", file!(), &line!()))?
             .clone();
-        self.getMutMetricsService()?.loadFrom(state);
 
+        let identifier_mapper = self.identifier_mapper.as_mut()
+            .ok_or(GenericError::new("Identifier mapper not initialized", file!(), &line!()))?;
+
+        identifier_mapper.insertDataPointRepresentations(
+            DataPointService::createDataPoints(&identifier_mapper, &state.coordinates)?
+        )?;
+
+        self.getMutMetricsService()?.loadFrom(state);
         return Ok(());
     }
 
@@ -121,12 +130,18 @@ impl ApplicationStateService{
 
     fn update(&mut self, new_visible_identifiers: Vec<u32>, lazy: bool, use_states: bool) -> Result<(), GenericError>{
         if use_states { 
-            // // Try to load the state from the states hashmap, if it exists
-            // let current_level = self.getDagService()?.getCurrentLevel();
-            // if self.states.contains_key(&current_level){
-            //     self.loadState(current_level)?;
-            //     return Ok(());
-            // }
+            // Try to load the state from the states hashmap, if it exists
+            let state_identifier = StateIdentifier::new(
+                self.getDagService()?.getCurrentFontIdentifier(),
+                self.getDagService()?.getCurrentLevel(),
+                new_visible_identifiers.len() as u32,
+            );
+
+            if self.states.contains_key(&state_identifier){
+                println!("  Loading state from memory...");
+                self.loadState(&state_identifier, &new_visible_identifiers)?;
+                return Ok(());
+            }
         }
 
         let tensor = self.tensor.as_ref()
@@ -188,7 +203,7 @@ impl ApplicationStateService{
             .map(|identifier| identifier.clone())
             .collect();
 
-        self.update(visible_identifiers, true, false)?;
+        self.update(visible_identifiers, true, true)?;
 
         return Ok(());
     }

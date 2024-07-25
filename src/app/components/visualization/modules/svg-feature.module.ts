@@ -63,7 +63,7 @@ export class SvgFeatureModule {
       });
     
     this.svg = this.createSvg();
-    this.resizeSvg(this.svg_width, this.svg_height);
+    this.resizeSvg(this.svg_width, this.svg_height, this.datapoints);
     this.cdr.detectChanges();
     
     this.zoom_level = this.initial_scale;
@@ -79,7 +79,7 @@ export class SvgFeatureModule {
     return svg;
   }
 
-  public resizeSvg(width: number, height: number){
+  public resizeSvg(width: number, height: number, datapoints: Array<DataPoint>){
     this.svg
       .attr('width', width)
       .attr('height', height);
@@ -98,7 +98,7 @@ export class SvgFeatureModule {
     this.svg_height = height;
 
     this.createPlot();
-    this.drawDataPoints(this.datapoints);
+    this.drawDataPoints(datapoints);
   }
 
   private createPlot(){
@@ -237,10 +237,10 @@ export class SvgFeatureModule {
     // let y_max_module = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.y)));
     // let max_module = Math.max(x_max_module, y_max_module);
 
-    let scaled_datapoints: Array<DataPoint> = datapoints;
+    let scaled_datapoints: Array<DataPoint> = [...datapoints];
     let screen_coverage = 0.5;
     // let screen_coverage = 0.8;
-    datapoints.forEach(datapoint => {
+    scaled_datapoints.forEach(datapoint => {
       //   let result_x = datapoint.x / x_max_module;
       //   let result_y = datapoint.y / y_max_module;
 

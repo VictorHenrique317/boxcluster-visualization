@@ -128,11 +128,13 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     this.datapoint_click_subscription.unsubscribe();
   }
 
-  public onResize(event) {
+  public async onResize(event) {
+    console.log("Resizing window");
     let width = this.body.nativeElement.clientWidth;
     let height = this.body.nativeElement.clientHeight;
+    let datapoints = await this.api_service.getDataPoints();
 
-    this.svg_feature.resizeSvg(width, height);
+    this.svg_feature.resizeSvg(width, height, datapoints);
   }
 
   private onDatapointHoverIn(identifier: number){
@@ -173,9 +175,11 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
 
   public ascendDag(){
     this.dag_feature.ascendDag();
+    this.onResize(undefined);
   }
 
   public descendDag(){
     this.dag_feature.descendDag();
+    this.onResize(undefined);
   }
 }

@@ -79,6 +79,8 @@ impl MetricsService{
             -> Result<(), GenericError>{
         
         self.visible_identifiers = visible_identifiers.clone();
+        if self.visible_identifiers.is_empty() { return Ok(()); }
+
         let visible_patterns = identifier_mapper.getOrderedPatternsFrom(visible_identifiers);
         
         let coordinates = Coordinates::new(
@@ -115,5 +117,9 @@ impl MetricsService{
         }
 
         return Ok(());
+    }
+
+    pub fn setVisibleIdentifiers(&mut self, visible_identifiers: &Vec<u32>){
+        self.visible_identifiers = visible_identifiers.clone();
     }
 }

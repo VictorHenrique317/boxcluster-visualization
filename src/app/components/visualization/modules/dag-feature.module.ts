@@ -33,7 +33,7 @@ export class DagFeatureModule{
     public async init() {
         this.datapoints_with_subpatterns = new Set(
             (await this.api_service.getDatapointsWithSubPatterns()).map(datapoint => datapoint.identifier));
-        this.current_dag_level = 0;
+        this.current_dag_level = 1;
     }
 
     public setClickedDatapoint(identifier: number){
@@ -90,7 +90,7 @@ export class DagFeatureModule{
     }
 
     public ascendDag(){
-        if(this.current_dag_level == 0){ return; }
+        if(this.current_dag_level == 1){ return; }
 
         this.api_service.ascendDag().then((datapoints: Array<DataPoint>) => {
             if(datapoints.length == 0){ return; }
@@ -98,8 +98,11 @@ export class DagFeatureModule{
             this.drawNewLevelDatapoints(datapoints);
             
             this.current_dag_level -= 1;
-            if(this.current_dag_level == 0){ this.upper_dag_arrow_active = false; }
+
+            if(this.current_dag_level == 1){ this.upper_dag_arrow_active = false; }
             else{ this.upper_dag_arrow_active = true; }
+            this.lower_dag_arrow_active = false;
+            this.clicked_datapoint = undefined;
         });
     }
 
@@ -111,12 +114,13 @@ export class DagFeatureModule{
         this.api_service.descendDag(super_datapoint).then((datapoints: Array<DataPoint>) => {
             if(datapoints.length == 0){ return; }
 
-            this.upper_dag_arrow_active = true;
-            this.lower_dag_arrow_active = false;
-
             this.drawNewLevelDatapoints(datapoints);
 
             this.current_dag_level += 1;
+
+            this.upper_dag_arrow_active = true;
+            this.lower_dag_arrow_active = false;
+            this.clicked_datapoint = undefined;
         });
     }
 }
