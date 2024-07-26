@@ -162,4 +162,15 @@ export class ApiService {
 
     return datapoints;
   }
+
+  public async getCurrentLevelBackgroundDensity(): Promise<number> {
+    let density;
+    density = await invoke("getCurrentLevelBackgroundDensity").catch((error: any) => {
+      // console.error(error);
+      this.dialog_service.openErrorDialog("Error while fetching background density.");
+      throw error;
+    });
+
+    return density;
+  }
 }

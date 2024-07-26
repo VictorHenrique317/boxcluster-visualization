@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 use std::collections::HashMap;
 
+use crate::database::tensor::Tensor;
 use crate::{database::dag_node::DagNode, common::generic_error::GenericError};
 use crate::model::identifier_mapper::IdentifierMapper;
 use super::dag_creator_service::DagCreatorService;
@@ -9,8 +10,9 @@ pub struct DagService{
     sub_nodes: Vec<u32>,
 
     current_font_identifier: u32,
+    current_level_density: f64,
     current_level_identifiers: Vec<u32>,
-    level_history: Vec<(u32, Vec<u32>)>,
+    level_history: Vec<(u32, f64, Vec<u32>)>,
 }
 
 impl DagService{
@@ -46,22 +48,23 @@ impl DagService{
         return Ok((font_nodes, sub_nodes));
     }
 
-    pub fn new(identifier_mapper: &IdentifierMapper) -> Result<DagService, GenericError>{
+    pub fn new(identifier_mapper: &IdentifierMapper, tensor_density: &f64) -> Result<DagService, GenericError>{
         let (font_nodes, sub_nodes) = DagService::identifyNodes(identifier_mapper)?;
         return Ok(
             DagService{
                 sub_nodes: sub_nodes,
 
                 current_font_identifier: 0,
+                current_level_density: *tensor_density,
                 current_level_identifiers: font_nodes.clone(),
-                level_history: vec![(0, font_nodes)],
+                level_history: vec![(0, *tensor_density, font_nodes)],
             }
         );
     }
 
     pub fn getFontNodes(&self) -> Result<Vec<u32>, GenericError> {
         return Ok(
-            self.level_history.first().cloned().ok_or(GenericError::new("No font nodes", file!(), &line!()))?.1
+            self.level_history.first().cloned().ok_or(GenericError::new("No font nodes", file!(), &line!()))?.2
         );
     }
 
@@ -79,20 +82,22 @@ impl DagService{
         let current = self.level_history.last()
             .expect("If can descend should have next identifiers").clone();
         self.current_font_identifier = current.0;
-        self.current_level_identifiers = current.1;
+        self.current_level_density = current.1;
+        self.current_level_identifiers = current.2;
         return true;
     }
 
-    pub fn descendDag(&mut self, font_identifier: &u32, subs: &Vec<u32>) -> bool {
+    pub fn descendDag(&mut self, font_identifier: &u32, subs: &Vec<u32>, pattern_density: &f64) -> bool {
         if subs.len() == 0{ return false; }
 
         // Has some sub, can descend
-        self.level_history.push((*font_identifier, subs.clone()));
+        self.level_history.push((*font_identifier, *pattern_density, subs.clone()));
         
         let current = self.level_history.last()
             .expect("If can descend should have next identifiers").clone();
         self.current_font_identifier = current.0;
-        self.current_level_identifiers = current.1;
+        self.current_level_density = current.1;
+        self.current_level_identifiers = current.2;
         return true;
     }
 
@@ -134,9 +139,13 @@ impl DagService{
         return Ok(flattened_supers);
     }
 
-    pub fn setCurrentLevelIdentifiers(&mut self, identifiers: &Vec<u32>){
+    pub fn setCurrentLevelIdentifiers(&mut self, identifiers: &Vec<u32>, level_density: &f64){
         self.current_level_identifiers = identifiers.clone();
-        self.level_history = vec![(0, identifiers.clone())];
+        self.level_history = vec![(0, *level_density, identifiers.clone())];
+    }
+
+    pub fn getCurrentLevelBackgroundDensity(&self) -> f64{
+        return self.current_level_density;
     }
     
 }

@@ -221,4 +221,8 @@ impl ApplicationService{
         return Ok(self.application_state_service.getCurrentDagLevel()?);
     }
 
+    pub fn getCurrentLevelBackgroundDensity(&self) -> Result<f64, GenericError> {
+        return self.application_state_service.getCurrentLevelBackgroundDensity();
+    }
+
 }

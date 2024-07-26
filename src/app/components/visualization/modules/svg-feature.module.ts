@@ -166,7 +166,7 @@ export class SvgFeatureModule {
         .attr('y', 0)
         .attr('width', this.svg_width)
         .attr('height', this.svg_height)
-        .style('fill', 'rgba(0, 0, 0, 0)')
+        .style('fill', 'rgba(255, 0, 0, 1)')
         .lower()
         .on('click', (event, d) => { 
           this.locked_datapoint = undefined;
@@ -376,6 +376,14 @@ export class SvgFeatureModule {
     
     this.drawCircleLegend();
     this.drawColorLegend();
+  }
+
+  public setBackgroundColor(density: number) {
+    let color = `rgba(255, 0, 0, ${density})`;
+    this.plot.select("#overlay")
+      .transition()
+      .duration(300)
+      .style('fill', color);
   }
 
   public showTooltip(datapoint: DataPoint, circle: any){

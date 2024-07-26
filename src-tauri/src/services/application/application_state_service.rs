@@ -106,7 +106,11 @@ impl ApplicationStateService{
             DagService::createAndArrange(&identifier_mapper)?,
         )?;
         
-        let dag_service = DagService::new(&identifier_mapper)?;
+        let tensor_density = self.tensor.as_ref()
+            .ok_or(GenericError::new("Tensor not initialized", file!(), &line!()))?
+            .density;  
+        
+        let dag_service = DagService::new(&identifier_mapper, &tensor_density)?;
         let visible_identifiers = dag_service.getCurrentLevelIdentifiers().clone();
         self.dag_service = Some(dag_service);
 
@@ -179,7 +183,9 @@ impl ApplicationStateService{
     pub fn descendDag(&mut self, next_identifier: &u32) -> Result<bool, GenericError>{
         let subs = self.identifierMapper()?.getRepresentation(next_identifier)?
             .asDagNode()?.subs.clone();
-        let result = self.getMutDagService()?.descendDag(next_identifier, &subs);
+        let pattern_density = self.identifierMapper()?
+            .getRepresentation(next_identifier)?.asPattern()?.density;
+        let result = self.getMutDagService()?.descendDag(next_identifier, &subs, &pattern_density);
         if !result{ return Ok(false); }
         println!("  Descended dag to {}", next_identifier);
 
@@ -251,5 +257,9 @@ impl ApplicationStateService{
 
     pub fn getCurrentDagLevel(&self) -> Result<u32, GenericError>{
         return Ok(self.getDagService()?.getCurrentLevel());
+    }
+
+    pub fn getCurrentLevelBackgroundDensity(&self) -> Result<f64, GenericError>{
+        return Ok(self.getDagService()?.getCurrentLevelBackgroundDensity());
     }
 }

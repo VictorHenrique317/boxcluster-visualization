@@ -89,38 +89,40 @@ export class DagFeatureModule{
         this.svg_feature.drawDataPoints(datapoints, true);
     }
 
-    public ascendDag(){
-        if(this.current_dag_level == 1){ return; }
+    public async ascendDag(): Promise<boolean>{
+        if(this.current_dag_level == 1){ return false; }
 
-        this.api_service.ascendDag().then((datapoints: Array<DataPoint>) => {
-            if(datapoints.length == 0){ return; }
+        let datapoints = await this.api_service.ascendDag();
+        if(datapoints.length == 0){ return false; }
             
-            this.drawNewLevelDatapoints(datapoints);
-            
-            this.current_dag_level -= 1;
+        this.drawNewLevelDatapoints(datapoints);
+        
+        this.current_dag_level -= 1;
 
-            if(this.current_dag_level == 1){ this.upper_dag_arrow_active = false; }
-            else{ this.upper_dag_arrow_active = true; }
-            this.lower_dag_arrow_active = false;
-            this.clicked_datapoint = undefined;
-        });
+        if(this.current_dag_level == 1){ this.upper_dag_arrow_active = false; }
+        else{ this.upper_dag_arrow_active = true; }
+        this.lower_dag_arrow_active = false;
+        this.clicked_datapoint = undefined;
+
+        return true;
     }
 
-    public descendDag(){
+    public async descendDag(): Promise<boolean>{
         let super_datapoint = this.clicked_datapoint;
         console.log("Descending from: ", super_datapoint)
-        if(super_datapoint == null){ return; }
+        if(super_datapoint == null){ return false; }
 
-        this.api_service.descendDag(super_datapoint).then((datapoints: Array<DataPoint>) => {
-            if(datapoints.length == 0){ return; }
+        let datapoints = await this.api_service.descendDag(super_datapoint);
+        if(datapoints.length == 0){ return false; }
 
-            this.drawNewLevelDatapoints(datapoints);
+        this.drawNewLevelDatapoints(datapoints);
 
-            this.current_dag_level += 1;
+        this.current_dag_level += 1;
 
-            this.upper_dag_arrow_active = true;
-            this.lower_dag_arrow_active = false;
-            this.clicked_datapoint = undefined;
-        });
+        this.upper_dag_arrow_active = true;
+        this.lower_dag_arrow_active = false;
+        this.clicked_datapoint = undefined;
+
+        return true;
     }
 }

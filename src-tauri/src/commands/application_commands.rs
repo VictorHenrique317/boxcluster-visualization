@@ -109,3 +109,11 @@ pub fn getIntersectionDetails(application_service: State<ApplicationServiceState
     let application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
     return application_service.getIntersectionDetails(&identifier);
 }
+
+#[tauri::command]
+pub fn getCurrentLevelBackgroundDensity(application_service: State<ApplicationServiceState>) -> Result<f64, GenericError> {
+    println!("Calling getCurrentLevelBackgroundDensity...");
+
+    let application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
+    return application_service.getCurrentLevelBackgroundDensity();
+}

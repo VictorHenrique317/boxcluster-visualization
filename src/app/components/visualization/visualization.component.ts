@@ -106,7 +106,10 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     
     this.svg_feature = new SvgFeatureModule(this.cdr);
     this.svg_feature.init(this.visualization_div, svg_width, svg_height);
-    this. datapoint_hover_in_subscription = this.svg_feature.datapoint_hover_in.subscribe(identifier => this.onDatapointHoverIn(identifier));
+    let background_density = await this.api_service.getCurrentLevelBackgroundDensity();
+    this.svg_feature.setBackgroundColor(background_density);
+
+    this.datapoint_hover_in_subscription = this.svg_feature.datapoint_hover_in.subscribe(identifier => this.onDatapointHoverIn(identifier));
     this.datapoint_hover_out_subscription = this.svg_feature.datapoint_hover_out.subscribe(identifier => this.onDatapointHoverOut(identifier));
     this.datapoint_click_subscription = this.svg_feature.datapoint_click.subscribe(identifier => this.onDatapointClick(identifier));
     
@@ -135,6 +138,8 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     let datapoints = await this.api_service.getDataPoints();
 
     this.svg_feature.resizeSvg(width, height, datapoints);
+    let background_density = await this.api_service.getCurrentLevelBackgroundDensity();
+    this.svg_feature.setBackgroundColor(background_density);
   }
 
   private onDatapointHoverIn(identifier: number){
@@ -174,12 +179,20 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
   }
 
   public ascendDag(){
-    this.dag_feature.ascendDag();
-    this.onResize(undefined);
+    this.dag_feature.ascendDag().then((success) => {
+        if(success){
+          this.onResize(undefined);
+          this.datapoint_click.emit(null);
+        }
+    });
   }
 
   public descendDag(){
-    this.dag_feature.descendDag();
-    this.onResize(undefined);
+    this.dag_feature.descendDag().then((success) => {
+        if(success){
+          this.onResize(undefined);
+          this.datapoint_click.emit(null);
+        }
+    });
   }
 }
