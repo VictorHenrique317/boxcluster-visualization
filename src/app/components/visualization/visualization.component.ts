@@ -78,10 +78,12 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
   @Output() datapoint_hover_in = new EventEmitter<number>();
   @Output() datapoint_hover_out = new EventEmitter<number>();
   @Output() datapoint_click = new EventEmitter();
+  @Output() dag_change = new EventEmitter();
 
   private datapoint_hover_in_subscription: Subscription;
   private datapoint_hover_out_subscription: Subscription;
   private datapoint_click_subscription: Subscription;
+  private dag_change_subscription: Subscription;
 
   @ViewChild('body') body: ElementRef<HTMLBodyElement>;
   @ViewChild('vizualization_div') visualization_div: ElementRef<HTMLDivElement>;
@@ -108,10 +110,6 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     this.svg_feature.init(this.visualization_div, svg_width, svg_height);
     let background_density = await this.api_service.getCurrentLevelBackgroundDensity();
     this.svg_feature.setBackgroundColor(background_density);
-
-    this.datapoint_hover_in_subscription = this.svg_feature.datapoint_hover_in.subscribe(identifier => this.onDatapointHoverIn(identifier));
-    this.datapoint_hover_out_subscription = this.svg_feature.datapoint_hover_out.subscribe(identifier => this.onDatapointHoverOut(identifier));
-    this.datapoint_click_subscription = this.svg_feature.datapoint_click.subscribe(identifier => this.onDatapointClick(identifier));
     
     let datapoints = await this.api_service.getDataPoints();
     this.svg_feature.drawDataPoints(datapoints);
@@ -121,6 +119,11 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     this.dag_feature = new DagFeatureModule(this.intersection_mode_feature, this.svg_feature, this.api_service);
     await this.dag_feature.init();
 
+    this.datapoint_hover_in_subscription = this.svg_feature.datapoint_hover_in.subscribe(identifier => this.onDatapointHoverIn(identifier));
+    this.datapoint_hover_out_subscription = this.svg_feature.datapoint_hover_out.subscribe(identifier => this.onDatapointHoverOut(identifier));
+    this.datapoint_click_subscription = this.svg_feature.datapoint_click.subscribe(identifier => this.onDatapointClick(identifier));
+    this.dag_change_subscription = this.dag_feature.dag_change.subscribe(() => this.onDagChange());
+
     // this.intersection_mode_feature.toggleIntersections(1); // TODO: Remove this line
     // this.intersection_mode_feature.showIntersectionDetails(); // TODO: Remove this line
   }
@@ -129,6 +132,7 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     this.datapoint_hover_in_subscription.unsubscribe();
     this.datapoint_hover_out_subscription.unsubscribe();
     this.datapoint_click_subscription.unsubscribe();
+    this.dag_change_subscription.unsubscribe();
   }
 
   public async onResize(event) {
@@ -167,6 +171,10 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     this.datapoint_click.emit(null);
   }
 
+  private onDagChange(){
+    this.dag_change.emit();
+  }
+
   public toggleHighlightSuperpatterns(toggle: boolean){
     if(toggle == true && this.dag_feature.isHighlightingSuperpatterns()){ return; }
     if(toggle == false && !this.dag_feature.isHighlightingSuperpatterns()){ return; }
@@ -194,5 +202,9 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
           this.datapoint_click.emit(null);
         }
     });
+  }
+
+  public isOnFirstLevel(){
+    return this.dag_feature.current_dag_level == 1;
   }
 }

@@ -85,6 +85,9 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   protected intersection_mode_enabled: boolean = false;
   protected highlight_superpatterns_enabled: boolean = false;
 
+  protected truncate_model_disabled: boolean = false;
+  protected highlight_superpatterns_disabled: boolean = false;
+
   @ViewChild("aside") aside: ElementRef<HTMLElement>;
   public matList_height: number;
 
@@ -100,6 +103,7 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   protected hovered_pattern: Pattern;
 
   private datapoint_click_subscription: Subscription;
+  private dag_change_subscription: Subscription;
   
   constructor(private cdr: ChangeDetectorRef, private dialog_service: DialogService, private api_service: ApiService){}
 
@@ -110,7 +114,7 @@ export class AppComponent implements AfterViewInit, OnDestroy{
       // await fs.readTextFile(await resolveResource('resources/'))
 
       // let base_path = "../../src-tauri/tests/test_data"
-      let tensor_path = await resolveResource('resources/dev_tensor.txt');
+      let tensor_path = await resolveResource('resources/dev_tensor.txt'); 
       let patterns_path = await resolveResource('resources/dev_patterns.txt');
       
       // let patterns_path = `${base_path}/other_patterns/primary_school.txt`
@@ -120,6 +124,7 @@ export class AppComponent implements AfterViewInit, OnDestroy{
 
   ngOnDestroy(){
     this.datapoint_click_subscription.unsubscribe();
+    this.dag_change_subscription.unsubscribe();
   }
 
   private async handleModelChange(event: any){
@@ -150,10 +155,12 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     this.cdr.detectChanges();
 
     this.datapoint_click_subscription = this.visualization_view.datapoint_click.subscribe(identifier => this.onDatapointClick(identifier));
+    this.dag_change_subscription = this.visualization_view.dag_change.subscribe(() => this.onDagChange());
     // this.reloadApplication();
   }
 
   protected toggleMainOption(option: MainOption | null){
+    if (this.isOptionDisabled(option)) { return; }
     this.deactivateMainOptionsExcept(option);
 
     switch(option){
@@ -171,6 +178,19 @@ export class AppComponent implements AfterViewInit, OnDestroy{
         break;
       case null:
         break
+    }
+  }
+
+  private isOptionDisabled(option: MainOption): boolean{
+    switch(option){
+      case MainOption.SETTINGS:
+        return false;
+      case MainOption.TRUNCATE_MODEL:
+        return this.truncate_model_disabled;
+      case MainOption.HIGHLIGHT_SUPERPATTERNS:
+        return this.highlight_superpatterns_disabled;
+      default:
+        return false;
     }
   }
 
@@ -230,6 +250,12 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     }, 1100);
 
     this.visualization_view.onTruncation(event);
+  }
+
+
+  private onDagChange(){
+    this.truncate_model_disabled = this.visualization_view.isOnFirstLevel();
+    this.highlight_superpatterns_disabled = this.visualization_view.isOnFirstLevel();
   }
 
   protected updatePatternSummary(identifier){

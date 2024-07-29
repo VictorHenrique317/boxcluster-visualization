@@ -9,7 +9,7 @@
             </header>
 
             <header class="main-option" id="truncate-model-button" 
-                [ngClass]="{'buttonToggled': this.truncate_model_enabled}"
+                [ngClass]="{'buttonToggled': this.truncate_model_enabled, 'main-option-disabled':this.truncate_model_disabled}"
                 *ngIf="application_status == applicationStatusLoaded"
                 (click)="toggleMainOption(MainOption.TRUNCATE_MODEL)"
                 matTooltip="Truncate summary">
@@ -17,7 +17,7 @@
             </header>
 
             <header class="main-option" id="highlight-superpatterns"
-                [ngClass]="{'buttonToggled': this.highlight_superpatterns_enabled}"
+                [ngClass]="{'buttonToggled': this.highlight_superpatterns_enabled, 'main-option-disabled':this.highlight_superpatterns_disabled}"
                 *ngIf="application_status == applicationStatusLoaded"
                 (click)="toggleMainOption(MainOption.HIGHLIGHT_SUPERPATTERNS)"
                 matTooltip="Highlight super-patterns">

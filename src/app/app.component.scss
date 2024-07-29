@@ -263,3 +263,9 @@ body{
 .buttonToggled{
     background-color: mat.get-color-from-palette($primary-palette, 800) !important;
 }
+
+.main-option-disabled{
+    color: rgb(145, 145, 145) !important;
+    background-color: rgb(209, 209, 209) !important;
+    cursor: not-allowed !important;
+}

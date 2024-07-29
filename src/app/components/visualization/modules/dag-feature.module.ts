@@ -12,6 +12,8 @@ import { IntersectionModeFeatureModule } from './intersection-mode-feature.modul
   ]
 })
 export class DagFeatureModule{
+    public dag_change = new EventEmitter();
+
     public upper_dag_arrow_active: boolean = false;
     public lower_dag_arrow_active: boolean = false;
     protected supers_highlighted: boolean = false;
@@ -87,6 +89,7 @@ export class DagFeatureModule{
         this.intersection_feature.toggleIntersections(null, true);
         this.svg_feature.deactivateHighlight();
         this.svg_feature.drawDataPoints(datapoints, true);
+        this.dag_change.emit();
     }
 
     public async ascendDag(): Promise<boolean>{

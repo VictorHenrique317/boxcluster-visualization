@@ -20,7 +20,9 @@
           "$RESOURCE/resources/subpatterns.json",
           "$RESOURCE/resources/root_patterns.json",
           "$RESOURCE/resources/dev_tensor.txt",
-          "$RESOURCE/resources/dev_patterns.txt"
+          "$RESOURCE/resources/dev_tensor_light.txt",
+          "$RESOURCE/resources/dev_patterns.txt",
+          "$RESOURCE/resources/dev_patterns_light.txt"
         ]
       },
       "all": true,
@@ -60,7 +62,9 @@
         "resources/subpatterns.json",
         "resources/root_patterns.json",
         "resources/dev_tensor.txt",
-        "resources/dev_patterns.txt"
+        "resources/dev_tensor_light.txt",
+        "resources/dev_patterns.txt",
+        "resources/dev_patterns_light.txt"
         
       ],
       "shortDescription": "",
