@@ -48,5 +48,5 @@
 - [x] UPDATE: Re-implementacão do MDS
 - [x] UPDATE: Re-implementacão do algoritmo de distribuição de pontos 
 
-## Changelogs 16/07/2024 -> ??? - v0.4.0
-- [] Integrar movimentação no dag, mouse-hover deve fornecer possibilidade de entrar no dag
+## Changelogs 16/07/2024 -> 31/07/2024 - v0.4.0
+- [x] Movimentação no DAG
