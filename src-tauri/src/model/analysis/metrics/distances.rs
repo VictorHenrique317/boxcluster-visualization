@@ -111,15 +111,15 @@ impl Distances{
     }
 
     fn getXUYDimsValues(x: &Pattern, y: &Pattern) -> Result<Vec<Vec<usize>>, GenericError> {
-        let mut xuy_dims_values: Vec<Vec<usize>> = vec![Vec::new(); x.dims_values.len()];
+        let mut xuy_dims_values: Vec<HashSet<usize>> = vec![HashSet::new(); x.dims_values.len()];
 
         for (i, dim_values) in x.dims_values.iter().enumerate(){
             let xuy_dim_values = xuy_dims_values.get_mut(i)
                 .ok_or(GenericError::new(&format!("Index {} not found", i), file!(), &line!()))?;
-
+            
             for value in dim_values{
                 // if xuy_dim_values.contains(value){ continue; }
-                xuy_dim_values.push(*value);
+                xuy_dim_values.insert(*value);
             }
         }
 
@@ -128,10 +128,13 @@ impl Distances{
                 .ok_or(GenericError::new(&format!("Index {} not found", i), file!(), &line!()))?;
 
             for value in dim_values{
-                if xuy_dim_values.contains(value){ continue; }
-                xuy_dim_values.push(*value);
+                xuy_dim_values.insert(*value);
             }
         }
+
+        let xuy_dims_values: Vec<Vec<usize>> = xuy_dims_values.iter()
+            .map(|set| set.iter().cloned().collect())
+            .collect();
 
         return Ok(xuy_dims_values);
     }
@@ -145,8 +148,7 @@ impl Distances{
     fn getCoveredXUYRss(tensor:&Tensor, xuy: &Subtensor, x: &Pattern, y: &Pattern) -> Result<f64, GenericError>{
         let mut xuy_rss = 0.0;
 
-        let interested_indices: Vec<Vec<usize>> = x.union(y);
-        for index in interested_indices.iter(){
+        for index in xuy.indices.iter(){
             let actual_value = *tensor.dims_values.get(index.as_slice())
                 .ok_or(GenericError::new("Index not found", file!(), &line!()))? as f64;
 

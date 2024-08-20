@@ -263,6 +263,8 @@ impl Coordinates {
             return Ok(HashMap::new());
         }
 
+        // dbg!(distances.get());
+
         if distances.get().len() == 1{ // Only one datapoint, no need to calculate MDS
             let identifier = distances.get().keys().next().expect("if len() == 1 then should have first element").clone();
             let mut xys: HashMap<u32, (f64, f64)> = HashMap::new();
