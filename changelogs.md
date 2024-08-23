@@ -50,3 +50,6 @@
 
 ## Changelogs 16/07/2024 -> 31/07/2024 - v0.4.0
 - [x] Movimentação no DAG
+
+## Changelogs 23/08/2024 -> ??? - v0.4.1
+- [x] FIX: UI Bugfixes

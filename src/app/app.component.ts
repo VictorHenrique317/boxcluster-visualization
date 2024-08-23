@@ -231,6 +231,7 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     this.highlight_superpatterns_enabled = !this.highlight_superpatterns_enabled;
 
     this.visualization_view.toggleHighlightSuperpatterns(this.highlight_superpatterns_enabled);
+    this.pattern_summary.update(null);
     this.cdr.detectChanges();
   }
 
@@ -248,14 +249,22 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     setTimeout(() => { 
         this.rss_view.enableSlider();
     }, 1100);
-
+    
+    
     this.visualization_view.onTruncation(event);
   }
 
+  private async onDagChange(){
+    if(this.visualization_view.isOnFirstLevel()){
+      await this.rss_view.reset();
+    }
 
-  private onDagChange(){
     this.truncate_model_disabled = this.visualization_view.isOnFirstLevel();
     this.highlight_superpatterns_disabled = this.visualization_view.isOnFirstLevel();
+
+    this.truncate_model_enabled = false;
+    this.highlight_superpatterns_enabled = false;
+    this.cdr.detectChanges();
   }
 
   protected updatePatternSummary(identifier){

@@ -55,6 +55,7 @@ export class RssViewComponent implements AfterViewInit{
   private datapoints: Array<DataPoint>;
   private scaled_datapoints: Array<DataPoint>;
   protected pattern_number;
+  private initial_pattern_number: number;
 
   constructor(private route: ActivatedRoute, private dialog_service: DialogService, private api_service: ApiService){}
   
@@ -63,6 +64,7 @@ export class RssViewComponent implements AfterViewInit{
     let subpatterns_identifiers: number[] = await this.api_service.getAllSubpatternsIdentifiers();
     
     this.pattern_number = this.rss_evolution.length;
+    this.initial_pattern_number = this.pattern_number;
     this.datapoints = this.wrapIntoDatapoints(this.rss_evolution, subpatterns_identifiers);
     
     let width = this.visualization_div.nativeElement.clientWidth;
@@ -74,6 +76,12 @@ export class RssViewComponent implements AfterViewInit{
 
     this.connectDatapoints();
     this.initialized.emit();
+  }
+
+  public async reset(){
+    this.pattern_number = this.initial_pattern_number;
+    this.onSliderDrag(null);
+    this.onSliderChange(null);
   }
 
   private wrapIntoDatapoints(rss_evolution: Array<number>, subpatterns_identifiers: number[]): Array<DataPoint>{

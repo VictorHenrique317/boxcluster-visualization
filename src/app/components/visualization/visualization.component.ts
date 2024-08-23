@@ -155,10 +155,11 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
   }
 
   private async onDatapointClick(identifier: number){
-    this.datapoint_click.emit(identifier); // To communicate with pattern summary
-    this.toggleHighlightSuperpatterns(false);
-    await this.intersection_mode_feature.toggleIntersections(identifier);
     this.dag_feature.setClickedDatapoint(identifier);
+    this.dag_feature.toggleHighlightSuperpatterns(false);
+    this.datapoint_click.emit(identifier); // To communicate with pattern summary
+
+    await this.intersection_mode_feature.toggleIntersections(identifier);
   }
 
   public async onTruncation(event){
@@ -166,6 +167,7 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     let truncated_datapoints = await this.api_service.truncateModel(new_size);
 
     this.svg_feature.deactivateHighlight();
+    this.dag_feature.setClickedDatapoint(null);
     await this.intersection_mode_feature.toggleIntersections(null);
     this.svg_feature.drawDataPoints(truncated_datapoints);
     this.datapoint_click.emit(null);
@@ -183,6 +185,7 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     this.intersection_mode_feature.toggleIntersections(null).then(() => {
       this.dag_feature.setClickedDatapoint(null);
       this.dag_feature.toggleHighlightSuperpatterns(toggle);
+      // this.datapoint_click.emit(null); // To communicate with pattern summary
     });
   }
 
@@ -206,5 +209,9 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
 
   public isOnFirstLevel(){
     return this.dag_feature.current_dag_level == 1;
+  }
+
+  public getNbOfDatapoints(){
+    return this.svg_feature.getDrawnDataPoints().length;
   }
 }

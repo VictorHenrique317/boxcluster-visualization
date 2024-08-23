@@ -259,13 +259,13 @@ export class IntersectionModeFeatureModule {
     return this.clicked_datapoint_data;
   }
 
-  public async showIntersectionDetails(intersector_id: number){
+  private async showIntersectionDetails(intersector_id: number){
     if(this.clicked_datapoint_data == null){
       console.warn("No clicked datapoint to show details.");
       return;
     }
 
-    let intersection_details = await this.api_service.getIntersectionDetails(this.clicked_datapoint_data.identifier);
+    let intersection_details = await this.api_service.getIntersectionDetails(intersector_id);
 
     let dialog_data = {
       intersector: intersector_id,
