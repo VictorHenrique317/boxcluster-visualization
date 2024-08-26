@@ -52,8 +52,10 @@ impl MetricsService{
             &visible_identifiers,
         )?;
 
+        let first_identifier = visible_identifiers[0];
         let coordinates = Coordinates::new(
             &distances,
+            &first_identifier
         )?;
 
         println!("All metrics done!");
@@ -82,9 +84,11 @@ impl MetricsService{
         if self.visible_identifiers.is_empty() { return Ok(()); }
 
         let visible_patterns = identifier_mapper.getOrderedPatternsFrom(visible_identifiers);
-        
+            
+        let first_identifier = visible_identifiers[0];
         let coordinates = Coordinates::new(
             &self.all_initial_visible_distances.getView(identifier_mapper, visible_identifiers)?,
+            &first_identifier
         )?;
         self.coordinates = coordinates;
 

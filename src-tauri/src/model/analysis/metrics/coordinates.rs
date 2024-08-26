@@ -25,11 +25,11 @@ impl Metric<HashMap<u32, (f64, f64)>> for Coordinates{
 }
 
 impl Coordinates {
-    pub fn new<T: DistancesTrait>(distances: &T) -> Result<Coordinates, GenericError>{
+    pub fn new<T: DistancesTrait>(distances: &T, first_identifier: &u32) -> Result<Coordinates, GenericError>{
         println!("  Coordinates...");
         return Ok(
             Coordinates { 
-                value: Coordinates::calculate(distances)?,
+                value: Coordinates::calculate(distances, first_identifier)?,
             }
         );
     }
@@ -257,10 +257,12 @@ impl Coordinates {
         return Ok(scaled_coordinates);
     }
 
-    fn calculate<T: DistancesTrait>(distances: &T) -> Result<HashMap<u32, (f64, f64)>, GenericError> {
+    fn calculate<T: DistancesTrait>(distances: &T, first_identifier: &u32) -> Result<HashMap<u32, (f64, f64)>, GenericError> {
         if distances.get().len() == 0 {
             println!("  WARNING: No datapoints to calculate coordinates");
-            return Ok(HashMap::new());
+            let mut xys = HashMap::new();
+            xys.insert(*first_identifier, (0.0, 0.0));
+            return Ok(xys);
         }
 
         // dbg!(distances.get());

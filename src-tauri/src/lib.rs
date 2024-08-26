@@ -55,8 +55,8 @@ pub fn main() {
     // // let patterns_path = "tests/test_data/rss_evolution_test/synth_co1_patterns.txt".to_owned();
     // let patterns_path = "tests/test_data/rss_evolution_test/synth_co1_truncated_300_patterns.txt".to_owned();
     
-    let tensor_path = "../tests/test_data/tensors/B_bio.txt".to_owned();
-    let patterns_path = "../tests/test_data/other_patterns/B_bio.txt".to_owned();
+    let tensor_path = "tests/test_data/tensors/B_bio.txt".to_owned();
+    let patterns_path = "tests/test_data/other_patterns/B_bio.txt".to_owned();
 
     // let tensor_path = "../tests/test_data/tensors/retweets2d.txt".to_owned();
     // let patterns_path = "../tests/test_data/other_patterns/retweets2d_patterns.txt".to_owned();

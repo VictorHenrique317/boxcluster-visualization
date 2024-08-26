@@ -256,13 +256,13 @@ impl Pattern {
         return Ok(intersections);
     }
 
-    pub fn union(&self, pattern: &Pattern) -> Vec<Vec<usize>> {
-        let indices: HashSet<Vec<usize>> = self.indices.iter().cloned().collect();
-        let unions = indices
-            .union(&pattern.indices.iter().cloned().collect())
-            .map(|i| i.clone())
-            .collect();
+    // pub fn union(&self, pattern: &Pattern) -> Vec<Vec<usize>> { WRONG: DOING UNION OF INDICES INSTEAD OF DIMS
+    //     let indices: HashSet<Vec<usize>> = self.indices.iter().cloned().collect();
+    //     let unions = indices
+    //         .union(&pattern.indices.iter().cloned().collect())
+    //         .map(|i| i.clone())
+    //         .collect();
         
-        return unions;
-    }
+    //     return unions;
+    // }
 }
