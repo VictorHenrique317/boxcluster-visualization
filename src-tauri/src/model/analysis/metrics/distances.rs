@@ -148,20 +148,20 @@ impl Distances{
     fn getCoveredXUYRss(tensor:&Tensor, xuy: &Subtensor, x: &Pattern, y: &Pattern) -> Result<f64, GenericError>{
         let mut xuy_rss = 0.0;
 
-        // let interested_indices: Vec<Vec<usize>> = x.union(y);
-        // for index in interested_indices.iter(){
-        //     let actual_value = *tensor.dims_values.get(index.as_slice())
-        //         .ok_or(GenericError::new("Index not found", file!(), &line!()))? as f64;
-
-        //     xuy_rss += (actual_value - xuy.density).powi(2);
-        // }   
-
-        for index in xuy.indices.iter(){
+        let interested_indices: Vec<Vec<usize>> = x.union(y);
+        for index in interested_indices.iter(){
             let actual_value = *tensor.dims_values.get(index.as_slice())
                 .ok_or(GenericError::new("Index not found", file!(), &line!()))? as f64;
 
             xuy_rss += (actual_value - xuy.density).powi(2);
-        }  
+        }   
+
+        // for index in xuy.indices.iter(){
+        //     let actual_value = *tensor.dims_values.get(index.as_slice())
+        //         .ok_or(GenericError::new("Index not found", file!(), &line!()))? as f64;
+
+        //     xuy_rss += (actual_value - xuy.density).powi(2);
+        // }  
 
         return Ok(xuy_rss);
     }

@@ -189,22 +189,25 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     });
   }
 
-  public ascendDag(){
-    this.dag_feature.ascendDag().then((success) => {
-        if(success){
+  public async ascendDag(){
+    let success = await this.dag_feature.ascendDag();
+    if(success){
           this.onResize(undefined);
           this.datapoint_click.emit(null);
         }
-    });
   }
 
-  public descendDag(){
-    this.dag_feature.descendDag().then((success) => {
-        if(success){
-          this.onResize(undefined);
-          this.datapoint_click.emit(null);
-        }
-    });
+  public async descendDag(){
+    let success = await this.dag_feature.descendDag();
+    if(success){
+      let datapoints = await this.api_service.getDataPoints();
+
+      this.svg_feature.drawDataPoints(datapoints, true);
+      let background_density = await this.api_service.getCurrentLevelBackgroundDensity();
+      this.svg_feature.setBackgroundColor(background_density);
+
+      this.datapoint_click.emit(null);
+    }
   }
 
   public isOnFirstLevel(){

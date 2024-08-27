@@ -55,7 +55,6 @@ export class DagFeatureModule{
         this.supers_highlighted = toggle;
 
         if(toggle){
-            if(this.datapoints_with_subpatterns.size == 0){ return; }
             let gray_shade = 196;
             let gray = `rgba(${gray_shade}, ${gray_shade}, ${gray_shade}, 0.5)`;
 
@@ -116,6 +115,9 @@ export class DagFeatureModule{
         if(super_datapoint == null){ return false; }
 
         let datapoints = await this.api_service.descendDag(super_datapoint);
+        console.log("New level datapoints:");
+        console.log(datapoints);
+
         if(datapoints.length == 0){ return false; }
 
         this.drawNewLevelDatapoints(datapoints);

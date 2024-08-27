@@ -55,11 +55,8 @@ mod distances {
         let actual = model_manager.getDistances().expect("Test should not fail").clone();
 
         let mut expected: HashMap<u32, HashMap<u32, f64>> = HashMap::new();
-        // expected.insert(1, HashMap::from_iter(vec![(2, 0.7665)].into_iter()));
-        // expected.insert(2, HashMap::from_iter(vec![(1, 0.7665)].into_iter()));
-
-        expected.insert(1, HashMap::from_iter(vec![(2, 1.5292)].into_iter()));
-        expected.insert(2, HashMap::from_iter(vec![(1, 1.5292)].into_iter()));
+        expected.insert(1, HashMap::from_iter(vec![(2, 0.7665)].into_iter()));
+        expected.insert(2, HashMap::from_iter(vec![(1, 0.7665)].into_iter()));
 
         assert_eq!(expected, actual);    
     }
@@ -76,9 +73,6 @@ mod distances {
         let mut expected: HashMap<u32, HashMap<u32, f64>> = HashMap::new();
         expected.insert(1, HashMap::from_iter(vec![(2, 0.0474)].into_iter()));
         expected.insert(2, HashMap::from_iter(vec![(1, 0.0474)].into_iter()));
-        
-        expected.insert(1, HashMap::from_iter(vec![(2, 0.3026)].into_iter()));
-        expected.insert(2, HashMap::from_iter(vec![(1, 0.3026)].into_iter()));
 
         assert_eq!(expected, actual);    
     }

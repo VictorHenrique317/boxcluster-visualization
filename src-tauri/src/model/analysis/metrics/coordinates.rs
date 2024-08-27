@@ -119,7 +119,7 @@ impl Coordinates {
         }
     
         // Add a small epsilon to avoid division by zero
-        let epsilon = 1e-10;
+        let epsilon = 1e-7;
         let d = d + epsilon;
         let w = 1.0 / (d.mapv(|v| v.powi(2)));
     
