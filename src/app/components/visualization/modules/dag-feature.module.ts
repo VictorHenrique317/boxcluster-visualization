@@ -88,7 +88,6 @@ export class DagFeatureModule{
         this.intersection_feature.toggleIntersections(null, true);
         this.svg_feature.deactivateHighlight();
         this.svg_feature.drawDataPoints(datapoints, true);
-        this.dag_change.emit();
     }
 
     public async ascendDag(): Promise<boolean>{
@@ -96,6 +95,10 @@ export class DagFeatureModule{
 
         let datapoints = await this.api_service.ascendDag();
         if(datapoints.length == 0){ return false; }
+
+        console.log("Ascending");
+        console.log("New level datapoints:");
+        console.log(datapoints);
             
         this.drawNewLevelDatapoints(datapoints);
         
@@ -106,6 +109,8 @@ export class DagFeatureModule{
         this.lower_dag_arrow_active = false;
         this.clicked_datapoint = undefined;
 
+        console.log("Current level: ", this.current_dag_level);
+        this.dag_change.emit();
         return true;
     }
 
@@ -128,6 +133,8 @@ export class DagFeatureModule{
         this.lower_dag_arrow_active = false;
         this.clicked_datapoint = undefined;
 
+        console.log("Current level: ", this.current_dag_level);
+        this.dag_change.emit();
         return true;
     }
 }

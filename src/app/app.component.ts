@@ -44,7 +44,8 @@ export enum MainOption {
   SETTINGS,
   TRUNCATE_MODEL,
   INTERSECTION_MODE,
-  HIGHLIGHT_SUPERPATTERNS
+  HIGHLIGHT_SUPERPATTERNS,
+  SEARCH
 };
 
 export enum ApplicationStatus {
@@ -132,10 +133,6 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     if (event.tensor_path == null || event.patterns_path == null){ return; }
     this.application_status = ApplicationStatus.LOADING;
     this.cdr.detectChanges();
-
-    this.toggleMainOption(null);
-    this.togglePatternSummary(null);
-    this.updatePatternSummary(null);
     
     this.last_opened_folder = event.last_opened_folder;
 
@@ -157,6 +154,10 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     this.datapoint_click_subscription = this.visualization_view.datapoint_click.subscribe(identifier => this.onDatapointClick(identifier));
     this.dag_change_subscription = this.visualization_view.dag_change.subscribe(() => this.onDagChange());
     // this.reloadApplication();
+
+    this.toggleMainOption(null);
+    this.togglePatternSummary(null);
+    this.updatePatternSummary(null);
   }
 
   protected toggleMainOption(option: MainOption | null){
@@ -175,6 +176,9 @@ export class AppComponent implements AfterViewInit, OnDestroy{
         break;
       case MainOption.HIGHLIGHT_SUPERPATTERNS:
         this.toggleHighlightSuperpatterns();
+        break;
+      case MainOption.SEARCH:
+        this.openSearch();
         break;
       case null:
         break
@@ -235,6 +239,12 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     this.cdr.detectChanges();
   }
 
+  private openSearch(){
+    this.visualization_view.openSearch();
+    this.pattern_summary.update(null);
+    this.cdr.detectChanges();
+  }
+
   private onDatapointClick(identifier){
     this.highlight_superpatterns_enabled = false;
   }
@@ -259,8 +269,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
       await this.rss_view.reset();
     }
 
-    this.truncate_model_disabled = this.visualization_view.isOnFirstLevel();
-    this.highlight_superpatterns_disabled = this.visualization_view.isOnFirstLevel();
+    this.truncate_model_disabled = !this.visualization_view.isOnFirstLevel();
+    this.highlight_superpatterns_disabled = !this.visualization_view.isOnFirstLevel();
 
     this.truncate_model_enabled = false;
     this.highlight_superpatterns_enabled = false;

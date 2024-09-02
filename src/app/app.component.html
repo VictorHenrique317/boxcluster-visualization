@@ -16,6 +16,13 @@
                     <mat-icon aria-hidden="false" aria-label="settings" fontIcon="timeline"></mat-icon>
             </header>
 
+            <header class="main-option" id="search"
+                *ngIf="application_status == applicationStatusLoaded"
+                (click)="toggleMainOption(MainOption.SEARCH)"
+                matTooltip="Search patterns">
+                    <mat-icon>search</mat-icon>
+            </header>
+
             <header class="main-option" id="highlight-superpatterns"
                 [ngClass]="{'buttonToggled': this.highlight_superpatterns_enabled, 'main-option-disabled':this.highlight_superpatterns_disabled}"
                 *ngIf="application_status == applicationStatusLoaded"

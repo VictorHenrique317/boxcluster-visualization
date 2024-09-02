@@ -89,7 +89,7 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
   @ViewChild('vizualization_div') visualization_div: ElementRef<HTMLDivElement>;
 
   private svg_feature: SvgFeatureModule;
-  protected intersection_mode_feature: IntersectionModeFeatureModule;
+  public intersection_mode_feature: IntersectionModeFeatureModule;
   protected dag_feature: DagFeatureModule;
 
   constructor(private api_service: ApiService, private dialog_service: DialogService, private cdr: ChangeDetectorRef){ }
@@ -189,10 +189,24 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     });
   }
 
+  public openSearch(){
+    this.svg_feature.deactivateHighlight();
+    this.intersection_mode_feature.toggleIntersections(null).then(() => {
+      this.dag_feature.setClickedDatapoint(null);
+      this.dag_feature.toggleHighlightSuperpatterns(false);
+      this.datapoint_click.emit(null); // To communicate with pattern summary
+    });
+  }
+
   public async ascendDag(){
     let success = await this.dag_feature.ascendDag();
     if(success){
-          this.onResize(undefined);
+          let datapoints = await this.api_service.getDataPoints();
+
+          this.svg_feature.drawDataPoints(datapoints, true);
+          let background_density = await this.api_service.getCurrentLevelBackgroundDensity();
+          this.svg_feature.setBackgroundColor(background_density);
+          
           this.datapoint_click.emit(null);
         }
   }
