@@ -13,6 +13,7 @@ export class DialogService implements OnDestroy{
   constructor(public dialog: MatDialog) { }
 
   public open(dialog_component, width: string, height: string, dialog_data, closeFunction=null) {
+    console.log("Opening dialog...");
     let enterAnimationDuration = '300ms';
     let exitAnimationDuration = '300ms';
 

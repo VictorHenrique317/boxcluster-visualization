@@ -181,9 +181,8 @@ impl ApplicationService{
     pub fn getIntersectionDetails(&self, identifier: &u32) -> Result<IntersectionsDetails, GenericError>{
         let intersection_percentages: HashMap<u32, f64> = match self.application_state_service.getMetricsService()?
             .intersections_percentages.get().get(identifier){
-
-            Some(intersection_percentages) => intersection_percentages.clone(),
-            None => HashMap::new(),
+                Some(intersection_percentages) => intersection_percentages.clone(),
+                None => HashMap::new(),
         };
 
         let total_intersection_percentage = intersection_percentages.get(identifier)
@@ -210,6 +209,10 @@ impl ApplicationService{
             })
             .collect();
         let all_dims_intersections = all_dims_intersections?;
+
+        if !all_dims_intersections.is_empty() && total_intersection_percentage == 0.0{
+            println!("WARNING: Total intersection percentage is 0.0, but there are intersections");
+        }
         
         let intersections_details = IntersectionsDetails::new(*identifier, 
             total_untouched_percentage, total_intersection_percentage, all_dims_intersections);

@@ -265,7 +265,11 @@ export class IntersectionModeFeatureModule {
       return;
     }
 
-    let intersection_details = await this.api_service.getIntersectionDetails(intersector_id);
+    let identifier = this.clicked_datapoint_data.identifier;
+    console.log("Clicked intersection (", identifier, ", ", intersector_id, ")");
+    let intersection_details = await this.api_service.getIntersectionDetails(identifier);
+    console.log("Fetched intersection details for identifier: ", identifier);
+    console.log(intersection_details);
 
     let dialog_data = {
       intersector: intersector_id,

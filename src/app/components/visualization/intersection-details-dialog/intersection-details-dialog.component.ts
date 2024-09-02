@@ -84,8 +84,6 @@ export class IntersectionDetailsDialogComponent {
   }
 
   ngAfterViewInit(){
-    let first_intersector = this.intersections.keys().next().value;
-    this.intersector_id = first_intersector;  // Selects the first intersector
     this.changeIntersector();
     this.cdr.detectChanges();
   }

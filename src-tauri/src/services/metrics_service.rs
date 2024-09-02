@@ -1,8 +1,9 @@
 #![allow(non_snake_case)]
 
 use crate::model::analysis::metrics::intersection::intersection_metrics::IntersectionMetrics;
-use crate::model::analysis::metrics::intersection::intersections_percentages::IntersectionsPercentages;
+use crate::model::analysis::metrics::intersection::intersections_percentages::{self, IntersectionsPercentages};
 use crate::model::analysis::metrics::intersections_predictions::IntersectionsPredictions;
+use crate::model::analysis::metrics::metric::Metric;
 use crate::{model::{analysis::metrics::{empty_model_rss::EmptyModelRss, distances::Distances, coordinates::Coordinates, rss_evolution::RssEvolution}, identifier_mapper::IdentifierMapper}, database::{tensor::Tensor, pattern::Pattern}, common::generic_error::GenericError};
 
 use super::application::application_state_service::State;

@@ -78,15 +78,15 @@ export class ApiService {
     let intersections: Map<number, [number, Array<Array<string>>]> = new Map();
     for (let key in data.intersections) { 
       let value = data.intersections[key];
-      let percentage = Math.round(value[0]*100)/100;
+      let percentage = Math.round(value[0]*100000)/100000;
       let dims_intersections = value[1];
       intersections.set(Number(key), [percentage, dims_intersections]);
     }
 
     let intersection_details: IntersectionDetails = new IntersectionDetails(
       data.identifier,
-      Math.round(data.total_untouched_percentage * 100)/100,
-      Math.round(data.total_intersection_percentage * 100)/100,
+      Math.round(data.total_untouched_percentage * 10000)/10000,
+      Math.round(data.total_intersection_percentage * 10000)/10000,
       intersections
     );
 

@@ -113,7 +113,7 @@ impl IntersectionMetrics{
             //     pattern_intersections_percentages.retain(|key, _| sorted_pattern_intersections_indices.contains(key));
             //     pattern_intersections_percentages.insert(0, excess_percentages_sum);
             // }
-
+            
             let total_intersection_percentage = all_intersection_indices.len() as f64 / pattern.size as f64;
             let untouched_percentage = 1.0 - total_intersection_percentage;
             if untouched_percentage < 0.0 || untouched_percentage > 1.0 {
