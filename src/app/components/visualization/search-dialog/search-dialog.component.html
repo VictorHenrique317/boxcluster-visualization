@@ -1,0 +1,37 @@
+<body>
+    <header>
+        <h1>Search patterns</h1>
+    </header>
+
+    <section>
+        <div id="inputs-wrapper">
+            <mat-form-field *ngFor="let i of nb_of_dims; let dim_index = index" appearance="fill">
+                <mat-label>Dimension {{dim_index + 1}}</mat-label>
+                <mat-select [(ngModel)]="selectedValues[dim_index]" (selectionChange)="onSelectionChange()">
+                  <mat-option *ngFor="let value of dims_values[dim_index]" [value]="value">
+                    {{value}}
+                  </mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+        
+        <div id="table-wrapper">
+            <table mat-table [dataSource]="selectedValues">
+                <ng-container *ngFor="let i of nb_of_dims; let dim_index = index" [matColumnDef]="'dim' + (dim_index + 1)">
+                    <th mat-header-cell *matHeaderCellDef> Dimension {{dim_index + 1}} </th>
+                    <td mat-cell *matCellDef="let element"> {{element[dim_index]}} </td>
+                  </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+        </div>
+    </section>
+
+    <footer>
+        <div id="dialog-actions" mat-dialog-actions>
+            <button mat-button mat-dialog-close cdkFocusInitial>Close</button>
+            <button mat-button mat-dialog-close (click)="ok()">Ok</button>
+        </div>
+    </footer>
+</body>

@@ -132,7 +132,7 @@ export class IntersectionModeFeatureModule {
         let g = 178;
         let b = 227;
         let a = 1;
-
+        
         if(related_datapoint){ // If it isnt id 0 (which means total intersection to the clicked datapoint)
           // Dont color the percetage related to intersection with itself   
           if(related_datapoint.identifier == root_datapoint.identifier){ a = 0; }
@@ -179,7 +179,15 @@ export class IntersectionModeFeatureModule {
   private async showIntersections(){
     if(this.clicked_datapoint_data == null){ return };
 
-    let intersections = await this.api_service.getIntersectionsPercentages(this.clicked_datapoint_data.identifier);
+    // let intersections = await this.api_service.getIntersectionsPercentages(this.clicked_datapoint_data.identifier);
+    let intersections_details = await this.api_service.getIntersectionDetails(this.clicked_datapoint_data.identifier);
+    console.log(intersections_details);
+    let intersections: Map<number, number> = new Map();
+    intersections_details.intersections.forEach((value, key) => {
+      intersections.set(key, value[0]);
+    });
+    intersections.set(intersections_details.identifier, intersections_details.total_intersection_percentage);
+    console.log(intersections);
 
     let relationed_datapoints: Array<number> = Array.from(intersections.keys())
       .filter(d => (d != this.clicked_datapoint_data.identifier) && (d != 0));

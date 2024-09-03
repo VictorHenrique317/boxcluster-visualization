@@ -38,6 +38,7 @@ import { resolveResource } from "@tauri-apps/api/path";
 import { ApiService } from "./services/api/api.service";
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import { Subscription } from "rxjs";
+import { SearchDialogComponent } from "./components/visualization/search-dialog/search-dialog.component";
 
 export enum MainOption {
   MODEL_SELECTOR,
@@ -239,10 +240,22 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     this.cdr.detectChanges();
   }
 
+  private filterDatapoints(identifiers: number[]){
+    console.log(identifiers);
+  }
+
   private openSearch(){
     this.visualization_view.openSearch();
     this.pattern_summary.update(null);
     this.cdr.detectChanges();
+
+    let dialog_data = {};
+
+    this.dialog_service.open(SearchDialogComponent,
+      SearchDialogComponent.WIDTH, 
+      SearchDialogComponent.HEIGHT,
+      dialog_data, 
+      this.filterDatapoints.bind(this));
   }
 
   private onDatapointClick(identifier){

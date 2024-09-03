@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use std::{collections::HashMap, time::Instant};
+use std::{collections::{HashMap, HashSet}, time::Instant};
 use itertools::Itertools;
 
 use crate::{common::generic_error::GenericError, database::{datapoint::DataPoint, intersections_details::IntersectionsDetails, raw_pattern::RawPattern}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper, io::translator::Translator}, services::{io_service::IoService, plot_service::PlotService}};
@@ -184,19 +184,31 @@ impl ApplicationService{
                 Some(intersection_percentages) => intersection_percentages.clone(),
                 None => HashMap::new(),
         };
-
-        let total_intersection_percentage = intersection_percentages.get(identifier)
-            .expect("Should have a total untouched percentage, even if its 0").clone();
-        let total_untouched_percentage = 1.0 - total_intersection_percentage;
         
         let current_pattern = self.getIdentifierMapper()?.getIdentifier(identifier)?.asPattern()?;
-        let all_dims_intersections: Result<HashMap<u32, (f64, Vec<Vec<String>>)>, GenericError> = intersection_percentages.into_iter()
-            .filter(|(other_identifier, _)| *other_identifier != *identifier)
+        let mut all_dims_intersections: Vec<HashSet<u32>> = current_pattern.dims_values.iter().map(|_| HashSet::new()).collect();
+        let intersections: Result<HashMap<u32, (f64, Vec<Vec<String>>)>, GenericError> = intersection_percentages.into_iter()
+            // .filter(|(other_identifier, _)| *other_identifier != *identifier)
             .map(|(other_identifier, percentage)| {
 
                 let other_pattern = self.getIdentifierMapper()?.getIdentifier(&other_identifier)?.asPattern()?;
                 
                 let dims_intersections = current_pattern.dimIntersection(&other_pattern)?;
+                
+                // Here we have to verify if other_pattern is subpattern of current_pattern
+                let intersection_area: u32 = dims_intersections.iter()
+                    .map(|dim| dim.len() as u32)
+                    .product();
+                
+                if intersection_area != other_pattern.size{ // other_pattern is not subpattern of current_pattern
+                    for (i, dim_intersection) in dims_intersections.iter().enumerate(){
+                        for value in dim_intersection.iter(){
+                            all_dims_intersections.get_mut(i).expect("Should have dimension").insert(*value as u32);
+                        }
+                    }
+                }
+                
+                // Translate the intersections to the original dimensions
                 let dims_intersections = self.getTranslator()
                     .untranslateLineDims(&dims_intersections)?.iter()
                     .map(|line| {
@@ -208,14 +220,23 @@ impl ApplicationService{
                 return Ok((other_identifier, (percentage, dims_intersections)));
             })
             .collect();
-        let all_dims_intersections = all_dims_intersections?;
+        let intersections = intersections?;
+        
+        let total_intersection_percentage: f64 = all_dims_intersections.iter()
+            .map(|dim_set| dim_set.len() as f64)
+            .product::<f64>() as f64 / current_pattern.size as f64;
+        let total_untouched_percentage = 1.0 - total_intersection_percentage;
 
-        if !all_dims_intersections.is_empty() && total_intersection_percentage == 0.0{
-            println!("WARNING: Total intersection percentage is 0.0, but there are intersections");
+        if total_intersection_percentage < 0.0 || total_intersection_percentage > 1.0{
+            return Err(GenericError::new(format!("Total intersection percentage ({:?}) is not between 0.0 and 1.0", total_intersection_percentage).as_str(), file!(), &line!()));
+        }
+
+        if total_untouched_percentage < 0.0 || total_untouched_percentage > 1.0{
+            return Err(GenericError::new(format!("Total untouched percentage ({:?}) is not between 0.0 and 1.0", total_untouched_percentage).as_str(), file!(), &line!()));
         }
         
         let intersections_details = IntersectionsDetails::new(*identifier, 
-            total_untouched_percentage, total_intersection_percentage, all_dims_intersections);
+            total_untouched_percentage, total_intersection_percentage, intersections);
         
         return Ok(intersections_details);
     }

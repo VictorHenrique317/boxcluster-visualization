@@ -52,21 +52,6 @@ export class ApiService {
     return truncated_datapoints;
   }
 
-  public async getIntersectionsPercentages(identifier: number): Promise<Map<number, number>> {
-    let raw_data;
-    raw_data = await invoke("getIntersectionsPercentages", {identifier: identifier})
-      .catch((error: any) => {
-        // console.error(error);
-        this.dialog_service.openErrorDialog("Error while getting intersections.");
-        throw error;
-    });
-
-    let intersections = new Map<number, number>();
-    for (let key in raw_data) { intersections.set(Number(key), Number(raw_data[key])); }
-
-    return intersections;
-  }
-
   public async getIntersectionDetails(identifier: number): Promise<IntersectionDetails>{
     let data: any;
     data = await invoke("getIntersectionDetails", {identifier: identifier}).catch((error: any) => {
@@ -172,5 +157,15 @@ export class ApiService {
     });
 
     return density;
+  }
+
+  public async getDimsValues(): Promise<string[][]> {
+    let dims_values;
+    dims_values = await invoke("getDimsValues").catch((error: any) => {
+      this.dialog_service.openErrorDialog("Error while fetching dimensions values.");
+      throw error;
+    });
+
+    return dims_values;
   }
 }
