@@ -1,0 +1,13 @@
+body{
+    section{
+        #table{
+            display: flex;
+            flex-direction: row;
+
+            .table_column{
+                display: flex;
+                flex-direction: column;
+            }
+        }
+    }
+}

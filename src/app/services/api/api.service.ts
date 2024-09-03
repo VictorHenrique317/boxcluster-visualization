@@ -159,9 +159,9 @@ export class ApiService {
     return density;
   }
 
-  public async getDimsValues(): Promise<string[][]> {
+  public async getAllDimsValues(): Promise<string[][]> {
     let dims_values;
-    dims_values = await invoke("getDimsValues").catch((error: any) => {
+    dims_values = await invoke("getAllDimsValues").catch((error: any) => {
       this.dialog_service.openErrorDialog("Error while fetching dimensions values.");
       throw error;
     });

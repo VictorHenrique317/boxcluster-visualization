@@ -116,8 +116,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
       // await fs.readTextFile(await resolveResource('resources/'))
 
       // let base_path = "../../src-tauri/tests/test_data"
-      let tensor_path = await resolveResource('resources/dev_tensor.txt'); 
-      let patterns_path = await resolveResource('resources/dev_patterns.txt');
+      let tensor_path = await resolveResource('resources/dev_tensor_light.txt'); 
+      let patterns_path = await resolveResource('resources/dev_patterns_light.txt');
       
       // let patterns_path = `${base_path}/other_patterns/primary_school.txt`
       this.handleModelChange({tensor_path: tensor_path, patterns_path: patterns_path});

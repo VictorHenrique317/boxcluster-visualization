@@ -117,3 +117,11 @@ pub fn getCurrentLevelBackgroundDensity(application_service: State<ApplicationSe
     let application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
     return application_service.getCurrentLevelBackgroundDensity();
 }
+
+#[tauri::command]
+pub fn getAllDimsValues(application_service: State<ApplicationServiceState>) -> Result<Vec<Vec<String>>, GenericError> {
+    println!("Calling getAllDimsValues...");
+
+    let application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
+    return application_service.getAllDimsValues();
+}

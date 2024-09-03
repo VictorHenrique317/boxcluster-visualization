@@ -2,7 +2,7 @@
 use std::{collections::{HashMap, HashSet}, time::Instant};
 use itertools::Itertools;
 
-use crate::{common::generic_error::GenericError, database::{datapoint::DataPoint, intersections_details::IntersectionsDetails, raw_pattern::RawPattern}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper, io::translator::Translator}, services::{io_service::IoService, plot_service::PlotService}};
+use crate::{common::generic_error::GenericError, database::{datapoint::DataPoint, intersections_details::IntersectionsDetails, pattern::Pattern, raw_pattern::RawPattern}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper, io::translator::Translator}, services::{io_service::IoService, plot_service::PlotService}};
 use super::application_state_service::ApplicationStateService;
 
 pub struct ApplicationService{
@@ -249,4 +249,24 @@ impl ApplicationService{
         return self.application_state_service.getCurrentLevelBackgroundDensity();
     }
 
+    pub fn getAllDimsValues(&self) -> Result<Vec<Vec<String>>, GenericError> {
+        let mut all_dims_values: Vec<HashSet<String>> = self.getIdentifierMapper()?.getRepresentation(&1)?.asPattern()?
+            .dims_values.iter().map(|_| HashSet::new()).collect();
+
+        for representation in self.getIdentifierMapper()?.getRepresentations().iter(){
+            let pattern = representation.asRawPattern(self.getTranslator())?;
+
+            for (i, dim_values) in pattern.dims_values.iter().enumerate(){
+                for value in dim_values.iter(){
+                    all_dims_values.get_mut(i).expect("Should have dimension").insert(value.to_string());
+                }
+            }
+        }
+
+        let all_dims_values: Vec<Vec<String>> = all_dims_values.iter()
+            .map(|dim_values| dim_values.iter().map(|value| value.to_string()).collect())
+            .collect();
+
+        return Ok(all_dims_values);
+    }
 }

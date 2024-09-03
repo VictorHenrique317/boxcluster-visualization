@@ -16,7 +16,7 @@ import { FormsModule } from '@angular/forms';
 })
 export class SearchDialogComponent {
   public static WIDTH = '45vw';
-  public static HEIGHT = '50vh';
+  public static HEIGHT = '60vh';
 
   protected nb_of_dims: number[];
   protected dims_values: string[][];
@@ -30,14 +30,18 @@ export class SearchDialogComponent {
   }
 
   private async loadData(){
-    this.dims_values = await this.api_service.getDimsValues();
+    this.dims_values = await this.api_service.getAllDimsValues();
     this.nb_of_dims =  Array(this.dims_values.length).fill(0).map((_, i) => i);
     this.displayedColumns = this.nb_of_dims.map(i => 'dim' + (i + 1));
     this.resetSelectedValues();
   }
 
-  protected onSelectionChange(){
-    this.selectedValues = this.selectedValues.map(value => value);
+  protected onSelectionChange(value, dim_index){
+    this.selectedValues[dim_index].push(value);
+  }
+
+  protected close(){
+    this.dialogRef.close();
   }
 
   protected ok(): Array<Array<string>>{
@@ -46,6 +50,7 @@ export class SearchDialogComponent {
   }
 
   private resetSelectedValues(){
-    this.selectedValues = [this.dims_values.map(values => "")];
+    this.selectedValues = [];
+    this.nb_of_dims.forEach(i => this.selectedValues.push([]));
   }
 }
