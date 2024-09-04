@@ -39,6 +39,7 @@ import { ApiService } from "./services/api/api.service";
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import { Subscription } from "rxjs";
 import { SearchDialogComponent } from "./components/visualization/search-dialog/search-dialog.component";
+import { DataPoint } from "./models/datapoint";
 
 export enum MainOption {
   MODEL_SELECTOR,
@@ -240,8 +241,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     this.cdr.detectChanges();
   }
 
-  private filterDatapoints(identifiers: number[]){
-    console.log(identifiers);
+  private async filterDatapoints(filters: string[][]){
+    this.visualization_view.filterDatapoints(filters);
   }
 
   private openSearch(){

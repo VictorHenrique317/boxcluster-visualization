@@ -8,17 +8,21 @@
             <mat-form-field *ngFor="let i of nb_of_dims; let dim_index = index" appearance="fill">
                 <mat-label>Dimension {{dim_index + 1}}</mat-label>
                 <mat-select (selectionChange)="onSelectionChange($event.value, dim_index)">
-                  <mat-option *ngFor="let value of dims_values[dim_index]" [value]="value">
-                    {{value}}
-                  </mat-option>
+                    <mat-option *ngFor="let value of dims_values[dim_index]" [value]="value">
+                        {{value}}
+                    </mat-option>
                 </mat-select>
             </mat-form-field>
         </div>
-        
+
         <div id="table">
             <div class="table_column" *ngFor="let i of nb_of_dims; let dim_index = index">
-                <div class="selected_value_wrapper" *ngFor="let selected_value of selectedValues[dim_index]">
+                <h3>Dimension {{dim_index + 1}}</h3>
+                <div class="selected_value_wrapper" *ngFor="let selected_value of selectedValues[dim_index]; let j = index">
                     <p>{{selected_value}}</p>
+                    <button mat-icon-button (click)="deleteValue(dim_index, j)">
+                        <mat-icon>close</mat-icon>
+                    </button>
                 </div>
             </div>
         </div>

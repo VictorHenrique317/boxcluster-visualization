@@ -168,4 +168,14 @@ export class ApiService {
 
     return dims_values;
   }
+
+  public async filterDatapoints(filters: string[][]): Promise<DataPoint[]> {
+    let datapoints;
+    datapoints = await invoke("filterDatapoints", {filters: filters}).catch((error: any) => {
+      this.dialog_service.openErrorDialog("Error while filtering datapoints.");
+      throw error;
+    });
+
+    return datapoints;
+  }
 }

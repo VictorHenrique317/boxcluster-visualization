@@ -125,3 +125,11 @@ pub fn getAllDimsValues(application_service: State<ApplicationServiceState>) -> 
     let application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
     return application_service.getAllDimsValues();
 }
+
+#[tauri::command]
+pub fn filterDatapoints(application_service: State<ApplicationServiceState>, filters: Vec<Vec<String>>) -> Result<Vec<DataPoint>, GenericError> {
+    println!("Calling filterDatapoints...");
+
+    let mut application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
+    return application_service.filterDatapoints(&filters);
+}

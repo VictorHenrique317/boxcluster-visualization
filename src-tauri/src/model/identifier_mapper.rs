@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
 use std::collections::HashMap;
 
-use crate::{database::{pattern::Pattern, dag_node::DagNode, datapoint::DataPoint}, common::generic_error::GenericError};
+use crate::{common::generic_error::GenericError, database::{dag_node::DagNode, datapoint::DataPoint, pattern::Pattern, raw_pattern::RawPattern}};
 
-use super::identifier_representation::IdentifierRepresentation;
+use super::{identifier_representation::IdentifierRepresentation, io::translator::Translator};
 
 pub struct IdentifierMapper{
     mapping: HashMap<u32, IdentifierRepresentation>, // WARNING: ID's start at 1
@@ -131,6 +131,13 @@ impl IdentifierMapper{
     pub fn getOrderedPatternsFrom(&self, identifiers: &Vec<u32>) -> Vec<&Pattern> {
         return self.getOrderedRepresentationsFrom(identifiers).iter()
             .map(|representation| representation.asPattern()
+                .expect("Should have gotten pattern representation"))
+            .collect();
+    }
+
+    pub fn getOrderedRawPatternsFrom(&self, identifiers: &Vec<u32>, translator: &Translator) -> Vec<RawPattern> {
+        return self.getOrderedRepresentationsFrom(identifiers).iter()
+            .map(|representation| representation.asRawPattern(translator)
                 .expect("Should have gotten pattern representation"))
             .collect();
     }

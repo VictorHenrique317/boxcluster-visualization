@@ -6,17 +6,19 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { ApiService } from 'src/app/services/api/api.service';
 import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-search-dialog',
   standalone: true,
-  imports: [CommonModule, MatFormFieldModule, MatSelectModule, MatTableModule, FormsModule],
+  imports: [CommonModule, MatFormFieldModule, MatSelectModule, MatTableModule, FormsModule, MatIconModule],
   templateUrl: './search-dialog.component.html',
   styleUrls: ['./search-dialog.component.scss']
 })
 export class SearchDialogComponent {
-  public static WIDTH = '45vw';
-  public static HEIGHT = '60vh';
+  public static WIDTH = '60vw';
+  public static HEIGHT = '70vh';
+  
 
   protected nb_of_dims: number[];
   protected dims_values: string[][];
@@ -38,6 +40,10 @@ export class SearchDialogComponent {
 
   protected onSelectionChange(value, dim_index){
     this.selectedValues[dim_index].push(value);
+  }
+
+  protected deleteValue(dim_index: number, value_index: number){
+    this.selectedValues[dim_index].splice(value_index, 1);
   }
 
   protected close(){

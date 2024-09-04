@@ -37,7 +37,8 @@ fn main() {
             getIntersectionsPercentages,
             getIntersectionDetails,
             getCurrentLevelBackgroundDensity,
-            getAllDimsValues
+            getAllDimsValues,
+            filterDatapoints
             ])
         .run(tauri::generate_context!())
         .expect("Error while running tauri application");

@@ -224,6 +224,12 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     }
   }
 
+  public async filterDatapoints(filters: string[][]){
+    console.log("Filtering datapoints with filters: ", filters);
+    let filtered_datapoints: DataPoint[] = await this.api_service.filterDatapoints(filters);
+    this.svg_feature.drawDataPoints(filtered_datapoints, false);
+  }
+
   public isOnFirstLevel(){
     return this.dag_feature.current_dag_level == 1;
   }

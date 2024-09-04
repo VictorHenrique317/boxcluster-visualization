@@ -269,4 +269,35 @@ impl ApplicationService{
 
         return Ok(all_dims_values);
     }
+
+    pub fn filterDatapoints(&self, filters: &Vec<Vec<String>>) -> Result<Vec<DataPoint>, GenericError>{
+        let current_level_identifiers = self.application_state_service.getDagService()?.getCurrentLevelIdentifiers();
+        let raw_patterns: Vec<RawPattern> = self.application_state_service.identifierMapper()?
+            .getOrderedRawPatternsFrom(current_level_identifiers, self.getTranslator());
+
+        let filters: Vec<HashSet<String>> = filters.iter()
+            .map(|filter| filter.iter().map(|value| value.to_string()).collect())
+            .collect();
+
+        let mut filtered_datapoints: Vec<DataPoint> = vec![];
+        for raw_pattern in raw_patterns.iter(){
+            let mut match_filters = true;
+            for (dim, filter) in filters.iter().enumerate(){
+                let current_dim: HashSet<String> = raw_pattern.dims_values.get(dim).expect("Should have dimension").iter()
+                    .map(|value| value.to_string()).collect();
+
+                if !current_dim.is_superset(&filter){ // Current dim does not match filter
+                    match_filters = false;
+                    break;
+                }
+            }
+
+            if match_filters{
+                let datapoint = self.getIdentifierMapper()?.getRepresentation(&raw_pattern.identifier)?.asDataPoint()?.clone();
+                filtered_datapoints.push(datapoint);
+            }
+        }
+
+        return Ok(filtered_datapoints);
+    }
 }
