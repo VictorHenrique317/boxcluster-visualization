@@ -378,6 +378,24 @@ export class SvgFeatureModule {
     this.drawColorLegend();
   }
 
+  public drawTextLabel(identifier: number, text: string) {
+    let datapoint = this.getDatapoint(identifier);
+    if (!datapoint) { return; }
+
+    this.plot.append('text')
+      .attr('class', 'datapoint-label')
+      .attr('x', this.xScale(datapoint.x))
+      .attr('y', this.yScale(datapoint.y))
+      .attr('text-anchor', 'middle')
+      .attr('pointer-events', 'none')
+      .attr('dominant-baseline', 'central')
+      .text(text);
+  }
+
+public removeTextLabels() {
+    this.plot.selectAll('.datapoint-label').remove();
+}
+
   public setBackgroundColor(density: number) {
     let color = `rgba(255, 0, 0, ${density})`;
     this.plot.select("#overlay")

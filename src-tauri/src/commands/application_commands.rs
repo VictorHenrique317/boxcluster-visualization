@@ -133,3 +133,11 @@ pub fn filterDatapoints(application_service: State<ApplicationServiceState>, fil
     let mut application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
     return application_service.filterDatapoints(&filters);
 }
+
+#[tauri::command]
+pub fn getNbOfSubpatterns(application_service: State<ApplicationServiceState>, identifier: u32) -> Result<u32, GenericError> {
+    println!("Calling getNbOfSubpatterns...");
+
+    let application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
+    return application_service.getNbOfSubpatterns(&identifier);
+}

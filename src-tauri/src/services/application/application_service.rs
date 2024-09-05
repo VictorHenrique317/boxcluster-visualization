@@ -300,4 +300,9 @@ impl ApplicationService{
 
         return Ok(filtered_datapoints);
     }
+
+    pub fn getNbOfSubpatterns(&self, identifier: &u32) -> Result<u32, GenericError>{
+        let nb_of_subpatterns = self.application_state_service.identifierMapper()?.getRepresentation(identifier)?.asDagNode()?.subs.len();
+        return Ok(nb_of_subpatterns as u32);
+    }
 }

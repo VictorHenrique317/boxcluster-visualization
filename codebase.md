@@ -2698,6 +2698,9 @@ export class SearchDialogComponent {
   public static WIDTH = '60vw';
   public static HEIGHT = '70vh';
 
+  protected selected_input: number;
+  protected filtered_values:string[]; 
+
   private previous_filters: string[][];
   
   protected nb_of_dims: number[];
@@ -2710,6 +2713,21 @@ export class SearchDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: {previous_filters: string[][]}, private api_service: ApiService) {
       this.previous_filters = data.previous_filters;
       this.loadData();
+  }
+
+  protected resetFilteredValues(dim_index: number){
+    this.selected_input = dim_index;
+    this.filtered_values = this.dims_values[dim_index];
+  }
+
+  protected onKey(event: KeyboardEvent) { 
+    const inputValue = (event.target as HTMLInputElement).value;
+    this.filtered_values = this.search(inputValue);
+  }
+
+  protected search(value: string) { 
+    let filter = value.toLowerCase();
+    return this.dims_values[this.selected_input].filter(option => option.toLowerCase().includes(filter));
   }
 
   private async loadData(){
@@ -2763,12 +2781,11 @@ export class SearchDialogComponent {
         <div id="inputs-wrapper">
             <mat-form-field *ngFor="let i of nb_of_dims; let dim_index = index" appearance="fill">
                 <mat-label>Dimension {{dim_index + 1}}</mat-label>
-                <mat-select (selectionChange)="onSelectionChange($event.value, dim_index)">
-                    <mat-option *ngFor="let value of dims_values[dim_index]" [value]="value">
-                        {{value}}
-                    </mat-option>
+                <mat-select (click)="resetFilteredValues(dim_index)" (selectionChange)="onSelectionChange($event.value, dim_index)">
+                    <input class="select-filter" placeholder="Filter values" (keyup)="onKey($event)">
+                    <mat-option *ngFor="let value of filtered_values" [value]="value">{{value}}</mat-option>
                 </mat-select>
-            </mat-form-field>
+              </mat-form-field>
 
             <button mat-fab aria-label="Reset filters" matTooltip="Clear filters" (click)="clearFilters()">
                 <mat-icon>autorenew</mat-icon>

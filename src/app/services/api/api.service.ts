@@ -178,4 +178,14 @@ export class ApiService {
 
     return datapoints;
   }
+
+  public async getNbOfSubpatterns(identifier: number){
+    let nb_subpatterns;
+    nb_subpatterns = await invoke("getNbOfSubpatterns", {identifier: identifier}).catch((error: any) => {
+      this.dialog_service.openErrorDialog("Error while fetching number of subpatterns.");
+      throw error;
+    });
+
+    return nb_subpatterns;
+  }
 }

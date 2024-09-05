@@ -49,7 +49,7 @@ export class DagFeatureModule{
         this.lower_dag_arrow_active = this.datapoints_with_subpatterns.has(identifier)? true : false;
     }
 
-    public toggleHighlightSuperpatterns(toggle: boolean){
+    public async toggleHighlightSuperpatterns(toggle: boolean){
         console.log("Toggling superpatterns");
 
         this.supers_highlighted = toggle;
@@ -65,20 +65,16 @@ export class DagFeatureModule{
                 .duration(300)
                 .attr('fill', d => gray)
                 .style('stroke', d=> gray);
-            
 
+            this.datapoints_with_subpatterns.forEach(async identifier => {
+                let nb_of_identifiers = await this.api_service.getNbOfSubpatterns(identifier);
+                this.svg_feature.drawTextLabel(identifier, nb_of_identifiers);
+            });
         }else {
             this.svg_feature.drawDataPoints(this.svg_feature.getDrawnDataPoints(), true);
+            this.svg_feature.removeTextLabels();
         }
     }
-
-    // public activateHighlightSuperpatterns(){
-    //     this.toggleHighlightSuperpatterns(true);
-    // }
-
-    // public deactivateHighlightSuperpatterns(){
-    //     this.toggleHighlightSuperpatterns(false);
-    // }
 
     public isHighlightingSuperpatterns(){
         return this.supers_highlighted;

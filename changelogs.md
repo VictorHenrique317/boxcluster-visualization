@@ -53,3 +53,5 @@
 
 ## Changelogs 23/08/2024 -> ??? - v0.4.1
 - [x] FIX: UI Bugfixes
+- [x] ADDED: Opção para filtrar padrões pelos valores das dimensões
+- [x] ADDED: Número de subpadrões aparece em cima do superpadrão no highlight
