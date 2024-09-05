@@ -22,6 +22,9 @@ export class SearchDialogComponent {
   public static WIDTH = '60vw';
   public static HEIGHT = '70vh';
 
+  protected selected_input: number;
+  protected filtered_values:string[]; 
+
   private previous_filters: string[][];
   
   protected nb_of_dims: number[];
@@ -34,6 +37,21 @@ export class SearchDialogComponent {
     @Inject(MAT_DIALOG_DATA) public data: {previous_filters: string[][]}, private api_service: ApiService) {
       this.previous_filters = data.previous_filters;
       this.loadData();
+  }
+
+  protected resetFilteredValues(dim_index: number){
+    this.selected_input = dim_index;
+    this.filtered_values = this.dims_values[dim_index];
+  }
+
+  protected onKey(event: KeyboardEvent) { 
+    const inputValue = (event.target as HTMLInputElement).value;
+    this.filtered_values = this.search(inputValue);
+  }
+
+  protected search(value: string) { 
+    let filter = value.toLowerCase();
+    return this.dims_values[this.selected_input].filter(option => option.toLowerCase().includes(filter));
   }
 
   private async loadData(){

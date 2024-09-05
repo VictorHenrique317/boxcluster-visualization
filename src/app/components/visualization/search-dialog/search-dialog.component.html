@@ -7,12 +7,11 @@
         <div id="inputs-wrapper">
             <mat-form-field *ngFor="let i of nb_of_dims; let dim_index = index" appearance="fill">
                 <mat-label>Dimension {{dim_index + 1}}</mat-label>
-                <mat-select (selectionChange)="onSelectionChange($event.value, dim_index)">
-                    <mat-option *ngFor="let value of dims_values[dim_index]" [value]="value">
-                        {{value}}
-                    </mat-option>
+                <mat-select (click)="resetFilteredValues(dim_index)" (selectionChange)="onSelectionChange($event.value, dim_index)">
+                    <input class="select-filter" placeholder="Filter values" (keyup)="onKey($event)">
+                    <mat-option *ngFor="let value of filtered_values" [value]="value">{{value}}</mat-option>
                 </mat-select>
-            </mat-form-field>
+              </mat-form-field>
 
             <button mat-fab aria-label="Reset filters" matTooltip="Clear filters" (click)="clearFilters()">
                 <mat-icon>autorenew</mat-icon>
