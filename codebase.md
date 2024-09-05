@@ -390,6 +390,7 @@ import { ApiService } from "./services/api/api.service";
 import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import { Subscription } from "rxjs";
 import { SearchDialogComponent } from "./components/visualization/search-dialog/search-dialog.component";
+import { DataPoint } from "./models/datapoint";
 
 export enum MainOption {
   MODEL_SELECTOR,
@@ -440,6 +441,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
 
   protected truncate_model_disabled: boolean = false;
   protected highlight_superpatterns_disabled: boolean = false;
+
+  private previous_filters: string[][];
 
   @ViewChild("aside") aside: ElementRef<HTMLElement>;
   public matList_height: number;
@@ -591,8 +594,9 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     this.cdr.detectChanges();
   }
 
-  private filterDatapoints(identifiers: number[]){
-    console.log(identifiers);
+  private async filterDatapoints(filters: string[][]){
+    this.previous_filters = filters;
+    this.visualization_view.filterDatapoints(filters);
   }
 
   private openSearch(){
@@ -600,7 +604,7 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     this.pattern_summary.update(null);
     this.cdr.detectChanges();
 
-    let dialog_data = {};
+    let dialog_data = {previous_filters: this.previous_filters};
 
     this.dialog_service.open(SearchDialogComponent,
       SearchDialogComponent.WIDTH, 
@@ -686,7 +690,7 @@ export class AppComponent implements AfterViewInit, OnDestroy{
             <header class="main-option" id="search"
                 *ngIf="application_status == applicationStatusLoaded"
                 (click)="toggleMainOption(MainOption.SEARCH)"
-                matTooltip="Search patterns">
+                matTooltip="Filter patterns">
                     <mat-icon>search</mat-icon>
             </header>
 
@@ -1108,6 +1112,12 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
 
       this.datapoint_click.emit(null);
     }
+  }
+
+  public async filterDatapoints(filters: string[][]){
+    console.log("Filtering datapoints with filters: ", filters);
+    let filtered_datapoints: DataPoint[] = await this.api_service.filterDatapoints(filters);
+    this.svg_feature.drawDataPoints(filtered_datapoints, false);
   }
 
   public isOnFirstLevel(){
@@ -1865,7 +1875,7 @@ export class IntersectionModeFeatureModule {
         let g = 178;
         let b = 227;
         let a = 1;
-
+        
         if(related_datapoint){ // If it isnt id 0 (which means total intersection to the clicked datapoint)
           // Dont color the percetage related to intersection with itself   
           if(related_datapoint.identifier == root_datapoint.identifier){ a = 0; }
@@ -1912,7 +1922,15 @@ export class IntersectionModeFeatureModule {
   private async showIntersections(){
     if(this.clicked_datapoint_data == null){ return };
 
-    let intersections = await this.api_service.getIntersectionsPercentages(this.clicked_datapoint_data.identifier);
+    // let intersections = await this.api_service.getIntersectionsPercentages(this.clicked_datapoint_data.identifier);
+    let intersections_details = await this.api_service.getIntersectionDetails(this.clicked_datapoint_data.identifier);
+    console.log(intersections_details);
+    let intersections: Map<number, number> = new Map();
+    intersections_details.intersections.forEach((value, key) => {
+      intersections.set(key, value[0]);
+    });
+    intersections.set(intersections_details.identifier, intersections_details.total_intersection_percentage);
+    console.log(intersections);
 
     let relationed_datapoints: Array<number> = Array.from(intersections.keys())
       .filter(d => (d != this.clicked_datapoint_data.identifier) && (d != 0));
@@ -2517,38 +2535,266 @@ describe('SearchDialogComponent', () => {
 ### src/app/components/visualization/search-dialog/search-dialog.component.spec.ts END ###
 
 ### src/app/components/visualization/search-dialog/search-dialog.component.scss BEGIN ###
+body{
+    margin: 0 0 0 0;
 
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow-y: hidden;
+
+    header{
+        width: 100%;
+        height: 10%;
+        padding-bottom: 1em;
+        border-bottom: 1px solid lightgray;
+
+        h1{
+            padding: 1em 1em 1em 1em;
+            margin: 0 0 0.5em 0;
+        }
+    }
+
+    section{
+        width: 100%;
+        height: 70%;
+        display: flex;
+        flex-direction: column;
+        
+        #inputs-wrapper{
+            height: fit-content;
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            padding: 1em 0 1em 1em;
+
+            overflow-x: auto;
+            overflow-y: hidden;
+
+            mat-form-field{
+                padding: 0 1em 0 0;
+                width: fit-content;
+                height: fit-content;
+            }
+
+            button:hover{
+                cursor: pointer;
+            }
+        }
+
+        #table{
+            padding: 1em 0 1em 1em;
+            width: 98%;
+            height: 100%;
+            display: flex;
+            flex-direction: row;
+            // justify-content: center;
+
+            overflow-x: auto;
+            white-space: nowrap; 
+
+            .table_column{
+                display: flex;
+                flex-direction: column;
+                
+                min-width: 150px; // Ensure minimum width for columns
+                height: fit-content;
+
+                padding-right: 1em;
+
+                h3{
+                    padding-left: 1em;
+                    margin: 0 0 0.5em 0;
+                    user-select: none;
+                    // color: #3f51b5; // Example color
+                }
+
+                .selected_value_wrapper{
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center; // Align items vertically
+
+                    padding: 0.5em 0.5em 0.5em 0.5em;
+                    margin-bottom: 0.5em;
+                    border-radius: 5px;
+                    background-color: rgb(214, 214, 214);
+
+                    overflow: hidden;
+
+                    p {
+                        margin: 0; // Remove default paragraph margins
+                        flex-grow: 1; // Allow the text to take up available space
+                    }
+
+                    button {
+                        background: none;
+                        border: none;
+                        padding: 0;
+                        margin-left: 0.5em;
+                        cursor: pointer;
+
+                        mat-icon {
+                            font-size: 16px; 
+                            color: #f44336; // Example color
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    footer{
+        width: 100%;
+        height: 10%;
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-end;
+        padding-top: 1em;
+        border-top: 1px solid lightgray;
+
+        #dialog-actions{
+            padding-right: 1em;
+
+            button{
+                width: 8em;
+                height: 3em;
+                margin-left: 1em;
+            }
+
+            button:hover{
+                cursor: pointer;
+            }
+        }
+        
+    }
+}
 ### src/app/components/visualization/search-dialog/search-dialog.component.scss END ###
 
 ### src/app/components/visualization/search-dialog/search-dialog.component.ts BEGIN ###
 import { Component, Inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { ApiService } from 'src/app/services/api/api.service';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
 
 @Component({
   selector: 'app-search-dialog',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MatFormFieldModule, MatSelectModule, MatTableModule, FormsModule, MatIconModule, MatTooltipModule,
+            FormsModule, MatAutocompleteModule,ReactiveFormsModule, AsyncPipe],
   templateUrl: './search-dialog.component.html',
   styleUrls: ['./search-dialog.component.scss']
 })
 export class SearchDialogComponent {
-  public static WIDTH = '45vw';
-  public static HEIGHT = '50vh';
+  public static WIDTH = '60vw';
+  public static HEIGHT = '70vh';
 
-  constructor(public dialogRef: MatDialogRef<SearchDialogComponent>, @Inject(MAT_DIALOG_DATA) public data: {}) {
+  private previous_filters: string[][];
+  
+  protected nb_of_dims: number[];
+  protected dims_values: string[][];
+  protected selectedValues: string[][];
+
+  protected displayedColumns: string[];
+
+  constructor(public dialogRef: MatDialogRef<SearchDialogComponent>, 
+    @Inject(MAT_DIALOG_DATA) public data: {previous_filters: string[][]}, private api_service: ApiService) {
+      this.previous_filters = data.previous_filters;
+      this.loadData();
   }
 
-  protected ok(): number[]{
-    return [0, 0];
+  private async loadData(){
+    this.dims_values = await this.api_service.getAllDimsValues();
+    this.nb_of_dims =  Array(this.dims_values.length).fill(0).map((_, i) => i);
+    this.displayedColumns = this.nb_of_dims.map(i => 'dim' + (i + 1));
+    this.resetSelectedValues();
+
+    if (this.previous_filters){
+      this.previous_filters.forEach((filter, i) => {
+        this.selectedValues[i] = filter;
+      });
+    }
   }
 
+  protected onSelectionChange(value, dim_index){
+    this.selectedValues[dim_index].push(value);
+  }
+
+  protected deleteValue(dim_index: number, value_index: number){
+    this.selectedValues[dim_index].splice(value_index, 1);
+  }
+
+  protected clearFilters(){
+    this.resetSelectedValues();
+  }
+
+  protected close(){
+    this.dialogRef.close();
+  }
+
+  protected ok(): Array<Array<string>>{
+    this.dialogRef.close(this.selectedValues);
+    return this.selectedValues; // Return the selected values
+  }
+
+  private resetSelectedValues(){
+    this.selectedValues = [];
+    this.nb_of_dims.forEach(i => this.selectedValues.push([]));
+  }
 }
-
 ### src/app/components/visualization/search-dialog/search-dialog.component.ts END ###
 
 ### src/app/components/visualization/search-dialog/search-dialog.component.html BEGIN ###
+<body>
+    <header>
+        <h1>Search patterns</h1>
+    </header>
 
+    <section>
+        <div id="inputs-wrapper">
+            <mat-form-field *ngFor="let i of nb_of_dims; let dim_index = index" appearance="fill">
+                <mat-label>Dimension {{dim_index + 1}}</mat-label>
+                <mat-select (selectionChange)="onSelectionChange($event.value, dim_index)">
+                    <mat-option *ngFor="let value of dims_values[dim_index]" [value]="value">
+                        {{value}}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <button mat-fab aria-label="Reset filters" matTooltip="Clear filters" (click)="clearFilters()">
+                <mat-icon>autorenew</mat-icon>
+            </button>
+        </div>
+
+        <div id="table">
+            <div class="table_column" *ngFor="let i of nb_of_dims; let dim_index = index">
+                <h3>Dimension {{dim_index + 1}}</h3>
+                <div class="selected_value_wrapper" *ngFor="let selected_value of selectedValues[dim_index]; let j = index">
+                    <p>{{selected_value}}</p>
+                    <button mat-icon-button (click)="deleteValue(dim_index, j)">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div id="dialog-actions" mat-dialog-actions>
+            <button mat-button mat-dialog-close cdkFocusInitial (click)="close()">Close</button>
+            <button mat-button mat-dialog-close (click)="ok()">Ok</button>
+        </div>
+    </footer>
+</body>
 ### src/app/components/visualization/search-dialog/search-dialog.component.html END ###
 
 ### src/app/components/main_options/rss-view/rss-view.component.html BEGIN ###
@@ -4264,21 +4510,6 @@ export class ApiService {
     return truncated_datapoints;
   }
 
-  public async getIntersectionsPercentages(identifier: number): Promise<Map<number, number>> {
-    let raw_data;
-    raw_data = await invoke("getIntersectionsPercentages", {identifier: identifier})
-      .catch((error: any) => {
-        // console.error(error);
-        this.dialog_service.openErrorDialog("Error while getting intersections.");
-        throw error;
-    });
-
-    let intersections = new Map<number, number>();
-    for (let key in raw_data) { intersections.set(Number(key), Number(raw_data[key])); }
-
-    return intersections;
-  }
-
   public async getIntersectionDetails(identifier: number): Promise<IntersectionDetails>{
     let data: any;
     data = await invoke("getIntersectionDetails", {identifier: identifier}).catch((error: any) => {
@@ -4384,6 +4615,26 @@ export class ApiService {
     });
 
     return density;
+  }
+
+  public async getAllDimsValues(): Promise<string[][]> {
+    let dims_values;
+    dims_values = await invoke("getAllDimsValues").catch((error: any) => {
+      this.dialog_service.openErrorDialog("Error while fetching dimensions values.");
+      throw error;
+    });
+
+    return dims_values;
+  }
+
+  public async filterDatapoints(filters: string[][]): Promise<DataPoint[]> {
+    let datapoints;
+    datapoints = await invoke("filterDatapoints", {filters: filters}).catch((error: any) => {
+      this.dialog_service.openErrorDialog("Error while filtering datapoints.");
+      throw error;
+    });
+
+    return datapoints;
   }
 }
 

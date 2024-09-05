@@ -1,25 +1,29 @@
 import { Component, Inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { ApiService } from 'src/app/services/api/api.service';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import {MatAutocompleteModule} from '@angular/material/autocomplete';
 
 @Component({
   selector: 'app-search-dialog',
   standalone: true,
-  imports: [CommonModule, MatFormFieldModule, MatSelectModule, MatTableModule, FormsModule, MatIconModule],
+  imports: [CommonModule, MatFormFieldModule, MatSelectModule, MatTableModule, FormsModule, MatIconModule, MatTooltipModule,
+            FormsModule, MatAutocompleteModule,ReactiveFormsModule, AsyncPipe],
   templateUrl: './search-dialog.component.html',
   styleUrls: ['./search-dialog.component.scss']
 })
 export class SearchDialogComponent {
   public static WIDTH = '60vw';
   public static HEIGHT = '70vh';
-  
 
+  private previous_filters: string[][];
+  
   protected nb_of_dims: number[];
   protected dims_values: string[][];
   protected selectedValues: string[][];
@@ -27,8 +31,9 @@ export class SearchDialogComponent {
   protected displayedColumns: string[];
 
   constructor(public dialogRef: MatDialogRef<SearchDialogComponent>, 
-    @Inject(MAT_DIALOG_DATA) public data: {}, private api_service: ApiService) {
-        this.loadData();
+    @Inject(MAT_DIALOG_DATA) public data: {previous_filters: string[][]}, private api_service: ApiService) {
+      this.previous_filters = data.previous_filters;
+      this.loadData();
   }
 
   private async loadData(){
@@ -36,6 +41,12 @@ export class SearchDialogComponent {
     this.nb_of_dims =  Array(this.dims_values.length).fill(0).map((_, i) => i);
     this.displayedColumns = this.nb_of_dims.map(i => 'dim' + (i + 1));
     this.resetSelectedValues();
+
+    if (this.previous_filters){
+      this.previous_filters.forEach((filter, i) => {
+        this.selectedValues[i] = filter;
+      });
+    }
   }
 
   protected onSelectionChange(value, dim_index){
@@ -44,6 +55,10 @@ export class SearchDialogComponent {
 
   protected deleteValue(dim_index: number, value_index: number){
     this.selectedValues[dim_index].splice(value_index, 1);
+  }
+
+  protected clearFilters(){
+    this.resetSelectedValues();
   }
 
   protected close(){

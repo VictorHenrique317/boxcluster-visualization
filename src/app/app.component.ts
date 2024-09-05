@@ -91,6 +91,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   protected truncate_model_disabled: boolean = false;
   protected highlight_superpatterns_disabled: boolean = false;
 
+  private previous_filters: string[][];
+
   @ViewChild("aside") aside: ElementRef<HTMLElement>;
   public matList_height: number;
 
@@ -117,8 +119,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
       // await fs.readTextFile(await resolveResource('resources/'))
 
       // let base_path = "../../src-tauri/tests/test_data"
-      let tensor_path = await resolveResource('resources/dev_tensor_light.txt'); 
-      let patterns_path = await resolveResource('resources/dev_patterns_light.txt');
+      let tensor_path = await resolveResource('resources/dev_tensor.txt'); 
+      let patterns_path = await resolveResource('resources/dev_patterns.txt');
       
       // let patterns_path = `${base_path}/other_patterns/primary_school.txt`
       this.handleModelChange({tensor_path: tensor_path, patterns_path: patterns_path});
@@ -242,6 +244,7 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   }
 
   private async filterDatapoints(filters: string[][]){
+    this.previous_filters = filters;
     this.visualization_view.filterDatapoints(filters);
   }
 
@@ -250,7 +253,7 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     this.pattern_summary.update(null);
     this.cdr.detectChanges();
 
-    let dialog_data = {};
+    let dialog_data = {previous_filters: this.previous_filters};
 
     this.dialog_service.open(SearchDialogComponent,
       SearchDialogComponent.WIDTH, 
