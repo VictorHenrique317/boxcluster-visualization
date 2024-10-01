@@ -125,6 +125,12 @@ export class AppComponent implements AfterViewInit, OnDestroy{
       // let patterns_path = `${base_path}/other_patterns/primary_school.txt`
       this.handleModelChange({tensor_path: tensor_path, patterns_path: patterns_path});
     }
+
+    let all_dims_values = await this.api_service.getAllDimsValues();
+    this.previous_filters = [];
+    all_dims_values.forEach((dim_values, i) => {
+      this.previous_filters.push(["Any value"]);
+    });
   }
 
   ngOnDestroy(){
@@ -245,10 +251,21 @@ export class AppComponent implements AfterViewInit, OnDestroy{
 
   private async filterDatapoints(filters: string[][]){
     this.previous_filters = filters;
-    this.visualization_view.filterDatapoints(filters);
+    
+    let all_dims_values = await this.api_service.getAllDimsValues();
+    let finalFilters = [];
+    filters.forEach((filter, i) => {
+      if(filter.length == 1 && filter[0] == "Any value"){ // If the filter is "Any value", adds all the values of the dimension
+        finalFilters.push(all_dims_values[i]);
+      }else{
+        finalFilters.push(filter);
+      }
+        
+    });
+    this.visualization_view.filterDatapoints(finalFilters);
   }
 
-  private openSearch(){
+  private async openSearch(){
     this.visualization_view.openSearch();
     this.pattern_summary.update(null);
     this.cdr.detectChanges();

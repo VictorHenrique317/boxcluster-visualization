@@ -286,7 +286,7 @@ impl ApplicationService{
                 let current_dim: HashSet<String> = raw_pattern.dims_values.get(dim).expect("Should have dimension").iter()
                     .map(|value| value.to_string()).collect();
 
-                if !current_dim.is_superset(&filter){ // Current dim does not match filter
+                if current_dim.intersection(&filter).count() == 0{ // Current dim does not match filter
                     match_filters = false;
                     break;
                 }

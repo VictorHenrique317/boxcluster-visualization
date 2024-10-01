@@ -55,3 +55,6 @@
 - [x] FIX: UI Bugfixes
 - [x] ADDED: Opção para filtrar padrões pelos valores das dimensões
 - [x] ADDED: Número de subpadrões aparece em cima do superpadrão no highlight
+
+## Changelogs v0.4.2
+- [] FIX: Busca de padrões incorreta
