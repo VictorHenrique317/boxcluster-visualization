@@ -59,6 +59,12 @@ export class SearchDialogComponent {
     this.nb_of_dims =  Array(this.dims_values.length).fill(0).map((_, i) => i);
     this.displayedColumns = this.nb_of_dims.map(i => 'dim' + (i + 1));
     this.resetSelectedValues();
+
+    this.previous_filters.forEach((filter, i) => {
+      filter.forEach(value => {
+        this.selectedValues[i].push(value);
+      });
+    });
   }
 
   protected onSelectionChange(value, dim_index){
