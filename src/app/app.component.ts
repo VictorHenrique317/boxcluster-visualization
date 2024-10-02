@@ -91,7 +91,7 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   protected truncate_model_disabled: boolean = false;
   protected highlight_superpatterns_disabled: boolean = false;
 
-  private previous_filters: string[][];
+  private previous_filters: string[][] = [];
 
   @ViewChild("aside") aside: ElementRef<HTMLElement>;
   public matList_height: number;
@@ -125,12 +125,6 @@ export class AppComponent implements AfterViewInit, OnDestroy{
       // let patterns_path = `${base_path}/other_patterns/primary_school.txt`
       this.handleModelChange({tensor_path: tensor_path, patterns_path: patterns_path});
     }
-
-    let all_dims_values = await this.api_service.getAllDimsValues();
-    this.previous_filters = [];
-    all_dims_values.forEach((dim_values, i) => {
-      this.previous_filters.push(["Any value"]);
-    });
   }
 
   ngOnDestroy(){
@@ -255,7 +249,7 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     let all_dims_values = await this.api_service.getAllDimsValues();
     let finalFilters = [];
     filters.forEach((filter, i) => {
-      if(filter.length == 1 && filter[0] == "Any value"){ // If the filter is "Any value", adds all the values of the dimension
+      if(filter.length == 0){ // Adds all the values of the dimension
         finalFilters.push(all_dims_values[i]);
       }else{
         finalFilters.push(filter);

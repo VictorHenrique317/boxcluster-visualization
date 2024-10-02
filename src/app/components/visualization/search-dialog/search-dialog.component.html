@@ -9,7 +9,6 @@
                 <mat-label>Dimension {{dim_index + 1}}</mat-label>
                 <mat-select (click)="resetFilteredValues(dim_index)" (selectionChange)="onSelectionChange($event.value, dim_index)">
                     <input class="select-filter" placeholder="Filter values" (keyup)="onKey($event)">
-                    <mat-option value="Any value"> Any value </mat-option>
                     <mat-option *ngFor="let value of filtered_values" [value]="value">{{value}}</mat-option>
                 </mat-select>
               </mat-form-field>
