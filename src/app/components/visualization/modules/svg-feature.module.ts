@@ -56,7 +56,7 @@ export class SvgFeatureModule {
         return "\
           <div style='background-color:#ededed; padding: 0.5em 0.5em 0.5em 0.5em; border-radius: 10px; border: 1px dashed black;'>\
             <strong>ID:</strong> <span style='color:#BC2602'>" + d.identifier + "</span><br>\
-            <strong>Size:</strong> <span style='color:#BC2602'>" + d.pattern_size + "</span><br>\
+            <strong>Area:</strong> <span style='color:#BC2602'>" + d.pattern_size + "</span><br>\
             <strong>Density:</strong> <span style='color:#BC2602'>" + Math.round(d.density * 100) / 100 + "</span>\
           </div>\
           ";
