@@ -1,9 +1,3 @@
-// https://www.telerik.com/blogs/angular-14-introducing-standalone-components#:~:text=Creating%20a%20Standalone%20Component,ng%20g%20c%20login%20%2D%2Dstandalone
-// https://material.angular.io/components/categories
-// https://css-tricks.com/snippets/css/a-guide-to-flexbox/
-// https://br.pinterest.com/pin/800022321275429738/
-// import * as numeric from 'numeric';
-
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, ViewChild , Renderer2, OnDestroy} from "@angular/core";
 import { invoke } from "@tauri-apps/api/tauri";
 import { VisualizationComponent } from "./components/visualization/visualization.component";
@@ -113,18 +107,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   constructor(private cdr: ChangeDetectorRef, private dialog_service: DialogService, private api_service: ApiService){}
 
   async ngAfterViewInit(){
-    if(environment.dev_mode){
-      console.log("Entering dev mode");
-      
-      // await fs.readTextFile(await resolveResource('resources/'))
-
-      // let base_path = "../../src-tauri/tests/test_data"
-      let tensor_path = await resolveResource('resources/dev_tensor.txt'); 
-      let patterns_path = await resolveResource('resources/dev_patterns.txt');
-      
-      // let patterns_path = `${base_path}/other_patterns/primary_school.txt`
-      this.handleModelChange({tensor_path: tensor_path, patterns_path: patterns_path});
-    }
+    this.toggleMainOption(MainOption.MODEL_SELECTOR);
+    this.application_status = ApplicationStatus.LOADING;
   }
 
   ngOnDestroy(){
