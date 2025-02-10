@@ -382,6 +382,8 @@ export class SvgFeatureModule {
     let datapoint = this.getDatapoint(identifier);
     if (!datapoint) { return; }
 
+    this.removeTextLabels(); // Always delete the previous labels before adding new ones
+
     this.plot.append('text')
       .attr('class', 'datapoint-label')
       .attr('x', this.xScale(datapoint.x))
