@@ -86,12 +86,6 @@
                 (onTruncationFinished)="onTruncationFinished()"
                 >
             </router-outlet> -->
-            <div id="select-model-warning-wrapper" *ngIf="application_status == applicationStatusUnloaded">
-                <div id="button-wrapper" (click)="toggleMainOption(MainOption.MODEL_SELECTOR)">
-                    <h1> Select summary to visualize </h1>
-                </div>
-            </div>
-
             <div id="progress-spinner" *ngIf="application_status == applicationStatusLoading">
                 <mat-spinner></mat-spinner>
                 <h1>Loading visualization...</h1>
