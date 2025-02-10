@@ -40,7 +40,6 @@ export enum MainOption {
   SETTINGS,
   TRUNCATE_MODEL,
   INTERSECTION_MODE,
-  HIGHLIGHT_SUPERPATTERNS,
   SEARCH
 };
 
@@ -80,10 +79,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   protected settings_enabled: boolean = false;
   protected truncate_model_enabled: boolean;
   protected intersection_mode_enabled: boolean = false;
-  protected highlight_superpatterns_enabled: boolean = false;
 
   protected truncate_model_disabled: boolean = false;
-  protected highlight_superpatterns_disabled: boolean = false;
 
   private previous_filters: string[][] = [];
 
@@ -162,9 +159,6 @@ export class AppComponent implements AfterViewInit, OnDestroy{
       case MainOption.TRUNCATE_MODEL:
         this.toggleTruncateModel();
         break;
-      case MainOption.HIGHLIGHT_SUPERPATTERNS:
-        this.toggleHighlightSuperpatterns();
-        break;
       case MainOption.SEARCH:
         this.openSearch();
         break;
@@ -179,8 +173,6 @@ export class AppComponent implements AfterViewInit, OnDestroy{
         return false;
       case MainOption.TRUNCATE_MODEL:
         return this.truncate_model_disabled;
-      case MainOption.HIGHLIGHT_SUPERPATTERNS:
-        return this.highlight_superpatterns_disabled;
       default:
         return false;
     }
@@ -189,7 +181,6 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   private deactivateMainOptionsExcept(option: MainOption){
     if(this.settings_enabled && option != MainOption.SETTINGS){ this.toggleSettings(); }
     if(this.truncate_model_enabled && option != MainOption.TRUNCATE_MODEL){ this.toggleTruncateModel(); }
-    if(this.highlight_superpatterns_enabled && option != MainOption.HIGHLIGHT_SUPERPATTERNS){ this.toggleHighlightSuperpatterns(); }
   }
 
   private openModelSelection(): void {
@@ -214,16 +205,6 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     if(this.truncate_model_enabled == undefined){ return; }
 
     this.truncate_model_enabled = !this.truncate_model_enabled;
-    this.cdr.detectChanges();
-  }
-
-  private toggleHighlightSuperpatterns(){
-    if(this.highlight_superpatterns_enabled == undefined){ return; }
-
-    this.highlight_superpatterns_enabled = !this.highlight_superpatterns_enabled;
-
-    this.visualization_view.toggleHighlightSuperpatterns(this.highlight_superpatterns_enabled);
-    this.pattern_summary.update(null);
     this.cdr.detectChanges();
   }
 
@@ -258,7 +239,6 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   }
 
   private onDatapointClick(identifier){
-    this.highlight_superpatterns_enabled = false;
   }
 
   protected disableRssView(){
@@ -282,10 +262,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     }
 
     this.truncate_model_disabled = !this.visualization_view.isOnFirstLevel();
-    this.highlight_superpatterns_disabled = !this.visualization_view.isOnFirstLevel();
 
     this.truncate_model_enabled = false;
-    this.highlight_superpatterns_enabled = false;
     this.cdr.detectChanges();
   }
 
