@@ -196,13 +196,18 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     let dialog_data = {
       last_opened_folder: this.last_opened_folder,
       tensor_path: this.tensor_path,
-      patterns_path: this.patterns_path
+      patterns_path: this.patterns_path,
+      first_open: this.tensor_path == "" && this.patterns_path == ""
     };
-    this.dialog_service.open(FileSelectionDialogComponent, 
-      FileSelectionDialogComponent.WIDTH, 
-      FileSelectionDialogComponent.HEIGHT, 
-      dialog_data, 
-      this.handleModelChange.bind(this));
+    const dialogRef = this.dialog_service.open(
+      FileSelectionDialogComponent,
+      FileSelectionDialogComponent.WIDTH,
+      FileSelectionDialogComponent.HEIGHT,
+      dialog_data,
+      this.handleModelChange.bind(this)
+    );
+
+    dialogRef.disableClose = true; // Prevent closing on outside click
   }
 
   private toggleSettings(){

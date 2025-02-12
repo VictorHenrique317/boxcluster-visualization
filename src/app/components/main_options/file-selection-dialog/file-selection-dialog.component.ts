@@ -23,15 +23,22 @@ export class FileSelectionDialogComponent {
   private patterns_path: string = "";
   protected patterns_name: string = "";
 
+  protected first_open: boolean = true;
+
   constructor(public dialogRef: MatDialogRef<FileSelectionDialogComponent>, 
-    @Inject(MAT_DIALOG_DATA) public data: {last_opened_folder: string, tensor_path: string, patterns_path: string}) {
+    @Inject(MAT_DIALOG_DATA) public data: {last_opened_folder: string, tensor_path: string, patterns_path: string, first_open: boolean}) {
       this.last_opened_folder = data.last_opened_folder;
       this.tensor_path = data.tensor_path;
       this.patterns_path = data.patterns_path;
       this.setNames();
+      this.first_open = data.first_open;
   }
 
-  private isStateValid(): boolean{
+  public isFirstOpen(): boolean{
+    return this.first_open;
+  }
+
+  public isStateValid(): boolean {
     if(this.tensor_path == undefined || this.tensor_path == null || this.tensor_path == ""){
       return false;
     }
