@@ -36,12 +36,6 @@ export class DagFeatureModule{
         this.datapoints_with_subpatterns = new Set(
             (await this.api_service.getDatapointsWithSubPatterns()).map(datapoint => datapoint.identifier));
         this.current_dag_level = 1;
-
-        // Always display the number of sub-patterns for each circle
-        this.datapoints_with_subpatterns.forEach(async identifier => {
-            let nb_of_identifiers = await this.api_service.getNbOfSubpatterns(identifier);
-            this.svg_feature.drawTextLabel(identifier, nb_of_identifiers);
-        });
     }
 
     public setClickedDatapoint(identifier: number){

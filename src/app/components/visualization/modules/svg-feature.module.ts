@@ -39,15 +39,17 @@ export class SvgFeatureModule {
   private transition_duration = 300;
 
   private cdr: ChangeDetectorRef;
+  private api_service;
 
   constructor(cdr: ChangeDetectorRef){ 
     this.cdr = cdr;
   }
 
-  public init(visualization_div: ElementRef, svg_width: number, svg_height: number){
+  public init(visualization_div: ElementRef, svg_width: number, svg_height: number, api_service){
     this.visualization_div = visualization_div;
     this.svg_width = svg_width;
     this.svg_height = svg_height;
+    this.api_service = api_service;
 
     this.tooltip = d3Tip.default()
       .attr('class', 'd3-tip')
@@ -376,13 +378,28 @@ export class SvgFeatureModule {
     
     this.drawCircleLegend();
     this.drawColorLegend();
+    this.drawTextLabels();
+  }
+
+  public drawTextLabels(){
+    this.removeTextLabels();
+    for (const datapoint of this.datapoints) {
+      try{
+        this.api_service.getNbOfSubpatterns(datapoint.identifier).then(nb => {
+          this.drawTextLabel(datapoint.identifier, nb);
+        });
+      } catch(e){
+        
+      }
+      
+    }
   }
 
   public drawTextLabel(identifier: number, text: string) {
+    if (text == "0") { return; }
+
     let datapoint = this.getDatapoint(identifier);
     if (!datapoint) { return; }
-
-    this.removeTextLabels(); // Always delete the previous labels before adding new ones
 
     this.plot.append('text')
       .attr('class', 'datapoint-label')

@@ -107,7 +107,7 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     let svg_height = this.body.nativeElement.clientHeight;
     
     this.svg_feature = new SvgFeatureModule(this.cdr);
-    this.svg_feature.init(this.visualization_div, svg_width, svg_height);
+    this.svg_feature.init(this.visualization_div, svg_width, svg_height, this.api_service);
     let background_density = await this.api_service.getCurrentLevelBackgroundDensity();
     this.svg_feature.setBackgroundColor(background_density);
     
@@ -144,12 +144,6 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     this.svg_feature.resizeSvg(width, height, datapoints);
     let background_density = await this.api_service.getCurrentLevelBackgroundDensity();
     this.svg_feature.setBackgroundColor(background_density);
-
-    // Always call drawTextLabel when the circles are updated in any way
-    for (const datapoint of datapoints) {
-      const nb_of_subpatterns = await this.api_service.getNbOfSubpatterns(datapoint.identifier);
-      this.svg_feature.drawTextLabel(datapoint.identifier, nb_of_subpatterns);
-    }
   }
 
   private onDatapointHoverIn(identifier: number){
@@ -176,12 +170,6 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     await this.intersection_mode_feature.toggleIntersections(null);
     this.svg_feature.drawDataPoints(truncated_datapoints);
     this.datapoint_click.emit(null);
-
-    // Always call drawTextLabel when the circles are updated in any way
-    for (const datapoint of truncated_datapoints) {
-      const nb_of_subpatterns = await this.api_service.getNbOfSubpatterns(datapoint.identifier);
-      this.svg_feature.drawTextLabel(datapoint.identifier, nb_of_subpatterns);
-    }
   }
 
   private onDagChange(){
@@ -206,12 +194,6 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
           this.svg_feature.setBackgroundColor(background_density);
           
           this.datapoint_click.emit(null);
-
-          // Always call drawTextLabel when the circles are updated in any way
-          for (const datapoint of datapoints) {
-            const nb_of_subpatterns = await this.api_service.getNbOfSubpatterns(datapoint.identifier);
-            this.svg_feature.drawTextLabel(datapoint.identifier, nb_of_subpatterns);
-          }
         }
   }
 
@@ -225,12 +207,6 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
       this.svg_feature.setBackgroundColor(background_density);
 
       this.datapoint_click.emit(null);
-
-      // Always call drawTextLabel when the circles are updated in any way
-      for (const datapoint of datapoints) {
-        const nb_of_subpatterns = await this.api_service.getNbOfSubpatterns(datapoint.identifier);
-        this.svg_feature.drawTextLabel(datapoint.identifier, nb_of_subpatterns);
-      }
     }
   }
 
@@ -238,12 +214,6 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     console.log("Filtering datapoints with filters: ", filters);
     let filtered_datapoints: DataPoint[] = await this.api_service.filterDatapoints(filters);
     this.svg_feature.drawDataPoints(filtered_datapoints, false);
-
-    // Always call drawTextLabel when the circles are updated in any way
-    for (const datapoint of filtered_datapoints) {
-      const nb_of_subpatterns = await this.api_service.getNbOfSubpatterns(datapoint.identifier);
-      this.svg_feature.drawTextLabel(datapoint.identifier, nb_of_subpatterns);
-    }
   }
 
   public isOnFirstLevel(){
