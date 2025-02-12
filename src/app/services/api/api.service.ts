@@ -16,7 +16,6 @@ export class ApiService {
   public async initApplication(tensor_path: string, patterns_path: string){
     await invoke("initApplication", {tensorPath: tensor_path, patternsPath: patterns_path}).catch((error: any) => {
       // console.error(error);
-      this.dialog_service.openErrorDialog("ERROR Could not read tensor or patterns.");
       throw error;
     });
   }

@@ -99,6 +99,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   protected hovered_pattern: Pattern;
 
   private datapoint_click_subscription: Subscription;
+  private datapoint_hover_in_subscription: Subscription;
+  private datapoint_hover_out_subscription: Subscription;
   private dag_change_subscription: Subscription;
   
   constructor(private cdr: ChangeDetectorRef, private dialog_service: DialogService, private api_service: ApiService){}
@@ -111,6 +113,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   ngOnDestroy(){
     this.datapoint_click_subscription.unsubscribe();
     this.dag_change_subscription.unsubscribe();
+    this.datapoint_hover_in_subscription.unsubscribe();
+    this.datapoint_hover_out_subscription
   }
 
   private async handleModelChange(event: any){
@@ -130,6 +134,11 @@ export class AppComponent implements AfterViewInit, OnDestroy{
       console.error(error);
       this.application_status = ApplicationStatus.UNLOADED;
       this.cdr.detectChanges();
+      this.tensor_path = "";
+      this.patterns_path = "";
+      this.toggleMainOption(MainOption.MODEL_SELECTOR);
+      this.application_status = ApplicationStatus.LOADING;
+      this.dialog_service.openErrorDialog("ERROR Could not read tensor or patterns.");
       return;
     }
     
@@ -137,6 +146,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     this.cdr.detectChanges();
 
     this.datapoint_click_subscription = this.visualization_view.datapoint_click.subscribe(identifier => this.onDatapointClick(identifier));
+    this.datapoint_hover_in_subscription = this.visualization_view.datapoint_hover_in.subscribe(identifier => this.onDatapointHoverIn(identifier));
+    this.datapoint_hover_out_subscription = this.visualization_view.datapoint_hover_out.subscribe(identifier => this.onDatapointHoverOut(identifier));
     this.dag_change_subscription = this.visualization_view.dag_change.subscribe(() => this.onDagChange());
     // this.reloadApplication();
 
@@ -244,6 +255,15 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   }
 
   private onDatapointClick(identifier){
+    // this.toggleMainOption(null);
+  }
+
+  private onDatapointHoverIn(identifier){
+    this.toggleMainOption(null);
+  }
+
+  private onDatapointHoverOut(identifier){
+    // this.toggleMainOption(null)
   }
 
   protected disableRssView(){
