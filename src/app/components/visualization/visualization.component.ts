@@ -107,7 +107,7 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     let svg_height = this.body.nativeElement.clientHeight;
     
     this.svg_feature = new SvgFeatureModule(this.cdr);
-    this.svg_feature.init(this.visualization_div, svg_width, svg_height);
+    this.svg_feature.init(this.visualization_div, svg_width, svg_height, this.api_service);
     let background_density = await this.api_service.getCurrentLevelBackgroundDensity();
     this.svg_feature.setBackgroundColor(background_density);
     
@@ -156,7 +156,6 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
 
   private async onDatapointClick(identifier: number){
     this.dag_feature.setClickedDatapoint(identifier);
-    this.dag_feature.toggleHighlightSuperpatterns(false);
     this.datapoint_click.emit(identifier); // To communicate with pattern summary
 
     await this.intersection_mode_feature.toggleIntersections(identifier);
@@ -177,23 +176,10 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     this.dag_change.emit();
   }
 
-  public toggleHighlightSuperpatterns(toggle: boolean){
-    if(toggle == true && this.dag_feature.isHighlightingSuperpatterns()){ return; }
-    if(toggle == false && !this.dag_feature.isHighlightingSuperpatterns()){ return; }
-    
-    this.svg_feature.deactivateHighlight();
-    this.intersection_mode_feature.toggleIntersections(null).then(() => {
-      this.dag_feature.setClickedDatapoint(null);
-      this.dag_feature.toggleHighlightSuperpatterns(toggle);
-      // this.datapoint_click.emit(null); // To communicate with pattern summary
-    });
-  }
-
   public openSearch(){
     this.svg_feature.deactivateHighlight();
     this.intersection_mode_feature.toggleIntersections(null).then(() => {
       this.dag_feature.setClickedDatapoint(null);
-      this.dag_feature.toggleHighlightSuperpatterns(false);
       this.datapoint_click.emit(null); // To communicate with pattern summary
     });
   }
