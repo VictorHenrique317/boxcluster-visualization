@@ -22,14 +22,6 @@
                 matTooltip="Filter patterns">
                     <mat-icon>search</mat-icon>
             </header>
-
-            <header class="main-option" id="highlight-superpatterns"
-                [ngClass]="{'buttonToggled': this.highlight_superpatterns_enabled, 'main-option-disabled':this.highlight_superpatterns_disabled}"
-                *ngIf="application_status == applicationStatusLoaded"
-                (click)="toggleMainOption(MainOption.HIGHLIGHT_SUPERPATTERNS)"
-                matTooltip="Highlight super-patterns">
-                    <mat-icon>all_out</mat-icon>
-            </header>
 <!-- 
             <header class="main-option" id="settings-button" matRipple [matRippleCentered]="true" 
                 [ngClass]="{'buttonToggled': this.settings_enabled}"

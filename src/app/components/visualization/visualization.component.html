@@ -1,10 +1,10 @@
 <body #body (window:resize)="onResize($event)">
     <section>
         <div id="dag-controls" class="floatable">
-            <mat-icon id="arrow-up" [class.button-disabled]="!dag_feature.upper_dag_arrow_active" fontIcon="keyboard_arrow_up"  matTooltip="Ascend on DAG" matTooltipPosition="above"
+            <mat-icon id="arrow-up" [class.button-disabled]="!dag_feature.upper_dag_arrow_active" fontIcon="keyboard_arrow_up"  matTooltip="Back to super-summary" matTooltipPosition="above"
             (click)="ascendDag()"></mat-icon>
             
-            <mat-icon id="arrow-down" [class.button-disabled]="!dag_feature.lower_dag_arrow_active" fontIcon="keyboard_arrow_down" matTooltip="Descend on DAG"
+            <mat-icon id="arrow-down" [class.button-disabled]="!dag_feature.lower_dag_arrow_active" fontIcon="keyboard_arrow_down" matTooltip="Visualize sub-summary"
             (click)="descendDag()"></mat-icon>
         </div>
         <div #vizualization_div id="vizualization_div"></div>

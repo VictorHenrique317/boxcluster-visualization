@@ -215,6 +215,7 @@ impl Distances{
         let visible_patterns = visible_patterns?;
 
         let mut total_distances = 0;
+        // println!("Visible patterns: {:?}", visible_patterns);
         if visible_identifiers.len() > 1 {
             total_distances = (visible_identifiers.len().pow(2) as u32 / 2) - visible_identifiers.len() as u32
         }
@@ -244,7 +245,7 @@ impl Distances{
                         let raw_distance = covered_xuy_rss - untouched_rss_x - untouched_rss_y - x_y_intersection_rss;
                         
                         let normalized_distance = Distances::normalize(x, y, &raw_distance)?;
-                        
+
                         let mut distances = distances.lock()
                             .map_err(|_| GenericError::new("Error while getting distance matrix thread lock", file!(), &line!()))?;
 

@@ -40,7 +40,6 @@ export enum MainOption {
   SETTINGS,
   TRUNCATE_MODEL,
   INTERSECTION_MODE,
-  HIGHLIGHT_SUPERPATTERNS,
   SEARCH
 };
 
@@ -80,10 +79,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   protected settings_enabled: boolean = false;
   protected truncate_model_enabled: boolean;
   protected intersection_mode_enabled: boolean = false;
-  protected highlight_superpatterns_enabled: boolean = false;
 
   protected truncate_model_disabled: boolean = false;
-  protected highlight_superpatterns_disabled: boolean = false;
 
   private previous_filters: string[][] = [];
 
@@ -102,6 +99,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   protected hovered_pattern: Pattern;
 
   private datapoint_click_subscription: Subscription;
+  private datapoint_hover_in_subscription: Subscription;
+  private datapoint_hover_out_subscription: Subscription;
   private dag_change_subscription: Subscription;
   
   constructor(private cdr: ChangeDetectorRef, private dialog_service: DialogService, private api_service: ApiService){}
@@ -114,6 +113,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   ngOnDestroy(){
     this.datapoint_click_subscription.unsubscribe();
     this.dag_change_subscription.unsubscribe();
+    this.datapoint_hover_in_subscription.unsubscribe();
+    this.datapoint_hover_out_subscription
   }
 
   private async handleModelChange(event: any){
@@ -133,6 +134,11 @@ export class AppComponent implements AfterViewInit, OnDestroy{
       console.error(error);
       this.application_status = ApplicationStatus.UNLOADED;
       this.cdr.detectChanges();
+      this.tensor_path = "";
+      this.patterns_path = "";
+      this.toggleMainOption(MainOption.MODEL_SELECTOR);
+      this.application_status = ApplicationStatus.LOADING;
+      this.dialog_service.openErrorDialog("ERROR Could not read tensor or patterns.");
       return;
     }
     
@@ -140,6 +146,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     this.cdr.detectChanges();
 
     this.datapoint_click_subscription = this.visualization_view.datapoint_click.subscribe(identifier => this.onDatapointClick(identifier));
+    this.datapoint_hover_in_subscription = this.visualization_view.datapoint_hover_in.subscribe(identifier => this.onDatapointHoverIn(identifier));
+    this.datapoint_hover_out_subscription = this.visualization_view.datapoint_hover_out.subscribe(identifier => this.onDatapointHoverOut(identifier));
     this.dag_change_subscription = this.visualization_view.dag_change.subscribe(() => this.onDagChange());
     // this.reloadApplication();
 
@@ -162,9 +170,6 @@ export class AppComponent implements AfterViewInit, OnDestroy{
       case MainOption.TRUNCATE_MODEL:
         this.toggleTruncateModel();
         break;
-      case MainOption.HIGHLIGHT_SUPERPATTERNS:
-        this.toggleHighlightSuperpatterns();
-        break;
       case MainOption.SEARCH:
         this.openSearch();
         break;
@@ -179,8 +184,6 @@ export class AppComponent implements AfterViewInit, OnDestroy{
         return false;
       case MainOption.TRUNCATE_MODEL:
         return this.truncate_model_disabled;
-      case MainOption.HIGHLIGHT_SUPERPATTERNS:
-        return this.highlight_superpatterns_disabled;
       default:
         return false;
     }
@@ -189,20 +192,24 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   private deactivateMainOptionsExcept(option: MainOption){
     if(this.settings_enabled && option != MainOption.SETTINGS){ this.toggleSettings(); }
     if(this.truncate_model_enabled && option != MainOption.TRUNCATE_MODEL){ this.toggleTruncateModel(); }
-    if(this.highlight_superpatterns_enabled && option != MainOption.HIGHLIGHT_SUPERPATTERNS){ this.toggleHighlightSuperpatterns(); }
   }
 
   private openModelSelection(): void {
     let dialog_data = {
       last_opened_folder: this.last_opened_folder,
       tensor_path: this.tensor_path,
-      patterns_path: this.patterns_path
+      patterns_path: this.patterns_path,
+      first_open: this.tensor_path == "" && this.patterns_path == ""
     };
-    this.dialog_service.open(FileSelectionDialogComponent, 
-      FileSelectionDialogComponent.WIDTH, 
-      FileSelectionDialogComponent.HEIGHT, 
-      dialog_data, 
-      this.handleModelChange.bind(this));
+    const dialogRef = this.dialog_service.open(
+      FileSelectionDialogComponent,
+      FileSelectionDialogComponent.WIDTH,
+      FileSelectionDialogComponent.HEIGHT,
+      dialog_data,
+      this.handleModelChange.bind(this)
+    );
+
+    dialogRef.disableClose = true; // Prevent closing on outside click
   }
 
   private toggleSettings(){
@@ -214,16 +221,6 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     if(this.truncate_model_enabled == undefined){ return; }
 
     this.truncate_model_enabled = !this.truncate_model_enabled;
-    this.cdr.detectChanges();
-  }
-
-  private toggleHighlightSuperpatterns(){
-    if(this.highlight_superpatterns_enabled == undefined){ return; }
-
-    this.highlight_superpatterns_enabled = !this.highlight_superpatterns_enabled;
-
-    this.visualization_view.toggleHighlightSuperpatterns(this.highlight_superpatterns_enabled);
-    this.pattern_summary.update(null);
     this.cdr.detectChanges();
   }
 
@@ -258,7 +255,15 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   }
 
   private onDatapointClick(identifier){
-    this.highlight_superpatterns_enabled = false;
+    // this.toggleMainOption(null);
+  }
+
+  private onDatapointHoverIn(identifier){
+    this.toggleMainOption(null);
+  }
+
+  private onDatapointHoverOut(identifier){
+    // this.toggleMainOption(null)
   }
 
   protected disableRssView(){
@@ -282,10 +287,8 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     }
 
     this.truncate_model_disabled = !this.visualization_view.isOnFirstLevel();
-    this.highlight_superpatterns_disabled = !this.visualization_view.isOnFirstLevel();
 
     this.truncate_model_enabled = false;
-    this.highlight_superpatterns_enabled = false;
     this.cdr.detectChanges();
   }
 

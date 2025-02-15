@@ -46,11 +46,12 @@ impl MetricsService{
             &intersections_indices
         )?;
 
+        let all_identifiers = identifier_mapper.getIdentifiers();
         let distances = Distances::new(
             identifier_mapper,
             tensor,
             &intersections_predictions,
-            &visible_identifiers,
+            &all_identifiers,
         )?;
 
         let first_identifier = visible_identifiers[0];

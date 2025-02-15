@@ -39,15 +39,17 @@ export class SvgFeatureModule {
   private transition_duration = 300;
 
   private cdr: ChangeDetectorRef;
+  private api_service;
 
   constructor(cdr: ChangeDetectorRef){ 
     this.cdr = cdr;
   }
 
-  public init(visualization_div: ElementRef, svg_width: number, svg_height: number){
+  public init(visualization_div: ElementRef, svg_width: number, svg_height: number, api_service){
     this.visualization_div = visualization_div;
     this.svg_width = svg_width;
     this.svg_height = svg_height;
+    this.api_service = api_service;
 
     this.tooltip = d3Tip.default()
       .attr('class', 'd3-tip')
@@ -194,7 +196,7 @@ export class SvgFeatureModule {
             .domain([min_pattern_size, max_pattern_size])
             .range([min_size, max_size])
       )
-      .tickValues([min_pattern_size, mean_pattern_size, max_pattern_size])
+      .tickValues([min_pattern_size, max_pattern_size])
       .tickFormat((d, i, e) => `${d}${i === e.length - 1 ? " Cells" : ""}`)
       .tickSize(max_size); // defaults to 5
     
@@ -233,6 +235,7 @@ export class SvgFeatureModule {
   }
 
   private scalingFunction(datapoints: Array<DataPoint>) {
+    console.log("Calling scaling function");
     // let x_max_module = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.x)));
     // let y_max_module = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.y)));
     // let max_module = Math.max(x_max_module, y_max_module);
@@ -376,9 +379,26 @@ export class SvgFeatureModule {
     
     this.drawCircleLegend();
     this.drawColorLegend();
+    this.drawTextLabels();
+  }
+
+  public drawTextLabels(){
+    this.removeTextLabels();
+    for (const datapoint of this.datapoints) {
+      try{
+        this.api_service.getNbOfSubpatterns(datapoint.identifier).then(nb => {
+          this.drawTextLabel(datapoint.identifier, nb);
+        });
+      } catch(e){
+        
+      }
+      
+    }
   }
 
   public drawTextLabel(identifier: number, text: string) {
+    if (text == "0") { return; }
+
     let datapoint = this.getDatapoint(identifier);
     if (!datapoint) { return; }
 

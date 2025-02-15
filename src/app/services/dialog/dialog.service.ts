@@ -34,6 +34,8 @@ export class DialogService implements OnDestroy{
         }
       }
     });
+
+    return dialogRef;
   }
 
   ngOnDestroy() {
