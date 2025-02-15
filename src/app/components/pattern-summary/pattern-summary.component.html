@@ -12,7 +12,7 @@
             <div id="dim-summaries">
                 <div class="dim-summary" *ngFor="let dim_values of this.pattern.dims_values; let i = index" (click)="openDimDialog(i)">
                     <div class="dim-summary-header">
-                        <h2>DIM {{i+1}}</h2>
+                        <h2>Dimension {{i+1}}</h2>
                         <span>({{dim_values.length}} elements)</span> <br>
                     </div>
                     <div class="dim-summary-content">

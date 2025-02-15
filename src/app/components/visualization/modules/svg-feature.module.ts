@@ -196,7 +196,7 @@ export class SvgFeatureModule {
             .domain([min_pattern_size, max_pattern_size])
             .range([min_size, max_size])
       )
-      .tickValues([min_pattern_size, mean_pattern_size, max_pattern_size])
+      .tickValues([min_pattern_size, max_pattern_size])
       .tickFormat((d, i, e) => `${d}${i === e.length - 1 ? " Cells" : ""}`)
       .tickSize(max_size); // defaults to 5
     
@@ -235,6 +235,7 @@ export class SvgFeatureModule {
   }
 
   private scalingFunction(datapoints: Array<DataPoint>) {
+    console.log("Calling scaling function");
     // let x_max_module = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.x)));
     // let y_max_module = Math.max(...datapoints.map(datapoint => Math.abs(datapoint.y)));
     // let max_module = Math.max(x_max_module, y_max_module);

@@ -202,7 +202,7 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     if(success){
       let datapoints = await this.api_service.getDataPoints();
 
-      this.svg_feature.drawDataPoints(datapoints, true);
+      this.svg_feature.drawDataPoints(datapoints, false);
       let background_density = await this.api_service.getCurrentLevelBackgroundDensity();
       this.svg_feature.setBackgroundColor(background_density);
 
