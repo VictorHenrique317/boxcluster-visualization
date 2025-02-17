@@ -241,7 +241,7 @@ export class SvgFeatureModule {
     // let max_module = Math.max(x_max_module, y_max_module);
 
     let scaled_datapoints: Array<DataPoint> = [...datapoints];
-    let screen_coverage = 0.5;
+    let screen_coverage = 0.9;
     // let screen_coverage = 0.8;
     scaled_datapoints.forEach(datapoint => {
       //   let result_x = datapoint.x / x_max_module;
