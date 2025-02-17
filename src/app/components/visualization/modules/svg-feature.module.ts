@@ -197,7 +197,7 @@ export class SvgFeatureModule {
             .range([min_size, max_size])
       )
       .tickValues([min_pattern_size, max_pattern_size])
-      .tickFormat((d, i, e) => `${d}${i === e.length - 1 ? " Cells" : ""}`)
+      .tickFormat((d, i, e) => `${d}${i === e.length - 1 ? " cells" : ""}`)
       .tickSize(max_size); // defaults to 5
     
     const legend_x_padding = 10;
