@@ -132,7 +132,7 @@ body{
 
             #settings-wrapper-upper-content{
                 background-color: mat.get-color-from-palette($primary-palette, 900);
-                width: 80%;
+                width: 100%;
 
                 nav{
                     display: flex;
@@ -143,6 +143,14 @@ body{
                         background-color: mat.get-color-from-palette($primary-palette, 800);
 
                         margin: 0.5em 1em 0.5em 1em;
+                    }
+
+                    label {
+                        color: white;
+                        margin-left: 2em; // horizontal adjustment for the label
+                    }
+                    mat-slider {
+                        margin: 0 2em 0 2em; // horizontal adjustments for the slider
                     }
                 }
             }

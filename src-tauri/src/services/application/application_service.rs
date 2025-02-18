@@ -5,6 +5,8 @@ use itertools::Itertools;
 use crate::{common::generic_error::GenericError, database::{datapoint::DataPoint, intersections_details::IntersectionsDetails, pattern::Pattern, raw_pattern::RawPattern}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper, io::translator::Translator}, services::{io_service::IoService, plot_service::PlotService}};
 use super::application_state_service::ApplicationStateService;
 
+use ndarray::{IxDynImpl, Dim};
+
 pub struct ApplicationService{
     io_service: IoService,
     application_state_service: ApplicationStateService,
@@ -184,9 +186,11 @@ impl ApplicationService{
                 Some(intersection_percentages) => intersection_percentages.clone(),
                 None => HashMap::new(),
         };
+
+        println!("Got intersection_percentages: {:?}", &intersection_percentages);
         
         let current_pattern = self.getIdentifierMapper()?.getIdentifier(identifier)?.asPattern()?;
-        let mut all_dims_intersections: Vec<HashSet<u32>> = current_pattern.dims_values.iter().map(|_| HashSet::new()).collect();
+        let mut all_dims_intersections: HashSet<Dim<IxDynImpl>> = HashSet::new();
         let intersections: Result<HashMap<u32, (f64, Vec<Vec<String>>)>, GenericError> = intersection_percentages.into_iter()
             // .filter(|(other_identifier, _)| *other_identifier != *identifier)
             .map(|(other_identifier, percentage)| {
@@ -194,17 +198,20 @@ impl ApplicationService{
                 let other_pattern = self.getIdentifierMapper()?.getIdentifier(&other_identifier)?.asPattern()?;
                 
                 let dims_intersections = current_pattern.dimIntersection(&other_pattern)?;
-                
+                let indices_intersections: Vec<Dim<IxDynImpl>> = current_pattern.intersection(&other_pattern).iter()
+                    .map(|index| Dim(index.clone()))
+                    .collect();
+
                 // Here we have to verify if other_pattern is subpattern of current_pattern
                 let intersection_area: u32 = dims_intersections.iter()
                     .map(|dim| dim.len() as u32)
                     .product();
+
+                println!("Pattern {} intersection with pattern {} has size {}", identifier, other_identifier, intersection_area);
                 
                 if intersection_area != other_pattern.size{ // other_pattern is not subpattern of current_pattern
-                    for (i, dim_intersection) in dims_intersections.iter().enumerate(){
-                        for value in dim_intersection.iter(){
-                            all_dims_intersections.get_mut(i).expect("Should have dimension").insert(*value as u32);
-                        }
+                    for index_intersection in indices_intersections.iter(){
+                        all_dims_intersections.insert(index_intersection.clone());
                     }
                 }
                 
@@ -221,10 +228,10 @@ impl ApplicationService{
             })
             .collect();
         let intersections = intersections?;
-        
-        let total_intersection_percentage: f64 = all_dims_intersections.iter()
-            .map(|dim_set| dim_set.len() as f64)
-            .product::<f64>() as f64 / current_pattern.size as f64;
+
+        println!("Indices intersection size: {:?}", all_dims_intersections.len());
+
+        let total_intersection_percentage: f64 = all_dims_intersections.len() as f64 / current_pattern.size as f64;
         let total_untouched_percentage = 1.0 - total_intersection_percentage;
 
         if total_intersection_percentage < 0.0 || total_intersection_percentage > 1.0{

@@ -22,14 +22,14 @@
                 matTooltip="Filter patterns">
                     <mat-icon>search</mat-icon>
             </header>
-<!-- 
+
             <header class="main-option" id="settings-button" matRipple [matRippleCentered]="true" 
                 [ngClass]="{'buttonToggled': this.settings_enabled}"
-                *ngIf="model_loaded"
+                *ngIf="application_status == applicationStatusLoaded"
                 (click)="toggleMainOption(MainOption.SETTINGS)"
                 matTooltip="Settings">
                 <mat-icon aria-hidden="false" aria-label="settings" fontIcon="settings"></mat-icon>
-            </header> -->
+            </header>
         </div>
         
         <div id="content-cover" [hidden]="!truncate_model_enabled"></div>
@@ -40,27 +40,13 @@
         
             <mat-sidenav #sidenav id="settings-wrapper-upper-content" mode="over" fixedInViewport="false">
                 <nav>
-                    <button class="setting" mat-raised-button [matMenuTriggerFor]="scaleMenu">Scale</button>
-                    <mat-menu class="setting" #scaleMenu="matMenu">
-                        <button mat-menu-item>Linear</button>
-                        <button mat-menu-item>Logarithmic</button>
-                    </mat-menu>
-        
-                    <button class="setting" mat-raised-button [matMenuTriggerFor]="areaMenu">Area attribute</button>
-                    <mat-menu class="setting" #areaMenu="matMenu">
-                        <button mat-menu-item>Pattern area</button>
-                        <button mat-menu-item>Density</button>
-                        <button mat-menu-item>G</button>
-                    </mat-menu>
-        
-                    <mat-menu class="setting" #groupMenu="matMenu">
-                        <button mat-menu-item>Flat</button>
-                        <button mat-menu-item>Group by fonts</button>
-                    </mat-menu>
+                    <label for="expansion-slider">Expansion Factor</label>
+                    <mat-slider min="0" max="1" step="0.05" showTickMarks discrete (change)="onExpansionChange($event)">
+                        <input matSliderThumb value="0.9">
+                    </mat-slider>
                 </nav>
             </mat-sidenav>
         </mat-sidenav-container>
-
         
     </aside>
 

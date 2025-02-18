@@ -34,6 +34,7 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import { Subscription } from "rxjs";
 import { SearchDialogComponent } from "./components/visualization/search-dialog/search-dialog.component";
 import { DataPoint } from "./models/datapoint";
+import { MatSliderModule } from "@angular/material/slider";
 
 export enum MainOption {
   MODEL_SELECTOR,
@@ -68,7 +69,7 @@ export enum ApplicationStatus {
         MatSlideToggleModule, MatTabsModule, MatButtonToggleModule, MatDividerModule,
         MatListModule, MatSelectModule, MatSlideToggleModule, MatCheckboxModule, MatMenuModule, MatButtonModule,
         MatRippleModule, MatPaginatorModule, MatSidenavModule, MatIconModule, MatTooltipModule, PatternSummaryComponent,
-        MatProgressSpinnerModule]
+        MatProgressSpinnerModule,MatSliderModule]
 })
 
 export class AppComponent implements AfterViewInit, OnDestroy{
@@ -103,11 +104,29 @@ export class AppComponent implements AfterViewInit, OnDestroy{
   private datapoint_hover_out_subscription: Subscription;
   private dag_change_subscription: Subscription;
   
+  // Added property to hold the expansion factor from the slider
+  expansionFactor: number = 50;
+
   constructor(private cdr: ChangeDetectorRef, private dialog_service: DialogService, private api_service: ApiService){}
 
   async ngAfterViewInit(){
-    this.toggleMainOption(MainOption.MODEL_SELECTOR);
-    this.application_status = ApplicationStatus.LOADING;
+
+    if(environment.dev_mode){
+      console.log("Entering dev mode");
+      
+      // await fs.readTextFile(await resolveResource('resources/'))
+
+      // let base_path = "../../src-tauri/tests/test_data"
+      let tensor_path = await resolveResource('resources/dev_tensor_light.txt'); 
+      let patterns_path = await resolveResource('resources/dev_patterns_light.txt');
+      
+      // let patterns_path = `${base_path}/other_patterns/primary_school.txt`
+      this.handleModelChange({tensor_path: tensor_path, patterns_path: patterns_path});
+    }
+    else{
+      this.toggleMainOption(MainOption.MODEL_SELECTOR);
+      this.application_status = ApplicationStatus.LOADING;
+    }
   }
 
   ngOnDestroy(){
@@ -217,6 +236,13 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     this.sidenav.toggle();
   }
   
+  protected async onExpansionChange(event) {
+    let newValue = event.target.ariaValueText;
+    this.visualization_view.svg_feature.setExpansionFactor(newValue);
+    let datapoints = await this.api_service.getDataPoints();
+    this.visualization_view.svg_feature.drawDataPoints(datapoints);
+  }
+
   private toggleTruncateModel(){
     if(this.truncate_model_enabled == undefined){ return; }
 

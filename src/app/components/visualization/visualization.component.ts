@@ -88,7 +88,7 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
   @ViewChild('body') body: ElementRef<HTMLBodyElement>;
   @ViewChild('vizualization_div') visualization_div: ElementRef<HTMLDivElement>;
 
-  private svg_feature: SvgFeatureModule;
+  public svg_feature: SvgFeatureModule;
   public intersection_mode_feature: IntersectionModeFeatureModule;
   protected dag_feature: DagFeatureModule;
 
@@ -106,8 +106,9 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     let svg_width = this.body.nativeElement.clientWidth;
     let svg_height = this.body.nativeElement.clientHeight;
     
+    let expansion_factor = 0.9
     this.svg_feature = new SvgFeatureModule(this.cdr);
-    this.svg_feature.init(this.visualization_div, svg_width, svg_height, this.api_service);
+    this.svg_feature.init(this.visualization_div, svg_width, svg_height, this.api_service, expansion_factor);
     let background_density = await this.api_service.getCurrentLevelBackgroundDensity();
     this.svg_feature.setBackgroundColor(background_density);
     
@@ -133,6 +134,18 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     this.datapoint_hover_out_subscription.unsubscribe();
     this.datapoint_click_subscription.unsubscribe();
     this.dag_change_subscription.unsubscribe();
+  }
+
+  public async changeExpasionFactor(newValue){
+    // let svg_width = this.body.nativeElement.clientWidth;
+    // let svg_height = this.body.nativeElement.clientHeight;
+
+    // this.svg_feature.init(this.visualization_div, svg_width, svg_height, this.api_service, newValue);
+    // let background_density = await this.api_service.getCurrentLevelBackgroundDensity();
+    // this.svg_feature.setBackgroundColor(background_density);
+    
+    // let datapoints = await this.api_service.getDataPoints();
+    // this.svg_feature.drawDataPoints(datapoints);
   }
 
   public async onResize(event) {

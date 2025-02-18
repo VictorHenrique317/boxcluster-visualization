@@ -29,6 +29,7 @@ export class SvgFeatureModule {
   private initial_scale: number = 1.4;
   private number_of_gridlines: number = 40;
   private y_correction = 0;
+  private expansionFactor;
   
   private svg_width: number;
   private svg_height: number;
@@ -45,11 +46,12 @@ export class SvgFeatureModule {
     this.cdr = cdr;
   }
 
-  public init(visualization_div: ElementRef, svg_width: number, svg_height: number, api_service){
+  public init(visualization_div: ElementRef, svg_width: number, svg_height: number, api_service, expansionFactor: number){
     this.visualization_div = visualization_div;
     this.svg_width = svg_width;
     this.svg_height = svg_height;
     this.api_service = api_service;
+    this.expansionFactor = expansionFactor
 
     this.tooltip = d3Tip.default()
       .attr('class', 'd3-tip')
@@ -241,7 +243,8 @@ export class SvgFeatureModule {
     // let max_module = Math.max(x_max_module, y_max_module);
 
     let scaled_datapoints: Array<DataPoint> = [...datapoints];
-    let screen_coverage = 0.9;
+    let screen_coverage = this.expansionFactor;
+    console.log("Screen coverage: " + screen_coverage);
     // let screen_coverage = 0.8;
     scaled_datapoints.forEach(datapoint => {
       //   let result_x = datapoint.x / x_max_module;
@@ -430,6 +433,14 @@ public removeTextLabels() {
 
   public hideTooltip(datapoint: DataPoint, circle: any){
     this.tooltip.hide(datapoint, circle);
+  }
+
+  public setExpansionFactor(factor: number){
+    this.expansionFactor = factor;
+  }
+
+  public getExpansionFactor(){
+    return this.expansionFactor;
   }
 
   public xScale(x: number){
