@@ -309,7 +309,7 @@ export class AppComponent implements AfterViewInit, OnDestroy{
 
   private async onDagChange(){
     if(this.visualization_view.isOnFirstLevel()){
-      await this.rss_view.reset();
+      // await this.rss_view.reset();
     }
 
     this.truncate_model_disabled = !this.visualization_view.isOnFirstLevel();

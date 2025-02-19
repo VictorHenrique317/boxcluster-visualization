@@ -176,6 +176,7 @@ impl ApplicationStateService{
         println!("  Ascended dag to level {:?}", self.getDagService()?.getCurrentLevelIdentifiers());
 
         let new_visible_identifiers = self.getMutDagService()?.getCurrentLevelIdentifiers().clone();
+        print!("  Visible identifiers in this level: {:?}", &new_visible_identifiers);
         self.update(new_visible_identifiers, false, true)?;
         return Ok(true);
     }
@@ -185,7 +186,8 @@ impl ApplicationStateService{
             .asDagNode()?.subs.clone();
         let pattern_density = self.identifierMapper()?
             .getRepresentation(next_identifier)?.asPattern()?.density;
-        let result = self.getMutDagService()?.descendDag(next_identifier, &subs, &pattern_density);
+        let visible_identifiers= self.getVisibleIdentifiers()?;
+        let result = self.getMutDagService()?.descendDag(next_identifier, &subs, &pattern_density, &visible_identifiers);
         if !result{ return Ok(false); }
         println!("  Descended dag to {}", next_identifier);
 
@@ -201,7 +203,7 @@ impl ApplicationStateService{
         all_identifiers.sort();
         all_identifiers.truncate(*new_size as usize);
 
-        let mut current_level_identifiers = self.getDagService()?.getCurrentLevelIdentifiers().clone();
+        let mut current_level_identifiers = self.getMetricsService()?.getInitialVisibleIdentifiers().clone();
         current_level_identifiers.sort();
 
         let visible_identifiers: Vec<u32> = current_level_identifiers.iter()
