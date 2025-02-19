@@ -87,9 +87,17 @@ impl DagService{
         return true;
     }
 
-    pub fn descendDag(&mut self, font_identifier: &u32, subs: &Vec<u32>, pattern_density: &f64) -> bool {
+    pub fn descendDag(&mut self, font_identifier: &u32, subs: &Vec<u32>, pattern_density: &f64, visible_identifiers: &Vec<u32>) -> bool {
         if subs.len() == 0{ return false; }
 
+        if (self.level_history.len() == 1 && (self.level_history[0].0 == 0)){
+            // Refresh the last and unique entry from level_history, as the user can truncate the model
+            let font_identifier = self.level_history[0].0;
+            let tensor_density = self.level_history[0].1;
+            self.level_history.pop();
+            self.level_history.push((font_identifier, tensor_density, visible_identifiers.clone()));
+        }
+        
         // Has some sub, can descend
         self.level_history.push((*font_identifier, *pattern_density, subs.clone()));
         

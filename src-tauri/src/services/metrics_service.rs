@@ -16,6 +16,7 @@ pub struct MetricsService{
     pub intersections_percentages: IntersectionsPercentages,
 
     pub visible_identifiers: Vec<u32>,
+    pub initial_visible_identifiers: Vec<u32>,
 }
 
 impl MetricsService{
@@ -69,6 +70,7 @@ impl MetricsService{
                 coordinates: coordinates,
                 intersections_percentages: intersections_percentages,
                 visible_identifiers: visible_identifiers.clone(),
+                initial_visible_identifiers: visible_identifiers.clone(),
              }
         );
     }
@@ -127,5 +129,9 @@ impl MetricsService{
 
     pub fn setVisibleIdentifiers(&mut self, visible_identifiers: &Vec<u32>){
         self.visible_identifiers = visible_identifiers.clone();
+    }
+
+    pub fn getInitialVisibleIdentifiers(&self) -> Vec<u32>{
+        return self.initial_visible_identifiers.clone();
     }
 }

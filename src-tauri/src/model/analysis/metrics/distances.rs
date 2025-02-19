@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 use std::{collections::{HashMap, HashSet}, sync::{Arc, Mutex}};
 use rayon::prelude::{IntoParallelRefIterator, IndexedParallelIterator, ParallelIterator};
-use crate::{common::{generic_error::GenericError, progress_bar}, database::{pattern::Pattern, subtensor::Subtensor, tensor::Tensor}, model::{analysis::ordered_pair::OrderedPair, identifier_mapper::IdentifierMapper}};
+use crate::{common::{generic_error::GenericError, progress_bar}, database::{pattern::{Pattern, Relation}, subtensor::Subtensor, tensor::Tensor}, model::{analysis::ordered_pair::OrderedPair, identifier_mapper::IdentifierMapper}};
 use super::{intersections_predictions::IntersectionsPredictions, metric::Metric};
 
 pub trait DistancesTrait {
@@ -229,6 +229,19 @@ impl Distances{
             if row != 0 {
                 for (col, y) in visible_patterns.iter().enumerate() { 
                     if col < row { // Iterate triangularly
+                        
+                        let relation = x.selfRelationTo(y)?;
+                        if relation == Relation::SubPattern || relation == Relation::SuperPattern {
+                            let mut distances = distances.lock()
+                            .map_err(|_| GenericError::new("Error while getting distance matrix thread lock", file!(), &line!()))?;
+
+                            Distances::insertIntoDistancesMatrix(&mut distances, &x, &y, &0.0)?;
+                            Distances::insertIntoDistancesMatrix(&mut distances, &y, &x, &0.0)?;
+                            bar.inc(1);
+
+                            continue;
+                        }
+
                         let xuy = Distances::getXUY(tensor, x, y)?;
                         let covered_xuy_rss: f64 = Distances::getCoveredXUYRss(tensor, &xuy, x, y)?;
                         

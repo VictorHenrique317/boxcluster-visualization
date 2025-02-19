@@ -130,6 +130,7 @@ impl ApplicationService{
     pub fn getDataPoints(&self) -> Result<Vec<DataPoint>, GenericError>{
         let visible_identifiers = self.application_state_service.getVisibleIdentifiers()?;
         // let identifiers = self.application_state_service.getAllIdentifiers()?;
+        println!("Getting datapoints for identifiers: {:?}", &visible_identifiers);
         let datapoints: Vec<DataPoint> = self.application_state_service.identifierMapper()?
             .getOrderedDataPointsFrom(&visible_identifiers).into_iter()
             .map(|datapoint| datapoint.clone())

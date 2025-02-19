@@ -267,10 +267,13 @@ impl Coordinates {
 
         // dbg!(distances.get());
 
-        if distances.get().len() == 1{ // Only one datapoint, no need to calculate MDS
-            let identifier = distances.get().keys().next().expect("if len() == 1 then should have first element").clone();
+        let is_all_zero = distances.get().iter()
+            .all(|(_, v)| v.iter().all(|(_, d)| *d == 0.0));
+        if (distances.get().len() == 1) || (is_all_zero){ // Only one datapoint, no need to calculate MDS
             let mut xys: HashMap<u32, (f64, f64)> = HashMap::new();
-            xys.insert(identifier, (0.0, 0.0));
+            for (identifier, _) in distances.get().iter(){
+                xys.insert(*identifier, (0.0, 0.0));
+            }
             return Ok(xys);
         }
 

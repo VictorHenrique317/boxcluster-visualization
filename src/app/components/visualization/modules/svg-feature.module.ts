@@ -29,7 +29,7 @@ export class SvgFeatureModule {
   private initial_scale: number = 1.4;
   private number_of_gridlines: number = 40;
   private y_correction = 0;
-  private expansionFactor;
+  private expansionFactor = 0.5;
   
   private svg_width: number;
   private svg_height: number;
@@ -243,7 +243,7 @@ export class SvgFeatureModule {
     // let max_module = Math.max(x_max_module, y_max_module);
 
     let scaled_datapoints: Array<DataPoint> = [...datapoints];
-    let screen_coverage = this.expansionFactor;
+    let screen_coverage = 0.5;
     console.log("Screen coverage: " + screen_coverage);
     // let screen_coverage = 0.8;
     scaled_datapoints.forEach(datapoint => {
