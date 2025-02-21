@@ -211,6 +211,7 @@ impl ApplicationStateService{
             .map(|identifier| identifier.clone())
             .collect();
 
+        println!("  New truncated visible identifiers {:?}", &visible_identifiers);
         self.update(visible_identifiers, true, true)?;
 
         return Ok(());

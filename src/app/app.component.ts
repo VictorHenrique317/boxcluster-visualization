@@ -240,7 +240,7 @@ export class AppComponent implements AfterViewInit, OnDestroy{
     let newValue = event.target.ariaValueText;
     this.visualization_view.svg_feature.setExpansionFactor(newValue);
     let datapoints = await this.api_service.getDataPoints();
-    this.visualization_view.svg_feature.drawDataPoints(datapoints);
+    await this.visualization_view.svg_feature.drawDataPoints(datapoints);
   }
 
   private toggleTruncateModel(){
@@ -252,18 +252,7 @@ export class AppComponent implements AfterViewInit, OnDestroy{
 
   private async filterDatapoints(filters: string[][]){
     this.previous_filters = filters;
-    
-    let all_dims_values = await this.api_service.getAllDimsValues();
-    let finalFilters = [];
-    filters.forEach((filter, i) => {
-      if(filter.length == 0){ // Adds all the values of the dimension
-        finalFilters.push(all_dims_values[i]);
-      }else{
-        finalFilters.push(filter);
-      }
-        
-    });
-    this.visualization_view.filterDatapoints(finalFilters);
+    this.visualization_view.filterDatapoints(filters);
   }
 
   private async openSearch(){

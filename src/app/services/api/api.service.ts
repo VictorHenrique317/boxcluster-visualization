@@ -168,23 +168,23 @@ export class ApiService {
     return dims_values;
   }
 
-  public async filterDatapoints(filters: string[][]): Promise<DataPoint[]> {
-    let datapoints;
-    datapoints = await invoke("filterDatapoints", {filters: filters}).catch((error: any) => {
+  public async filterDatapoints(identifiers: Array<number>, filters: string[][]): Promise<DataPoint[]> {
+    let filtered_datapoints;
+    filtered_datapoints = await invoke("filterDatapoints", {identifiers: identifiers, filters: filters}).catch((error: any) => {
       this.dialog_service.openErrorDialog("Error while filtering datapoints.");
       throw error;
     });
 
-    return datapoints;
+    return filtered_datapoints;
   }
 
-  public async getNbOfSubpatterns(identifier: number){
-    let nb_subpatterns;
-    nb_subpatterns = await invoke("getNbOfSubpatterns", {identifier: identifier}).catch((error: any) => {
+  public async getSubpatterns(identifier: number, filters: string[][]){
+    let subpatterns;
+    subpatterns = await invoke("getSubpatterns", {identifier: identifier, filters: filters}).catch((error: any) => {
       this.dialog_service.openErrorDialog("Error while fetching number of subpatterns.");
       throw error;
     });
 
-    return nb_subpatterns;
+    return subpatterns;
   }
 }

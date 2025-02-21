@@ -39,7 +39,7 @@ fn main() {
             getCurrentLevelBackgroundDensity,
             getAllDimsValues,
             filterDatapoints,
-            getNbOfSubpatterns
+            getSubpatterns
             ])
         .run(tauri::generate_context!())
         .expect("Error while running tauri application");

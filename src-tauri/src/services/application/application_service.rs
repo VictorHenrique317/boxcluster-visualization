@@ -69,6 +69,42 @@ impl ApplicationService{
         return self.io_service.getTranslator();
     }
 
+    fn filterDatapointsAux(&self, identifiers: &Vec<u32>, filters: &Vec<Vec<String>>) -> Result<Vec<u32>, GenericError> {
+        if filters.len() == 0{
+            println!("No filters, returning all datapoints");
+            return Ok(identifiers.clone());
+        }
+
+        let raw_patterns: Vec<RawPattern> = self.application_state_service.identifierMapper()?
+            .getOrderedRawPatternsFrom(&identifiers, self.getTranslator());
+
+        let filters: Vec<HashSet<String>> = filters.iter()
+            .map(|filter| filter.iter().map(|value| value.to_string()).collect())
+            .collect();
+
+        let mut filtered_identifiers: Vec<u32> = vec![];
+        for raw_pattern in raw_patterns.iter(){
+            let mut match_filters = true;
+            for (dim, filter) in filters.iter().enumerate(){
+                if filter.len() == 0 { continue; }
+                let current_dim: HashSet<String> = raw_pattern.dims_values.get(dim).expect("Should have dimension").iter()
+                    .map(|value| value.to_string()).collect();
+
+                if current_dim.intersection(&filter).count() == 0{ // Current dim does not match filter
+                    match_filters = false;
+                    break;
+                }
+            }
+
+            if match_filters{
+                println!("Pattern: {:?} matched all filters", &raw_pattern.identifier);
+                filtered_identifiers.push((&raw_pattern.identifier).clone());
+            }
+        }
+
+        return Ok(filtered_identifiers);
+    }
+
     // ================ External API ================
 
     pub fn changePatterns(&mut self, patterns_path: &String) -> Result<(), GenericError>{
@@ -278,39 +314,20 @@ impl ApplicationService{
         return Ok(all_dims_values);
     }
 
-    pub fn filterDatapoints(&self, filters: &Vec<Vec<String>>) -> Result<Vec<DataPoint>, GenericError>{
-        let current_level_identifiers = self.application_state_service.getDagService()?.getCurrentLevelIdentifiers();
-        let raw_patterns: Vec<RawPattern> = self.application_state_service.identifierMapper()?
-            .getOrderedRawPatternsFrom(current_level_identifiers, self.getTranslator());
-
-        let filters: Vec<HashSet<String>> = filters.iter()
-            .map(|filter| filter.iter().map(|value| value.to_string()).collect())
+    pub fn filterDatapoints(&self, identifiers: &Vec<u32>, filters: &Vec<Vec<String>>) -> Result<Vec<DataPoint>, GenericError>{
+        let filtered_identifiers = self.filterDatapointsAux(identifiers, filters)?;
+        let datapoints = self.application_state_service.identifierMapper()?
+            .getOrderedDataPointsFrom(&filtered_identifiers).into_iter()
+            .map(|datapoint| datapoint.clone())
             .collect();
 
-        let mut filtered_datapoints: Vec<DataPoint> = vec![];
-        for raw_pattern in raw_patterns.iter(){
-            let mut match_filters = true;
-            for (dim, filter) in filters.iter().enumerate(){
-                let current_dim: HashSet<String> = raw_pattern.dims_values.get(dim).expect("Should have dimension").iter()
-                    .map(|value| value.to_string()).collect();
-
-                if current_dim.intersection(&filter).count() == 0{ // Current dim does not match filter
-                    match_filters = false;
-                    break;
-                }
-            }
-
-            if match_filters{
-                let datapoint = self.getIdentifierMapper()?.getRepresentation(&raw_pattern.identifier)?.asDataPoint()?.clone();
-                filtered_datapoints.push(datapoint);
-            }
-        }
-
-        return Ok(filtered_datapoints);
+        return Ok(datapoints);
     }
 
-    pub fn getNbOfSubpatterns(&self, identifier: &u32) -> Result<u32, GenericError>{
-        let nb_of_subpatterns = self.application_state_service.identifierMapper()?.getRepresentation(identifier)?.asDagNode()?.subs.len();
-        return Ok(nb_of_subpatterns as u32);
+    pub fn getSubpatterns(&self, identifier: &u32, filters: &Vec<Vec<String>>) -> Result<Vec<u32>, GenericError>{
+        let subpatterns = &self.application_state_service.identifierMapper()?.getRepresentation(identifier)?.asDagNode()?.subs;
+
+        let filtered_subpatterns = self.filterDatapointsAux(subpatterns, filters)?;
+        return Ok(filtered_subpatterns);
     }
 }

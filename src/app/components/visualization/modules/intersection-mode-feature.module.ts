@@ -221,7 +221,7 @@ export class IntersectionModeFeatureModule {
         .attr('d', d=> d.size)
         .remove();  // Remove the paths after the transition
 
-      this.svg_feature.drawDataPoints(this.svg_feature.getDrawnDataPoints(), true);
+      await this.svg_feature.drawDataPoints(this.svg_feature.getDrawnDataPoints(), true);
     }
   }
 

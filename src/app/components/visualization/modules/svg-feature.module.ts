@@ -42,11 +42,14 @@ export class SvgFeatureModule {
   private cdr: ChangeDetectorRef;
   private api_service;
 
+  private filters: string[][] = [];
+  private truncation_size: number;
+
   constructor(cdr: ChangeDetectorRef){ 
     this.cdr = cdr;
   }
 
-  public init(visualization_div: ElementRef, svg_width: number, svg_height: number, api_service, expansionFactor: number){
+  public async init(visualization_div: ElementRef, svg_width: number, svg_height: number, api_service, expansionFactor: number){
     this.visualization_div = visualization_div;
     this.svg_width = svg_width;
     this.svg_height = svg_height;
@@ -67,7 +70,7 @@ export class SvgFeatureModule {
       });
     
     this.svg = this.createSvg();
-    this.resizeSvg(this.svg_width, this.svg_height, this.datapoints);
+    await this.resizeSvg(this.svg_width, this.svg_height, this.datapoints);
     this.cdr.detectChanges();
     
     this.zoom_level = this.initial_scale;
@@ -83,7 +86,7 @@ export class SvgFeatureModule {
     return svg;
   }
 
-  public resizeSvg(width: number, height: number, datapoints: Array<DataPoint>){
+  public async resizeSvg(width: number, height: number, datapoints: Array<DataPoint>){
     this.svg
       .attr('width', width)
       .attr('height', height);
@@ -102,7 +105,7 @@ export class SvgFeatureModule {
     this.svg_height = height;
 
     this.createPlot();
-    this.drawDataPoints(datapoints);
+    await this.drawDataPoints(datapoints);
   }
 
   private createPlot(){
@@ -303,12 +306,12 @@ export class SvgFeatureModule {
     this.toggleHighlight(undefined);
   }
 
-  public drawDataPoints(datapoints: Array<DataPoint>, force_redraw: boolean = false) {
+  public async drawDataPoints(datapoints: Array<DataPoint>, force_redraw: boolean = false) {
     if(datapoints == undefined || datapoints == null){ return; }
     if(this.plot == undefined){ return; }
     
-    console.log("Drawing " + datapoints.length + " datapoints");
-    console.log(datapoints);
+    console.log("Received " + datapoints.length + " datapoints to draw");
+  
     let transition_duration = this.transition_duration;
     if(force_redraw){ 
       this.plot.selectAll('.datapoint').remove();
@@ -321,9 +324,17 @@ export class SvgFeatureModule {
 
     this.plot.call(this.tooltip);
 
+    // let filtered_datapoints: DataPoint[] = await this.api_service.filterDatapoints(
+    //     this.datapoints.map(datapoint => datapoint.identifier),
+    //     this.filters
+    // );
+    // console.log("Have " + filtered_datapoints.length + " filtered datapoints");
+    // console.log(filtered_datapoints);
+
     let scaled_datapoints = this.datapoints;
+
     if(!force_redraw){ scaled_datapoints = this.scalingFunction(datapoints); }
-    
+
     const circles = this.plot.selectAll('.datapoint')
         .data(scaled_datapoints, d => d.identifier);
 
@@ -382,20 +393,24 @@ export class SvgFeatureModule {
     
     this.drawCircleLegend();
     this.drawColorLegend();
-    this.drawTextLabels();
+    await this.drawTextLabels();
   }
 
-  public drawTextLabels(){
+  public async drawTextLabels(){
     this.removeTextLabels();
     for (const datapoint of this.datapoints) {
-      try{
-        this.api_service.getNbOfSubpatterns(datapoint.identifier).then(nb => {
-          this.drawTextLabel(datapoint.identifier, nb);
-        });
-      } catch(e){
-        
+      console.log("Getting nb of subpatterns for: ", datapoint.identifier);
+      let subpatterns: number[] = await this.api_service.getSubpatterns(datapoint.identifier, this.filters)
+      let number = 0;
+
+      for (const subpattern of subpatterns) {
+        if (subpattern <= this.truncation_size) {
+          number += 1;
+        }
       }
       
+      console.log("Drawing text label for: ", datapoint.identifier, " with nb: ",number);
+      this.drawTextLabel(datapoint.identifier, number.toString());      
     }
   }
 
@@ -416,6 +431,7 @@ export class SvgFeatureModule {
   }
 
 public removeTextLabels() {
+    console.log("Removing text labels");
     this.plot.selectAll('.datapoint-label').remove();
 }
 
@@ -437,6 +453,14 @@ public removeTextLabels() {
 
   public setExpansionFactor(factor: number){
     this.expansionFactor = factor;
+  }
+
+  public setFilters(filters: string[][]){
+    this.filters = filters;
+  }
+
+  public setTruncationSize(truncation_size: number){
+    this.truncation_size = truncation_size;
   }
 
   public getExpansionFactor(){

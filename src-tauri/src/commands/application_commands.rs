@@ -127,17 +127,17 @@ pub fn getAllDimsValues(application_service: State<ApplicationServiceState>) -> 
 }
 
 #[tauri::command]
-pub fn filterDatapoints(application_service: State<ApplicationServiceState>, filters: Vec<Vec<String>>) -> Result<Vec<DataPoint>, GenericError> {
+pub fn filterDatapoints(application_service: State<ApplicationServiceState>, identifiers: Vec<u32>,filters: Vec<Vec<String>>) -> Result<Vec<DataPoint>, GenericError> {
     println!("Calling filterDatapoints...");
 
     let mut application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
-    return application_service.filterDatapoints(&filters);
+    return application_service.filterDatapoints(&identifiers, &filters);
 }
 
 #[tauri::command]
-pub fn getNbOfSubpatterns(application_service: State<ApplicationServiceState>, identifier: u32) -> Result<u32, GenericError> {
+pub fn getSubpatterns(application_service: State<ApplicationServiceState>, identifier: u32, filters: Vec<Vec<String>>) -> Result<Vec<u32>, GenericError> {
     println!("Calling getNbOfSubpatterns...");
 
     let application_service = GenericError::from(application_service.0.lock(), "Could not lock application service", file!(), &line!())?;
-    return application_service.getNbOfSubpatterns(&identifier);
+    return application_service.getSubpatterns(&identifier, &filters);
 }

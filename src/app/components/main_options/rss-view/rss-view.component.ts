@@ -191,12 +191,12 @@ export class RssViewComponent implements AfterViewInit{
     this.drawVerticalLine(x);
   }
 
-  public onResize(event) {
+  public async onResize(event) {
     let width = this.visualization_div.nativeElement.clientWidth;
     let height = this.visualization_div.nativeElement.clientHeight;
 
     this.resizeSvg(width, height);
-    this.drawDataPoints();
+    await this.drawDataPoints();
     this.connectDatapoints();
   }
   

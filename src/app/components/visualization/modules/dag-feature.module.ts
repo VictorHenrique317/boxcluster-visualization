@@ -50,40 +50,40 @@ export class DagFeatureModule{
     }
 
     public async toggleHighlightSuperpatterns(toggle: boolean){
-        console.log("Toggling superpatterns");
+        // console.log("Toggling superpatterns");
 
-        this.supers_highlighted = toggle;
+        // this.supers_highlighted = toggle;
 
-        if(toggle){
-            let gray_shade = 196;
-            let gray = `rgba(${gray_shade}, ${gray_shade}, ${gray_shade}, 0.5)`;
+        // if(toggle){
+        //     let gray_shade = 196;
+        //     let gray = `rgba(${gray_shade}, ${gray_shade}, ${gray_shade}, 0.5)`;
 
-            this.svg_feature.plot.selectAll('.datapoint')
-                .filter(d => !this.datapoints_with_subpatterns.has(d.identifier))
-                .raise()
-                .transition('mouseover')
-                .duration(300)
-                .attr('fill', d => gray)
-                .style('stroke', d=> gray);
+        //     this.svg_feature.plot.selectAll('.datapoint')
+        //         .filter(d => !this.datapoints_with_subpatterns.has(d.identifier))
+        //         .raise()
+        //         .transition('mouseover')
+        //         .duration(300)
+        //         .attr('fill', d => gray)
+        //         .style('stroke', d=> gray);
 
-            this.datapoints_with_subpatterns.forEach(async identifier => {
-                let nb_of_identifiers = await this.api_service.getNbOfSubpatterns(identifier);
-                this.svg_feature.drawTextLabel(identifier, nb_of_identifiers);
-            });
-        }else {
-            this.svg_feature.drawDataPoints(this.svg_feature.getDrawnDataPoints(), true);
-            this.svg_feature.removeTextLabels();
-        }
+        //     this.datapoints_with_subpatterns.forEach(async identifier => {
+        //         let nb_of_identifiers = await this.api_service.getSubpatterns(identifier, []);
+        //         this.svg_feature.drawTextLabel(identifier, nb_of_identifiers);
+        //     });
+        // }else {
+        //     await this.svg_feature.drawDataPoints(this.svg_feature.getDrawnDataPoints(), true);
+        //     this.svg_feature.removeTextLabels();
+        // }
     }
 
     public isHighlightingSuperpatterns(){
         return this.supers_highlighted;
     }
 
-    private drawNewLevelDatapoints(datapoints: Array<DataPoint>){
+    private async drawNewLevelDatapoints(datapoints: Array<DataPoint>){
         this.intersection_feature.toggleIntersections(null, true);
         this.svg_feature.deactivateHighlight();
-        this.svg_feature.drawDataPoints(datapoints, true);
+        await this.svg_feature.drawDataPoints(datapoints, true);
     }
 
     public async ascendDag(): Promise<boolean>{
@@ -96,7 +96,7 @@ export class DagFeatureModule{
         console.log("New level datapoints:");
         console.log(datapoints);
             
-        this.drawNewLevelDatapoints(datapoints);
+        await this.drawNewLevelDatapoints(datapoints);
         
         this.current_dag_level -= 1;
 
@@ -121,7 +121,7 @@ export class DagFeatureModule{
 
         if(datapoints.length == 0){ return false; }
 
-        this.drawNewLevelDatapoints(datapoints);
+        await this.drawNewLevelDatapoints(datapoints);
 
         this.current_dag_level += 1;
 

@@ -108,12 +108,13 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     
     let expansion_factor = 0.9
     this.svg_feature = new SvgFeatureModule(this.cdr);
-    this.svg_feature.init(this.visualization_div, svg_width, svg_height, this.api_service, expansion_factor);
+    await this.svg_feature.init(this.visualization_div, svg_width, svg_height, this.api_service, expansion_factor);
     let background_density = await this.api_service.getCurrentLevelBackgroundDensity();
     this.svg_feature.setBackgroundColor(background_density);
     
     let datapoints = await this.api_service.getDataPoints();
-    this.svg_feature.drawDataPoints(datapoints);
+    this.svg_feature.setTruncationSize(datapoints.length + 1);
+    await this.svg_feature.drawDataPoints(datapoints);
 
     this.intersection_mode_feature = new IntersectionModeFeatureModule(this.svg_feature, this.dialog_service, this.api_service);
 
@@ -145,7 +146,7 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     // this.svg_feature.setBackgroundColor(background_density);
     
     // let datapoints = await this.api_service.getDataPoints();
-    // this.svg_feature.drawDataPoints(datapoints);
+    // await this.svg_feature.drawDataPoints(datapoints);
   }
 
   public async onResize(event) {
@@ -175,14 +176,18 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
   }
 
   public async onTruncation(event){
+    console.log("On truncation event: ", event);
     let new_size = event - 1; // -1 because the first point is the null model rss
     let truncated_datapoints = await this.api_service.truncateModel(new_size);
 
     this.svg_feature.deactivateHighlight();
     this.dag_feature.setClickedDatapoint(null);
     await this.intersection_mode_feature.toggleIntersections(null);
-    this.svg_feature.drawDataPoints(truncated_datapoints);
+
+    this.svg_feature.setTruncationSize(new_size);
+    await this.svg_feature.drawDataPoints(truncated_datapoints);
     this.datapoint_click.emit(null);
+    console.log("Truncation successful");
   }
 
   private onDagChange(){
@@ -202,7 +207,7 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     if(success){
           let datapoints = await this.api_service.getDataPoints();
 
-          this.svg_feature.drawDataPoints(datapoints, false);
+          await this.svg_feature.drawDataPoints(datapoints, false);
           let background_density = await this.api_service.getCurrentLevelBackgroundDensity();
           this.svg_feature.setBackgroundColor(background_density);
           
@@ -215,7 +220,7 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     if(success){
       let datapoints = await this.api_service.getDataPoints();
 
-      this.svg_feature.drawDataPoints(datapoints, false);
+      await this.svg_feature.drawDataPoints(datapoints, false);
       let background_density = await this.api_service.getCurrentLevelBackgroundDensity();
       this.svg_feature.setBackgroundColor(background_density);
 
@@ -225,8 +230,9 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
 
   public async filterDatapoints(filters: string[][]){
     console.log("Filtering datapoints with filters: ", filters);
-    let filtered_datapoints: DataPoint[] = await this.api_service.filterDatapoints(filters);
-    this.svg_feature.drawDataPoints(filtered_datapoints, false);
+    let datapoints = await this.api_service.getDataPoints();
+    this.svg_feature.setFilters(filters);
+    await this.svg_feature.drawDataPoints(datapoints, false);
   }
 
   public isOnFirstLevel(){
