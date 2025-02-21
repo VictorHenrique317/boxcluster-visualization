@@ -316,11 +316,13 @@ impl ApplicationService{
 
     pub fn filterDatapoints(&self, identifiers: &Vec<u32>, filters: &Vec<Vec<String>>) -> Result<Vec<DataPoint>, GenericError>{
         let filtered_identifiers = self.filterDatapointsAux(identifiers, filters)?;
+        println!("Filtered identifiers: {:?}", &filtered_identifiers);
         let datapoints = self.application_state_service.identifierMapper()?
             .getOrderedDataPointsFrom(&filtered_identifiers).into_iter()
             .map(|datapoint| datapoint.clone())
             .collect();
 
+        println!("Returning");
         return Ok(datapoints);
     }
 

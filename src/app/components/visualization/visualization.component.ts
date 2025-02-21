@@ -183,8 +183,9 @@ export class VisualizationComponent implements OnInit, AfterViewInit, OnDestroy{
     this.svg_feature.deactivateHighlight();
     this.dag_feature.setClickedDatapoint(null);
     await this.intersection_mode_feature.toggleIntersections(null);
-
+        
     this.svg_feature.setTruncationSize(new_size);
+
     await this.svg_feature.drawDataPoints(truncated_datapoints);
     this.datapoint_click.emit(null);
     console.log("Truncation successful");

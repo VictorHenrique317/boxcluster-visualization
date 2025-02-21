@@ -309,6 +309,11 @@ export class SvgFeatureModule {
   public async drawDataPoints(datapoints: Array<DataPoint>, force_redraw: boolean = false) {
     if(datapoints == undefined || datapoints == null){ return; }
     if(this.plot == undefined){ return; }
+
+    if (datapoints.length > this.truncation_size){
+      datapoints = datapoints.slice(0, this.truncation_size);
+      console.warn("Warning: Something went wrong on truncation");
+    }
     
     console.log("Received " + datapoints.length + " datapoints to draw");
   
@@ -324,19 +329,27 @@ export class SvgFeatureModule {
 
     this.plot.call(this.tooltip);
 
-    // let filtered_datapoints: DataPoint[] = await this.api_service.filterDatapoints(
-    //     this.datapoints.map(datapoint => datapoint.identifier),
-    //     this.filters
-    // );
-    // console.log("Have " + filtered_datapoints.length + " filtered datapoints");
-    // console.log(filtered_datapoints);
+    let filtered_datapoints: DataPoint[] = await this.api_service.filterDatapoints(
+        this.datapoints.map(datapoint => datapoint.identifier),
+        this.filters
+    );
+    console.log("Have " + filtered_datapoints.length + " filtered datapoints");
+    console.log(filtered_datapoints);
 
-    let scaled_datapoints = this.datapoints;
+    // let scaled_datapoints = filtered_datapoints;
+    let scaled_datapoints = this.scalingFunction(filtered_datapoints);
 
-    if(!force_redraw){ scaled_datapoints = this.scalingFunction(datapoints); }
+    // if(!force_redraw){  }
+
+    let final_datapoints = [];
+    for(const datapoint of scaled_datapoints){ // Only to truncate subpatterns
+      if (datapoint.identifier <= this.truncation_size) {
+        final_datapoints.push(datapoint);
+      }
+    }
 
     const circles = this.plot.selectAll('.datapoint')
-        .data(scaled_datapoints, d => d.identifier);
+        .data(final_datapoints, d => d.identifier);
 
     circles.exit()
         .transition()
@@ -420,10 +433,12 @@ export class SvgFeatureModule {
     let datapoint = this.getDatapoint(identifier);
     if (!datapoint) { return; }
 
+    let scaled_datapoint = this.scalingFunction([datapoint])[0];
+
     this.plot.append('text')
       .attr('class', 'datapoint-label')
-      .attr('x', this.xScale(datapoint.x))
-      .attr('y', this.yScale(datapoint.y))
+      .attr('x', this.xScale(scaled_datapoint.x))
+      .attr('y', this.yScale(scaled_datapoint.y))
       .attr('text-anchor', 'middle')
       .attr('pointer-events', 'none')
       .attr('dominant-baseline', 'central')
