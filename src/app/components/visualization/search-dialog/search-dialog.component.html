@@ -1,6 +1,6 @@
 <body>
     <header>
-        <h1>Search patterns</h1>
+        <h1>Filter patterns</h1>
     </header>
 
     <section>
@@ -20,7 +20,7 @@
 
         <div id="table">
             <div class="table_column" *ngFor="let i of nb_of_dims; let dim_index = index">
-                <h3>Dimension {{dim_index + 1}}</h3>
+                <!-- <h3>Dimension {{dim_index + 1}}</h3> -->
                 <div class="selected_value_wrapper" *ngFor="let selected_value of selectedValues[dim_index]; let j = index">
                     <p>{{selected_value}}</p>
                     <button mat-icon-button (click)="deleteValue(dim_index, j)">
@@ -34,7 +34,7 @@
     <footer>
         <div id="dialog-actions" mat-dialog-actions>
             <button mat-button mat-dialog-close cdkFocusInitial (click)="close()">Close</button>
-            <button mat-button mat-dialog-close (click)="ok()">Ok</button>
+            <button mat-button mat-dialog-close (click)="ok()">OK</button>
         </div>
     </footer>
 </body>

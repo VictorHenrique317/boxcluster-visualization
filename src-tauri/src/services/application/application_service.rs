@@ -1,8 +1,9 @@
 #![allow(non_snake_case)]
 use std::{collections::{HashMap, HashSet}, time::Instant};
 use itertools::Itertools;
+use rayon::vec;
 
-use crate::{common::generic_error::GenericError, database::{datapoint::DataPoint, intersections_details::IntersectionsDetails, pattern::Pattern, raw_pattern::RawPattern}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper, io::translator::Translator}, services::{io_service::IoService, plot_service::PlotService}};
+use crate::{common::generic_error::GenericError, database::{datapoint::DataPoint, intersections_details::IntersectionsDetails, pattern::Pattern, raw_pattern::RawPattern}, model::{analysis::metrics::metric::Metric, identifier_mapper::IdentifierMapper, identifier_representation::IdentifierRepresentation, io::translator::Translator}, services::{io_service::IoService, plot_service::PlotService}};
 use super::application_state_service::ApplicationStateService;
 
 use ndarray::{IxDynImpl, Dim};
@@ -293,11 +294,18 @@ impl ApplicationService{
         return self.application_state_service.getCurrentLevelBackgroundDensity();
     }
 
-    pub fn getAllDimsValues(&self) -> Result<Vec<Vec<String>>, GenericError> {
-        let mut all_dims_values: Vec<HashSet<String>> = self.getIdentifierMapper()?.getRepresentation(&1)?.asPattern()?
-            .dims_values.iter().map(|_| HashSet::new()).collect();
+    pub fn getAllDimsValues(&self) -> Result<Vec<Vec<String>>, GenericError> {        
+        let visible_identifiers = self.application_state_service.getVisibleIdentifiers()?;
+        let representations = self.getIdentifierMapper()?.getRepresentationsFrom(&visible_identifiers);
+        let first_representation = match representations.first() {
+            Some(IdentifierRepresentation) => representations.first().unwrap(),
+            None => return Ok(vec![]),
+        };
 
-        for representation in self.getIdentifierMapper()?.getRepresentations().iter(){
+        let mut all_dims_values: Vec<HashSet<String>> = first_representation.asRawPattern(self.getTranslator())?.dims_values.iter()
+            .map(|dim_values| dim_values.iter().map(|value| value.to_string()).collect())
+            .collect();
+        for representation in representations.iter(){
             let pattern = representation.asRawPattern(self.getTranslator())?;
 
             for (i, dim_values) in pattern.dims_values.iter().enumerate(){
@@ -308,7 +316,11 @@ impl ApplicationService{
         }
 
         let all_dims_values: Vec<Vec<String>> = all_dims_values.iter()
-            .map(|dim_values| dim_values.iter().map(|value| value.to_string()).collect())
+            .map(|dim_values| {
+                let mut  vec: Vec<String> = dim_values.iter().map(|value| value.to_string()).collect();
+                vec.sort();
+                return vec;
+            })
             .collect();
 
         return Ok(all_dims_values);
