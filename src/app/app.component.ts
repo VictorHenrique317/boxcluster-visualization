@@ -146,7 +146,7 @@ export class AppComponent implements AfterViewInit, OnDestroy{
 
     this.tensor_path = event.tensor_path;
     this.patterns_path = event.patterns_path;
-    
+    this.previous_filters = [];
     try{
       await this.api_service.initApplication(this.tensor_path, this.patterns_path);
     } catch(error){
